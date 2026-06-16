@@ -57,22 +57,28 @@ Hennepin parcel
 ```
 
 Per Hennepin County's published assessment page, **eight cities assess their own property** and are
-contacted directly rather than through the county assessor:
+contacted directly rather than through the county assessor. Their appeal formats (verified for the 26p27
+cycle) are below:
 
-| Self-assessing city | Assessor phone | Assessor email |
-|---------------------|----------------|----------------|
-| Bloomington | 952-563-8722 | assessing@bloomingtonmn.gov |
-| Brooklyn Park | 763-493-8175 | assessing@brooklynpark.org |
-| Eden Prairie | 952-949-8511 | assessing@edenprairie.org |
-| Edina | 952-826-0365 | — |
-| Maple Grove | 763-494-6250 | assessing@maplegrovemn.gov |
-| Minneapolis | 612-673-3000 | assessor@minneapolismn.gov |
-| Minnetonka | 952-939-8220 | assessor@minnetonkamn.gov |
-| St. Louis Park | 952-924-2535 | slpassess@stlouisparkmn.gov |
+| Self-assessing city | Appeal format (26p27) | Phone | Email |
+|---------------------|----------------------|-------|-------|
+| Bloomington | **Local Board** — formal hearing (≈mid-April); pre-discuss with the assessor first | 952-563-8722 | assessing@bloomingtonmn.gov |
+| Brooklyn Park | **Local Board** — present evidence to the city board | 763-493-8175 | assessing@brooklynpark.org |
+| Eden Prairie | **Local Board** — pre-discuss with assessor by late March; board ≈early April; appealable only to the county | 952-949-8511 | assessing@edenprairie.org |
+| Edina | **Local Board** — application to attend, date on the value notice | 952-826-0365 | — |
+| Maple Grove | **Transferring to Hennepin County** (assessing moves to the county July 2026; local board transferred; no city open book) — appeal to the County Board | 763-494-6250 | assessing@maplegrovemn.gov |
+| Minneapolis | **Local Board** — written appeals decided **without inspection or department presentation** (city policy) | 612-673-3000 | assessor@minneapolismn.gov |
+| Minnetonka | **Local Board** + **open-book appraiser review with inspection** | 952-939-8220 | assessor@minnetonkamn.gov |
+| St. Louis Park | Informal assessor review available; Local Board vs. Open Book **not confirmed from public sources** — confirm on the notice | 952-924-2535 | slpassess@stlouisparkmn.gov |
 
-Every **other** city and township in Hennepin is assessed by the **Hennepin County Assessor**. Confirm
-the list against the county's page each year — it changes as cities transfer assessment to or from the
-county — and let the valuation notice resolve any single parcel.
+Every **other** city and township in Hennepin is assessed by the **Hennepin County Assessor**.
+
+> **This list and these formats are not static — re-verify them every year.** Hennepin cities are
+> actively transferring assessment to the county. **Maple Grove** is the live example: it is handing
+> assessing to Hennepin County beginning **July 2026**, so for 27p28 a Maple Grove parcel is a
+> county-assessed, county-board parcel — not a self-assessing-city parcel. Expect the self-assessing
+> list to keep shrinking; **confirm it against the county's page before each season**, and let each
+> parcel's valuation notice be the authority.
 
 ### Local Board vs. Open Book — what the difference actually is
 
