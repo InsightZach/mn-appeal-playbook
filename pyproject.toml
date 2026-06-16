@@ -1,0 +1,11 @@
+[project]
+name = "mn-appeal-playbook"
+version = "0.1.0"
+description = "Minnesota residential property tax appeal playbook — data collection, triage, and packet tooling for Ramsey and Hennepin counties."
+requires-python = ">=3.11"
+dependencies = [
+    "requests>=2.31",
+]
+
+[tool.uv]
+package = false
