@@ -18,10 +18,19 @@ result.
 
 1. **Collect** — `python -m scripts.collect "<address-or-pid>" --county <ramsey|hennepin> --output <dir>/`
    Gathers subject, 3-year assessments, neighborhood comps, recent sales. Verify the resolved PID matches.
-2. **Triage** — `python -m scripts.triage <dir>/collected_data.json --baseline-emv <listed value>`
-   Scores the over-assessment signals and emits a verdict.
+2. **Triage** — `python -m scripts.triage <dir>/collected_data.json [--baseline-emv <listed value>]`
+   Scores the over-assessment signals and emits a verdict. **`--baseline-emv` is only for reconciling
+   against a lagging source spreadsheet** (a listed value that may match a prior assessment year). For an
+   **address-first lookup there is no source value — omit it** and rely on the assessments pulled by
+   collect; `baseline_comparison: null` is the expected output in that case.
 3. **Judgment** — apply [`triage-judgment.md`](triage-judgment.md) to the collected data + triage output.
    Confirm the verdict, set the recommended ask, record caveats.
+   - **Worth-it threshold (after the ask is set).** `analysis.json` carries `tax_economics.etr` and
+     `savings_per_10k_reduction`; its `illustrative_savings` is illustrative only. Once the judgment sets a
+     concluded ask, compute the actual economic gate from [`docs/04-triage-decision.md`](../docs/04-triage-decision.md)
+     / [`docs/09-reduction-math.md`](../docs/09-reduction-math.md): `likely reduction × ETR × contingency %`
+     (× years held). If it does not clear the fully-loaded cost to pursue, fall back to no-appeal even on a
+     genuine angle.
 4. **Generate** — if the verdict is an angle, run [`appeal-packet.md`](appeal-packet.md); otherwise run
    [`no-appeal-findings.md`](no-appeal-findings.md). QA the output.
 

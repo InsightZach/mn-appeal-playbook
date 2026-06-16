@@ -54,6 +54,8 @@ SUBJECT_FIELDS = [
     "EMVLand",
     "EMVBuilding",
     "EMVTotal",
+    "SalePrice",
+    "LastSaleDate",
     "TaxYear",
     "EMVYear",
     "Latitude",
@@ -241,6 +243,8 @@ def _subject_from_attrs(attrs: dict[str, Any]) -> dict[str, Any]:
         "land_use": attrs.get("LandUseCodeDescription") or attrs.get("LandUseCode"),
         "parcel_acres": attrs.get("ParcelAcresDeed"),
         "plat_name": attrs.get("PlatName"),
+        "last_sale_price": attrs.get("SalePrice") or None,
+        "last_sale_date": _parse_epoch_ms(attrs.get("LastSaleDate")),
     }
 
 

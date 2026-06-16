@@ -13,6 +13,13 @@ appeal-worthy from the fairly-assessed.
 | Signal | What it means | Strength |
 |--------|---------------|----------|
 | **Subject's own recent sale below EMV** | The property itself sold (arm's-length) below its assessed value | Strongest single signal |
+
+> **What "recent" means, and who applies it.** The **script** flags *any* own sale below EMV — it does not
+> judge recency. The recency judgment (the **~2-year governing / ~4-year corroborating-only** horizon) is
+> applied **downstream** by [`triage-judgment.md`](../prompts/triage-judgment.md) and
+> [`methodology.md`](../prompts/methodology.md#own-sale-relevance-horizon-single-rule); a sale older than
+> ~4 years is *not* a market-value floor. Read the "strongest signal" rating above as the **recent** case;
+> a stale own sale is corroboration of direction at most.
 | **Comparable arm's-length sales below EMV** | Good-for-state-study sales of similar homes closed below the subject's assessment | Strong |
 | **Building $/SF in the top percentiles vs. peers** | Subject assessed higher per square foot than most comparable homes | Strong |
 | **Land $/SF above comparable lots** | Land line is rich relative to the same block/plat | Moderate; check for value tiers |

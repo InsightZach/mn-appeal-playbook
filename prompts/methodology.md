@@ -86,12 +86,49 @@ can be reduced **even below market value**. Build it as a standalone argument wh
 $/SF (building and/or land) sits above its peer group — not merely as a tie-breaker. Anchor it in the
 neighborhood's assessed-value distribution, not a vague "peers were flat."
 
+**Give equalization its own bounding logic — it is an independent indicated value, not a comp.** Compute
+the equalized total as a standalone figure: pull the subject's assessed building $/SF down to a
+**defensible peer percentile** (use the **p75–p90** band — not the median, unless the median is itself
+defensible for this subject's grade/condition) **× subject SF**, plus a parallel treatment of land $/SF
+where the land line is the inequity. Present the equalized total as an indicated value that the
+reconciliation **may adopt below both the sales range and the subject's own sale** — but only when
+assessment-level inequity is the **explicit, stated basis** (*Federated Mutual*), not as a silent
+override of the sales conclusion.
+
+**Which $/SF basis the inequity rests on.** The building-line assessed $/SF and the subject's total
+EMV/SF can tell different stories — a thin building-line gap can coexist with a rich total assessment, or
+the reverse. When they diverge, **prefer comparing the subject's total EMV/SF against the sold-comp total
+EMV/SF distribution**: it captures land and building together and ties to what properties actually sold
+for. **State explicitly which basis the equalized number rests on** (building-line $/SF, land-line $/SF,
+or total EMV/SF) so the request is auditable.
+
+**The band-floor neutrality rule.** An equalization **reduction exists only when the subject's $/SF is
+ABOVE the percentile you equalize down to.** If the subject sits at or below the band floor (e.g. its
+building $/SF is at p75, so equalizing to p75 reproduces the EMV), **equalization is neutral** — there is
+no inequity to correct, and the **sales conclusion governs**. Do not present a "reduction" that
+equalizing to the band would not actually produce.
+
 ## Reconciliation
 
 - Weigh the methods by data quality and buyer behavior; explain the weight in one or two sentences.
-- **Reconcile to a value the evidence brackets.** Never request a number below every adjusted comp — it
-  invalidates the analysis and reads as arbitrary.
+- **The "bracket the subject / never below every adjusted comp" rule governs the SALES-COMPARISON
+  conclusion only.** Within the sales grid, never reconcile to a $/SF below every adjusted comp — it
+  invalidates the grid and reads as arbitrary.
+- **Equalization is exempt from that floor.** Because it is an independent indicated value (above), the
+  reconciliation may conclude below the sales range *and* below the subject's own sale when equalization
+  is the explicit basis and the assessment-level inequity is shown. When the sales conclusion and the
+  equalized value disagree, state which one governs and why — do not average them.
 - State the effective date (January 2 of the assessment year) in the conclusion.
+
+## Own-sale relevance horizon (single rule)
+
+The subject's own arm's-length sale is the strongest single indicator, but its weight decays with age:
+
+- **Within ~2 years** of the effective date: the **unadjusted** own sale is governing.
+- **~2–3 years** out: **time-trend** the sale to the effective date at the default time rate
+  (≈ +0.25%/month, ≈ 3%/yr — calibrate to local paired sales) and treat the trended figure as governing.
+- **Beyond ~3–4 years**: **corroborating only** — it supports the direction of the conclusion but does not
+  set it; lead with current comp sales and equalization instead.
 
 ## EMV cross-check (reconciliation aid)
 

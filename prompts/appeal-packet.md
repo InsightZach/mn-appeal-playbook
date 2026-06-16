@@ -19,6 +19,11 @@ a value the evidence brackets.
 - The triage-judgment output (verdict, recommended ask, caveats).
 - Any owner-supplied condition evidence (photos, inspection reports, repair estimates), if available.
 
+> **Stop-and-bounce guard.** If, on independent reconciliation, the comp-median and equalization **both**
+> land at or above EMV and there is **no** own-sale below EMV, stop and route to
+> [`no-appeal-findings.md`](no-appeal-findings.md) — do not manufacture a packet for a fairly-assessed
+> property.
+
 ## Requirements
 
 1. **Use the current assessment-year value as the baseline** — never a prior-year EMV. State it and its
@@ -34,7 +39,10 @@ a value the evidence brackets.
    - **Equalization** — when the subject's assessed $/SF sits above its peer group (independent basis,
      *Federated Mutual*).
    - **Condition / CAMA-error correction** — where the county's grade, condition, SF, or basement finish
-     is wrong for this property. The most durable argument; it corrects their own record.
+     is wrong for this property. The most durable argument; it corrects their own record. **Note: Ramsey's
+     `collected_data.json` carries no grade / condition / CAMA / structure detail** (see
+     [`docs/10-data-schema.md`](../docs/10-data-schema.md)) — this approach requires a **manual Beacon /
+     CAMA pull** for Ramsey, so do not attempt a condition/CAMA argument from the collected data alone.
    - **Cost-to-cure** and **EMV cross-check** — where deferred maintenance and a land issue both apply.
 3. **Reconcile by reliability — this is the judgment, and it is yours, not the script's.** Each approach
    produces a *standalone indicated value* (the sales grid's supported $/SF × subject SF; the equalization
@@ -42,14 +50,45 @@ a value the evidence brackets.
    force the conclusion inside the comp range. Weigh each by data quality and **conclude on the strongest
    evidence**:
    - The subject's **own recent arm's-length sale is the single most reliable indicator.** When it diverges
-     from the comp grid, conclude on the own sale and say why. **Never conclude a value below a recent
-     arm's-length sale of the subject** — even if the adjusted comps point lower (inferior comps adjusted
-     imperfectly are weaker evidence than the subject's actual transaction).
+     from the comp grid, conclude on the own sale and say why. The own sale is a **MARKET-VALUE floor**:
+     never conclude a *market value* below a recent arm's-length sale of the subject — even if the adjusted
+     comps point lower (inferior comps adjusted imperfectly are weaker evidence than the subject's actual
+     transaction). **"Recent" is numeric, tied to [`methodology.md`](methodology.md)'s own-sale horizon:**
+     within **~2 years** of the effective date the unadjusted sale governs (is the floor); at **~2–3 years**
+     time-trend it to the effective date first, then treat the trended figure as the floor. **A stale own
+     sale (> ~4 years before the effective date) is NOT a market-value floor and must be excluded from the
+     conclusion** — note it as corroboration of direction at most; lead with current comp sales and
+     equalization to set the value.
+   - **Equalization carve-out (Requirement 3).** The own-sale floor governs the **market-value**
+     conclusion only. An equalization (*Federated Mutual*) reduction is an **independent basis** that may
+     conclude **below both market value and the own sale** — but only when assessment-level inequity is the
+     **explicit, stated basis**. So for the common-looking "own sale supports the EMV, but the subject is
+     assessed well above its peers" case: the market-value conclusion holds at the own sale, *and* you may
+     additionally present an equalized value below it, stated as an equalization request, not as a market
+     value. Say which basis the requested number rests on.
    - State each approach's standalone indicated value, then the concluded value with a one-to-two-sentence
      weighting rationale. The reader must see the judgment that produced the number.
-   - *Worked example (884 Ashland):* the sales grid indicated ~$409K and equalization was roughly neutral,
-     but the subject's own arm's-length sale was $470K. Concluded value = **$470K** (the own sale governs;
-     the comps corroborate that the EMV is high but are not adopted below the actual sale).
+   - *Worked example (884 Ashland — own sale present, governs market value):* the sales grid indicated
+     ~$409K and equalization was roughly neutral, but the subject's own arm's-length sale was $470K.
+     Concluded value = **$470K** (the own sale governs; the comps corroborate that the EMV is high but are
+     not adopted below the actual sale). *(Its inverse — own sale supports EMV but equalization supports a
+     reduction — is resolved by the carve-out above: conclude market value at/near the own sale, then make
+     the equalization request as the independent basis for going below it.)*
+   - *Worked example (no own sale — sales vs. equalization disagree):* the subject has **no** recent
+     arm's-length sale of its own. The default hierarchy applies: **arm's-length comparable sales lead**
+     (reconciled $/SF × subject SF), and **equalization corroborates** the comp conclusion. Equalization
+     justifies going *below* the market (comp) value only when **top-percentile inequity** (e.g. building
+     $/SF ≥ p90 vs peers) is the **explicit stated basis** — otherwise the comp-sales conclusion governs.
+     Example: comps reconcile to $185/SF × 2,200 SF = **$407K** while the equalized building line implies
+     ~$380K at p80. With a genuine p90+ building inequity you may request **$380K on the equalization
+     basis**; absent that, conclude **$407K** on the sales basis. State the concluded value as **reconciled
+     $/SF × subject SF**, naming the governing basis.
+   - *Worked example (436 Mount Curve — STALE own sale, the SALES comparison governs):* the subject last
+     sold for **$405,000 in 2002** — **~23 years** before the effective date, far outside the ~4-year
+     horizon. That sale is **discarded** (it is not a floor and its raw delta vs current EMV is
+     meaningless). The conclusion is set by **size-matched comparable sales**: the comp median runs
+     **~$307/SF × subject SF ≈ $531K**, which governs. The 2002 sale appears, if at all, only as a note that
+     the direction (EMV well above historical basis) is consistent — never as the value.
 4. **QA before output:** correct owner of record; correct current-year baseline; specs match the record
    (corrections flagged as corrections); requested value matches the reconciliation; comp figures match
    the source data; dates correct.

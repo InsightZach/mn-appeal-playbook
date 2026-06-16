@@ -134,12 +134,23 @@ def multi_model_convergence(
     central = sum(vs) / len(vs)
     spread_pct = ((max(vs) - min(vs)) / central * 100) if central else 0.0
     verdict = "tight" if spread_pct < 5 else "loose"
-    return {
+    result = {
         "values": values,
         "spread_pct": spread_pct,
         "central": central,
         "verdict": verdict,
     }
+    # A single model (or a trivially-tight spread ~0) is a directional screen
+    # over all comp sizes, NOT a reconciled, size-matched sales indication. The
+    # central figure mixes small high-$/SF homes into a whole-neighborhood
+    # average and can run high; de-rate it and label so a reader cannot adopt it
+    # as the defensible ask. Reconcile size-matched comps per appeal-packet.md.
+    if len(values) < 2 or spread_pct < 0.5:
+        result["central_label"] = (
+            "single regression model over all sizes — directional screen only, not a "
+            "reconciled sales value; reconcile size-matched comps per appeal-packet.md"
+        )
+    return result
 
 
 def compute_psf_from_sale(
