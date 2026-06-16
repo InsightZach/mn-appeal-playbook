@@ -8,6 +8,11 @@ support: the building $/SF looks high against a broad median, but the immediate
 peer group and a real arm's-length sale show the assessment is fair.
 Figures are real Ramsey County assessment + sale data.
 """
+# NOTE — this is a FIXTURE / DEMO. The data dict below was authored by reasoning
+# (the reconciliation, the concluded value, the narrative) — in production an agent
+# running prompts/appeal-packet.md (or no-appeal-findings.md) produces this dict from
+# the collected data, and this file just renders it. The script never decides the value.
+
 from pathlib import Path
 
 from report.no_appeal_generator import generate_no_appeal_report

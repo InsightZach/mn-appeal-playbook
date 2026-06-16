@@ -7,6 +7,11 @@ and supported-value method.
 Figures are real Ramsey County assessment data + the MLS sale record. Per-comp
 condition is illustrative (in production it is verified from listing/CAMA review).
 """
+# NOTE — this is a FIXTURE / DEMO. The data dict below was authored by reasoning
+# (the reconciliation, the concluded value, the narrative) — in production an agent
+# running prompts/appeal-packet.md (or no-appeal-findings.md) produces this dict from
+# the collected data, and this file just renders it. The script never decides the value.
+
 from pathlib import Path
 
 from report.appeal_generator import generate_appeal_report
