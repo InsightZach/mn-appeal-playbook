@@ -37,6 +37,12 @@ a value the evidence brackets.
 4. **QA before output:** correct owner of record; correct current-year baseline; specs match the record
    (corrections flagged as corrections); requested value matches the reconciliation; comp figures match
    the source data; dates correct.
+5. **Include at least one chart.** Add a visual that makes the argument land at a glance — built as
+   **inline SVG, no external libraries** (so it renders and prints anywhere). Good options: a building (or
+   land) **$/SF bar chart** of the subject vs. the neighborhood comps with the subject highlighted and a
+   median reference line; or a **sales adjusted-value bracket** showing each comp's adjusted value with the
+   subject's own sale marked inside the range. Use the brand palette (navy `#0A2647`, gold `#d7b971`,
+   orange `#e65100` for reference lines), label axes, and put the subject in gold.
 
 ## Output structure
 
