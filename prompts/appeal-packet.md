@@ -25,8 +25,12 @@ a value the evidence brackets.
    effective date.
 2. **Use more than one method.** A bare three-comp sales grid is the weakest defensible form. Build the
    methods the evidence supports:
-   - **Sales comparison** — good-for-state-study comps only; bracket the subject; adjust per the grid with
-     same-type support; apply gross-adjustment thresholds.
+   - **Sales comparison ($/SF method)** — good-for-state-study comps only. Adjust each comp's **sale
+     $/SF** for time, condition, quality, and lot (size is *not* a grid line — it is resolved by applying
+     the reconciled $/SF to the subject's own SF). That yields an **adjusted $/SF** per comp and an
+     indicated subject value (adjusted $/SF × subject SF). Reconcile to a supported $/SF (mean/median) and
+     report the **supported value = reconciled $/SF × subject SF**. Bracket the subject; use same-type
+     support for every adjustment; apply gross-adjustment thresholds.
    - **Equalization** — when the subject's assessed $/SF sits above its peer group (independent basis,
      *Federated Mutual*).
    - **Condition / CAMA-error correction** — where the county's grade, condition, SF, or basement finish
@@ -61,3 +65,13 @@ Produce the packet narrative in this order:
 
 Write plainly and factually, in the register of one appraiser talking to another. No filler, no
 overstatement, no citing automated-estimate sources as evidence. Flag every assumption.
+
+## Rendering — use the framework, don't hand-build HTML
+
+The branded HTML packet is produced by the report framework in [`report/`](../report/) —
+`generate_appeal_report(data)` renders every section from one data dict. The `$/SF` adjustment grid and
+supported-value math live in `report/shared_components.render_adjustment_grid` (pass
+`adjustment_grid_subject_sf` to switch it into $/SF mode). The equalization chart is a native scatter
+(`building_emv_chart`). See [`scripts/render_sample.py`](../scripts/render_sample.py) for the complete data
+contract worked end-to-end — it generates `examples/sample-appeal-packet.html`. Assemble the dict from your
+analysis and call the generator; set `meta.brand` to the firm name. Do not re-implement the HTML by hand.

@@ -1,0 +1,172 @@
+/* Screen helpers (applied both screen and print) */
+.section-sub {
+  color: #666;
+  font-size: 0.92rem;
+  font-style: italic;
+  margin: -0.4rem 0 0.8rem;
+}
+
+.approach-close {
+  background: #0A2647;
+  color: #FFFFFF;
+  padding: 0.9rem 1.3rem;
+  border-radius: 8px;
+  margin: 1rem 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+.approach-close .ac-label {
+  color: #d7b971;
+  font-weight: 600;
+  font-size: 0.95rem;
+  letter-spacing: 0.02em;
+}
+.approach-close .ac-value {
+  color: #d7b971;
+  font-weight: 700;
+  font-size: 1.5rem;
+}
+.approach-close .ac-note {
+  color: #dde;
+  font-size: 0.82rem;
+  width: 100%;
+  margin-top: 0.3rem;
+}
+
+.reconcile-table { font-size: 0.95rem; }
+.reconcile-table td { padding: 0.6rem 0.8rem; }
+.reconcile-table .weight { font-size: 0.85rem; color: #666; }
+
+/* Photo cards — square crop by default */
+.photo-card img {
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  display: block;
+  width: 100%;
+}
+
+@media print {
+  @page { size: letter; margin: 0.5in 0.45in; }
+
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  html, body { font-size: 10pt !important; line-height: 1.4 !important; }
+
+  .header {
+    padding: 0.8rem 1.5rem !important;
+    page-break-after: avoid;
+    page-break-inside: avoid;
+  }
+  .header h1 { font-size: 14pt !important; }
+  .header .brand { font-size: 11pt !important; }
+
+  .container { max-width: 100% !important; padding: 0.8rem 0 !important; }
+
+  h2 {
+    font-size: 13pt !important;
+    margin: 0.6rem 0 0.3rem !important;
+    page-break-after: avoid;
+  }
+  h3 {
+    font-size: 11pt !important;
+    margin: 0.4rem 0 0.3rem !important;
+    page-break-after: avoid;
+  }
+  p { margin: 0.3rem 0 !important; }
+
+  table {
+    font-size: 9pt !important;
+    margin: 0.4rem 0 !important;
+  }
+  /* Long tables may split; short tables avoid breaks */
+  tr { page-break-inside: avoid; }
+  thead { display: table-header-group; }
+  table.small,
+  table.reconcile-table { page-break-inside: avoid; }
+  th, td { padding: 3pt 6pt !important; }
+
+  .card, .callout, .callout-red, .recommendation,
+  .conclusion, .finding, .alert, .approach-close {
+    page-break-inside: avoid;
+    break-inside: avoid;
+    margin: 0.4rem 0 !important;
+    padding: 0.55rem 0.85rem !important;
+  }
+
+  .two-col { grid-template-columns: 1fr 1fr !important; gap: 0.6rem !important; }
+
+  .photo-grid {
+    grid-template-columns: 1fr 1fr 1fr !important;
+    gap: 0.3rem !important;
+    page-break-inside: avoid;
+    margin: 0.4rem 0 !important;
+  }
+  .photo-card img {
+    aspect-ratio: 1 / 1 !important;
+    height: auto !important;
+    max-height: 1.5in !important;
+    width: 100% !important;
+    object-fit: cover !important;
+  }
+  .photo-card .caption { font-size: 7pt !important; padding: 2pt 4pt !important; }
+
+  .stats {
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 0.4rem !important;
+    page-break-inside: avoid;
+  }
+  .stat { padding: 0.5rem !important; }
+  .stat .value { font-size: 12pt !important; }
+  .stat .label { font-size: 7.5pt !important; }
+
+  /* Map: scale the absolute-positioned container proportionally so label
+     positions (pixel-based) track the background image. */
+  .container > div[style*="width:1000px"],
+  .container > div[style*="width: 1000px"] {
+    transform: scale(0.72);
+    transform-origin: top left;
+    width: 1000px !important;
+    height: 700px !important;
+    margin: 0 0 -195px 0 !important;
+    page-break-inside: avoid;
+  }
+  .container > div[style*="width:1000px"] img,
+  .container > div[style*="width: 1000px"] img {
+    width: 1000px !important;
+    height: 700px !important;
+  }
+
+  /* Inline SVG scatter plots — cap height so they don't eat a whole page */
+  svg {
+    max-width: 100% !important;
+    height: auto !important;
+    page-break-inside: avoid;
+  }
+  svg[viewBox] {
+    max-height: 3.2in !important;
+  }
+
+  /* Approach-close cards keep their navy background in print */
+  .approach-close {
+    background: #0A2647 !important;
+    color: #fff !important;
+  }
+  .approach-close .ac-label,
+  .approach-close .ac-value { color: #d7b971 !important; }
+  .approach-close .ac-note { color: #dde !important; }
+
+  .conclusion, .recommendation {
+    background: #0A2647 !important;
+    color: #fff !important;
+  }
+  .recommendation {
+    background: #e8f5e9 !important;
+    color: #333 !important;
+  }
+}
