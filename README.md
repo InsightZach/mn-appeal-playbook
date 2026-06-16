@@ -37,6 +37,7 @@ These two counties teach the two cases any multi-jurisdiction appeal program mus
 | 7 | [Inspections](docs/07-inspections.md) | When they happen, setup, rep presence, owner prep, follow-through |
 | 8 | [Negotiation & Escalation](docs/08-negotiation-escalation.md) | The decision gate, procedural levels and leverage, the Tax Court backstop |
 | 9 | [Reduction Math](docs/09-reduction-math.md) | Tax savings = reduction × ETR; the prior-year-ETR proxy |
+| 10 | [Data Schema](docs/10-data-schema.md) | Field-by-field shape and source of the collector + triage output |
 
 Plus the [assessor contact directory](contacts/).
 
