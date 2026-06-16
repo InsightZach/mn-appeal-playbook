@@ -1,0 +1,15 @@
+# Internal strategy / planning — never share
+PLAN.md
+STRATEGY-INTERNAL.md
+
+# Data & caches — code only
+data/
+*.db
+__pycache__/
+.venv/
+*.pyc
+.DS_Store
+
+# Working/raw artifacts
+examples/raw/
+*.cache
