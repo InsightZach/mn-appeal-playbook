@@ -46,8 +46,8 @@ Plus the [assessor contact directory](contacts/).
 collectors/   residential data collectors for Ramsey and Hennepin (+ county scraping guides)
 analysis/     over-assessment analysis: equalization, sales regression, killer comp, condition
 scripts/      collect.py (gather county data) and triage.py (score + verdict)
-prompts/      appeal-packet and triage-judgment prompts   (in progress)
-examples/     sanitized end-to-end worked properties        (in progress)
+prompts/      packet-gen, triage-judgment, no-appeal, methodology, orchestration
+examples/     three sanitized 26p27 worked properties (Ramsey, Minneapolis, Minnetonka)
 ```
 
 ### Quick start
