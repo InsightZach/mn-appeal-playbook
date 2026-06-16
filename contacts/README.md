@@ -23,7 +23,7 @@ Ramsey County assesses every city and township in the county. One office handles
 
 Hennepin assesses most suburbs; several cities self-assess. All paths funnel to the Hennepin County Board.
 
-### Hennepin County Assessor (for county-assessed cities)
+### Hennepin County Assessor (for all county-assessed cities and townships)
 
 | Field | Value |
 |-------|-------|
@@ -31,24 +31,35 @@ Hennepin assesses most suburbs; several cities self-assess. All paths funnel to 
 | Email | assessor.ao@hennepin.us |
 | County Board appointments | countyvalueappeal@hennepin.us |
 | Phone (county board appts) | 612-348-7050 |
+| County Board | convenes mid-June; notify by the date on the valuation notice |
 
-### City of Minneapolis Assessing (self-assessing)
+### Self-assessing cities in Hennepin (contact the city directly)
 
-| Field | Value |
-|-------|-------|
-| Office | City of Minneapolis Assessing, 350 Fifth St. S., Room 100, Minneapolis, MN 55415 |
-| Email | assessor@minneapolismn.gov |
-| Phone | verify (city assessing main line) |
-| Appeal format | **Written appeal to the Local Board — no inspection / no department presentation by policy.** Engage *before* this stage; plan for the county board / Tax Court if the written appeal is sustained. |
+Per Hennepin County's published list, these eight cities assess their own property. Every other Hennepin
+jurisdiction goes through the county assessor above.
 
-### City of Minnetonka Assessing (self-assessing)
+| City | Phone | Email |
+|------|-------|-------|
+| Bloomington | 952-563-8722 | assessing@bloomingtonmn.gov |
+| Brooklyn Park | 763-493-8175 | assessing@brooklynpark.org |
+| Eden Prairie | 952-949-8511 | assessing@edenprairie.org |
+| Edina | 952-826-0365 | — |
+| Maple Grove | 763-494-6250 | assessing@maplegrovemn.gov |
+| **Minneapolis** | 612-673-3000 | assessor@minneapolismn.gov |
+| **Minnetonka** | 952-939-8220 | assessor@minnetonkamn.gov |
+| St. Louis Park | 952-924-2535 | slpassess@stlouisparkmn.gov |
 
-| Field | Value |
-|-------|-------|
-| Office | City of Minnetonka, 14600 Minnetonka Blvd., Minnetonka, MN 55345 |
-| Email | assessor@minnetonkamn.gov |
-| Phone | 952-939-8222 |
-| Appeal format | **Open book with appraiser inspection.** The city appraiser inspects, corrects the property record, and can agree to a revised value before the county board. |
+**Confirmed appeal formats (from the 26p27 cycle):**
+
+- **Minneapolis** — 350 Fifth St. S., Room 100, Minneapolis, MN 55415. Runs a **Local Board**; written
+  appeals are decided **without inspection or department presentation** (city policy). Engage *before*
+  the Local Board, or plan for the county board / Tax Court if a written appeal is sustained.
+- **Minnetonka** — 14600 Minnetonka Blvd., Minnetonka, MN 55345 (main 952-939-8220). Runs a **Local
+  Board** *and* **open-book appraiser review with inspection** — the appraiser inspects, corrects the
+  property record, and can agree to a revised value before the county board.
+
+For the other six self-assessing cities, confirm the format (Local Board vs. Open Book, inspection or
+not) at the start of the season — it is stated on the valuation notice.
 
 ## How to find the right office for any other parcel
 

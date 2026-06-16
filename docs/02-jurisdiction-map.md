@@ -56,9 +56,41 @@ Hennepin parcel
                         Minnesota Tax Court (petition by April 30 of payable year)
 ```
 
-Cities that have historically self-assessed include **Minneapolis, Minnetonka, Bloomington, Edina, St.
-Louis Park**, and others. **Confirm the current list with Hennepin County each year** — do not hard-code
-it. The valuation notice resolves it per parcel.
+Per Hennepin County's published assessment page, **eight cities assess their own property** and are
+contacted directly rather than through the county assessor:
+
+| Self-assessing city | Assessor phone | Assessor email |
+|---------------------|----------------|----------------|
+| Bloomington | 952-563-8722 | assessing@bloomingtonmn.gov |
+| Brooklyn Park | 763-493-8175 | assessing@brooklynpark.org |
+| Eden Prairie | 952-949-8511 | assessing@edenprairie.org |
+| Edina | 952-826-0365 | — |
+| Maple Grove | 763-494-6250 | assessing@maplegrovemn.gov |
+| Minneapolis | 612-673-3000 | assessor@minneapolismn.gov |
+| Minnetonka | 952-939-8220 | assessor@minnetonkamn.gov |
+| St. Louis Park | 952-924-2535 | slpassess@stlouisparkmn.gov |
+
+Every **other** city and township in Hennepin is assessed by the **Hennepin County Assessor**. Confirm
+the list against the county's page each year — it changes as cities transfer assessment to or from the
+county — and let the valuation notice resolve any single parcel.
+
+### Local Board vs. Open Book — what the difference actually is
+
+This is not a stylistic choice; it reflects whether a jurisdiction **kept or transferred its Board of
+Appeal & Equalization powers** (Minn. Stat. §§ 274.01, 274.014):
+
+- **Local Board of Appeal & Equalization (LBAE)** — the jurisdiction **retained** its board and holds a
+  formal local board meeting (statutorily between **April 1 and May 31**). You appear, present evidence,
+  and the board votes to sustain or modify.
+- **Open Book** — the jurisdiction **transferred** its board powers to the county, so the county provides
+  an informal Open Book review (**April–May**) in lieu of a local board. An appraiser discusses the value
+  and can adjust it; there is no board vote.
+
+**The sequencing rule:** you must complete the first-level review (Local Board *or* Open Book) before the
+County Board. Where a jurisdiction has **no** local board, you appeal directly to the county board after
+open book. In Hennepin, the self-assessing cities generally run their own local board (Minneapolis and
+Minnetonka both do); county-assessed jurisdictions are served by the county's Open Book. Confirm each
+city's format — it is stated on the valuation notice.
 
 ### The two formats, illustrated — Minneapolis vs. Minnetonka
 

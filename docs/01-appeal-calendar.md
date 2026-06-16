@@ -35,6 +35,24 @@ The rhythm does not change:
 > **Rule:** you must appear at the **local board (or open book) before** you can be heard at the
 > **county board**. Skipping the first level forecloses the second.
 
+### Statutory date windows
+
+The exact dates print on each year's valuation notice, but the windows are set by statute and do not
+move much:
+
+| Stage | Statutory / customary window | Authority |
+|-------|------------------------------|-----------|
+| Valuation notices mailed | ~mid-to-late March (at least 10 days before the local board) | Minn. Stat. § 273.121 |
+| Open Book review (transferred jurisdictions) | **April–May** | Minn. Stat. § 274.014 |
+| **Local Board** of Appeal & Equalization | meets **between April 1 and May 31** | Minn. Stat. § 274.01 |
+| **County Board** of Appeal & Equalization | convenes in **June** (Hennepin: mid-June; Ramsey: the special board meets after the **2nd Friday in June**, up to 10 consecutive meeting days) | Minn. Stat. §§ 274.13–274.14 |
+| Request to be heard at the County Board | by the date on the valuation notice (often late April / early May) | per county |
+| Tax Court petition | **April 30 of the payable year** | Minn. Stat. § 278.01 |
+
+> Local board dates are jurisdiction-specific (each city/township sets its own meeting date within the
+> April 1–May 31 window). County board dates are county-wide. Read the notice for the parcel's exact
+> local dates, and confirm the county board schedule from the county assessor.
+
 ## Why the order matters
 
 The windows are sequenced from *most* discretion to *most* formality:
