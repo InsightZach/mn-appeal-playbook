@@ -54,7 +54,9 @@ Before the appraiser arrives, brief the owner to:
 
 - **Show** the condition issues that support the appeal: deferred maintenance, dated systems, water or
   structural problems, functional obsolescence, unfinished or substandard areas.
-- **Have documentation ready** — repair estimates, inspection reports, photos of problems, permit history.
+- **Have documentation ready** — repair estimates, inspection reports, photos of problems, permit history,
+  and the property's prior listing if any (see the
+  [listing enrichment guide](../collectors/listing_enrichment.md)).
 - **Be factual, not adversarial.** The appraiser is doing their job; the goal is an accurate record, not a
   confrontation.
 - **Not volunteer value-adding improvements** that aren't relevant to the assessment-date condition, and

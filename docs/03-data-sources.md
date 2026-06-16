@@ -16,6 +16,7 @@ residential data sources for the two example counties and the traps that produce
 | **eCRV** (electronic Certificate of Real Estate Value) | Arm's-length sale records + good-for-state-study flag | Statewide (MN DOR) | The gold standard for arm's-length comps; **documented here, not yet collected** — see below |
 | **MetroGIS parcels** (per-county shapefiles) | Lot geometry, acreage | Both | For lot-size and proximity work |
 | **Beacon / county CAMA card** | Structure detail, grade, condition (CDU) | Where published | Suburban Hennepin has no bulk SF source — owner/MLS fallback |
+| **Listing data** (owner-supplied / MLS) | Photos, interior detail, sale corroboration, condition | Both | Sourced, not scraped — see [listing enrichment guide](../collectors/listing_enrichment.md) |
 
 ## Which source has the *new* assessment, and when
 
@@ -86,7 +87,9 @@ Hennepin sale codes as the working approximation and eCRV as the verification/up
 2. Pull neighborhood comps (similar SF/year within radius) with their assessed $/SF.
 3. Pull recent sales in the window; filter to arm's-length (Hennepin sale codes; verify Ramsey via eCRV).
 4. Confirm the **current** assessment-year value (PINS for Hennepin; FeatureServer for Ramsey).
-5. Fill structure/condition detail from CAMA/Beacon or, for suburban Hennepin, owner-supplied / MLS data.
+5. Fill structure/condition detail from CAMA/Beacon, then enrich with listing data (owner-supplied
+   first) to corroborate the sale, test the condition angle, and catch SF/year discrepancies — see the
+   [listing enrichment guide](../collectors/listing_enrichment.md).
 
 The included collectors in [`collectors/`](../collectors/) implement this for Ramsey and Hennepin. See
 the [data schema](10-data-schema.md) for the exact shape and source of every field they emit.

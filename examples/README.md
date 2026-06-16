@@ -25,3 +25,11 @@ a mail-merge.
 
 Each case study is reproducible: the figures come from the collectors in [`../collectors`](../collectors)
 and the triage in [`../scripts`](../scripts).
+
+## Sample rendered deliverable
+
+[`sample-appeal-packet.html`](sample-appeal-packet.html) is an illustrative, format-only rendering of the
+884 Ashland appeal packet — showing the deliverable's structure and design (open it in a browser). It is
+built on the honest read after listing enrichment: it leads with the MLS-confirmed arm's-length sale,
+treats equalization as secondary, flags the SF/year record discrepancies, and claims no condition
+adjustment because the listing photos show a renovated home.

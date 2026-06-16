@@ -12,6 +12,12 @@ The least rebuttable argument corrects the **assessor's own records**. Lead with
 *this* property as of January 2 of the assessment year. An appraiser can argue with your comp selection;
 it is much harder to argue with a correction to their own data sheet.
 
+> **Pull the listing before you commit to a method.** Owner-supplied or public listing data corroborates
+> the sale and tells you whether a condition argument is credible. Photos of a renovated home kill a
+> condition downgrade (and weaken a "high $/SF" equalization point); photos of a distressed home are the
+> backbone of one. Test the angle against the evidence an appraiser can also see — see the
+> [listing enrichment guide](../collectors/listing_enrichment.md).
+
 ## Use more than one method
 
 A sales-comparison letter with three comps is the weakest defensible form of appeal. Build the methods the
