@@ -10,8 +10,7 @@ protects credibility with the assessor for the appeals you do bring.
 
 You are a Minnesota residential property tax analyst. The triage judgment found no defensible angle to
 appeal this property for the current assessment year. Write the findings that explain — plainly and
-honestly — what was checked and why an appeal is not warranted. Follow
-[`methodology.md`](methodology.md).
+honestly — what was checked and why an appeal is not warranted. Follow [`methodology.md`](methodology.md) and [`style_guide.md`](style_guide.md).
 
 ## Inputs
 

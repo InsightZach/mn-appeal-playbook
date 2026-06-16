@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Assessment Findings — 530 Desnoyer Ave, St. Paul, MN 55104</title>
+<style>
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; color: #333; margin: 0; background: #f8f9fa; }
+.container { max-width: 1100px; margin: 0 auto; padding: 1.5rem 2rem; background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+section { margin-bottom: 2rem; }
+h2 { color: #0A2647; border-bottom: 2px solid #d7b971; padding-bottom: 0.4rem; }
+h3 { color: #0A2647; margin-top: 1.2rem; }
+table { border-collapse: collapse; width: 100%; }
+th, td { border: 1px solid #e1e4e8; padding: 6pt 8pt; text-align: left; }
+th { background: #f1f3f5; font-weight: 600; }
+.footer { text-align: center; color: #666; font-size: 0.85em; padding: 1.5rem 0; border-top: 1px solid #e1e4e8; margin-top: 2rem; }
+.footer .disclaimer { display:block; margin-top: 0.35rem; font-size: 0.82em; color: #888; }
+</style>
+<style>
+/* Screen helpers (applied both screen and print) */
+.section-sub {
+  color: #666;
+  font-size: 0.92rem;
+  font-style: italic;
+  margin: -0.4rem 0 0.8rem;
+}
+
+.approach-close {
+  background: #0A2647;
+  color: #FFFFFF;
+  padding: 0.9rem 1.3rem;
+  border-radius: 8px;
+  margin: 1rem 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+.approach-close .ac-label {
+  color: #d7b971;
+  font-weight: 600;
+  font-size: 0.95rem;
+  letter-spacing: 0.02em;
+}
+.approach-close .ac-value {
+  color: #d7b971;
+  font-weight: 700;
+  font-size: 1.5rem;
+}
+.approach-close .ac-note {
+  color: #dde;
+  font-size: 0.82rem;
+  width: 100%;
+  margin-top: 0.3rem;
+}
+
+.reconcile-table { font-size: 0.95rem; }
+.reconcile-table td { padding: 0.6rem 0.8rem; }
+.reconcile-table .weight { font-size: 0.85rem; color: #666; }
+
+/* Photo cards — square crop by default */
+.photo-card img {
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  display: block;
+  width: 100%;
+}
+
+@media print {
+  @page { size: letter; margin: 0.5in 0.45in; }
+
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  html, body { font-size: 10pt !important; line-height: 1.4 !important; }
+
+  .header {
+    padding: 0.8rem 1.5rem !important;
+    page-break-after: avoid;
+    page-break-inside: avoid;
+  }
+  .header h1 { font-size: 14pt !important; }
+  .header .brand { font-size: 11pt !important; }
+
+  .container { max-width: 100% !important; padding: 0.8rem 0 !important; }
+
+  h2 {
+    font-size: 13pt !important;
+    margin: 0.6rem 0 0.3rem !important;
+    page-break-after: avoid;
+  }
+  h3 {
+    font-size: 11pt !important;
+    margin: 0.4rem 0 0.3rem !important;
+    page-break-after: avoid;
+  }
+  p { margin: 0.3rem 0 !important; }
+
+  table {
+    font-size: 9pt !important;
+    margin: 0.4rem 0 !important;
+  }
+  /* Long tables may split; short tables avoid breaks */
+  tr { page-break-inside: avoid; }
+  thead { display: table-header-group; }
+  table.small,
+  table.reconcile-table { page-break-inside: avoid; }
+  th, td { padding: 3pt 6pt !important; }
+
+  .card, .callout, .callout-red, .recommendation,
+  .conclusion, .finding, .alert, .approach-close {
+    page-break-inside: avoid;
+    break-inside: avoid;
+    margin: 0.4rem 0 !important;
+    padding: 0.55rem 0.85rem !important;
+  }
+
+  .two-col { grid-template-columns: 1fr 1fr !important; gap: 0.6rem !important; }
+
+  .photo-grid {
+    grid-template-columns: 1fr 1fr 1fr !important;
+    gap: 0.3rem !important;
+    page-break-inside: avoid;
+    margin: 0.4rem 0 !important;
+  }
+  .photo-card img {
+    aspect-ratio: 1 / 1 !important;
+    height: auto !important;
+    max-height: 1.5in !important;
+    width: 100% !important;
+    object-fit: cover !important;
+  }
+  .photo-card .caption { font-size: 7pt !important; padding: 2pt 4pt !important; }
+
+  .stats {
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 0.4rem !important;
+    page-break-inside: avoid;
+  }
+  .stat { padding: 0.5rem !important; }
+  .stat .value { font-size: 12pt !important; }
+  .stat .label { font-size: 7.5pt !important; }
+
+  /* Map: scale the absolute-positioned container proportionally so label
+     positions (pixel-based) track the background image. */
+  .container > div[style*="width:1000px"],
+  .container > div[style*="width: 1000px"] {
+    transform: scale(0.72);
+    transform-origin: top left;
+    width: 1000px !important;
+    height: 700px !important;
+    margin: 0 0 -195px 0 !important;
+    page-break-inside: avoid;
+  }
+  .container > div[style*="width:1000px"] img,
+  .container > div[style*="width: 1000px"] img {
+    width: 1000px !important;
+    height: 700px !important;
+  }
+
+  /* Inline SVG scatter plots — cap height so they don't eat a whole page */
+  svg {
+    max-width: 100% !important;
+    height: auto !important;
+    page-break-inside: avoid;
+  }
+  svg[viewBox] {
+    max-height: 3.2in !important;
+  }
+
+  /* Approach-close cards keep their navy background in print */
+  .approach-close {
+    background: #0A2647 !important;
+    color: #fff !important;
+  }
+  .approach-close .ac-label,
+  .approach-close .ac-value { color: #d7b971 !important; }
+  .approach-close .ac-note { color: #dde !important; }
+
+  .conclusion, .recommendation {
+    background: #0A2647 !important;
+    color: #fff !important;
+  }
+  .recommendation {
+    background: #e8f5e9 !important;
+    color: #333 !important;
+  }
+}
+
+</style>
+</head>
+<body>
+<div style="background:#fff3cd;color:#7a5c00;text-align:center;padding:0.5rem 1rem;font-size:0.85rem;border-bottom:1px solid #e6d28a;font-family:Segoe UI,system-ui,sans-serif;">ILLUSTRATIVE SAMPLE — built from public Ramsey County assessment and sale data. Not a filed document.</div>
+<div class="container">
+<div class="header" style="background:#0A2647;color:#FFFFFF;padding:1.25rem 2rem;border-bottom:4px solid #d7b971;"><div class="brand" style="color:#d7b971;font-size:0.85rem;letter-spacing:0.15em;text-transform:uppercase;font-weight:600;">Residential Property Tax Appeal</div><h1 style="margin:0.35rem 0 0 0;font-size:1.6rem;font-weight:600;color:#FFFFFF;">Property Assessment Findings</h1><div style="color:#d7b971;font-size:0.95rem;margin-top:0.25rem;">530 Desnoyer Ave, St. Paul, MN 55104 · Assessment 2026, payable 2027 · PID 32-29-23-23-0151</div></div><section><div class="recommendation callout" style="background:#eaf7ee;border-left:5px solid #27ae60;padding:1.1rem 1.4rem;margin:1rem 0;border-radius:4px;"><div style="font-size:0.8rem;letter-spacing:0.1em;text-transform:uppercase;font-weight:700;color:#27ae60;margin-bottom:0.4rem;">RECOMMENDATION: NO APPEAL</div><div style="font-size:1.3rem;font-weight:700;color:#0A2647;margin-bottom:0.5rem;line-height:1.3;">No clear angle — the assessment is supported by recent sales.</div><div style="color:#333;line-height:1.5;font-size:0.98em;">We pulled the county data and the recent neighborhood sales. The subject's building value per square foot looks high against a broad neighborhood median, which is worth a look — but against its immediate Otis Ave / Pelham peers it is mid-pack, and a recent arm's-length sale two blocks away supports values at this level. The county also already trimmed the 2026 EMV 3.2%. We don't see a clear angle to appeal.</div></div></section><section><h2>Subject Property</h2><div class="card two-col" style="background:#FFFFFF;border:1px solid #e1e4e8;border-radius:6px;padding:1rem 1.25rem;margin:1rem 0;"><div style="display:flex;flex-wrap:wrap;gap:1.5rem;"><div style="flex:1;min-width:260px;"><h3 style="margin:0 0 0.5rem;color:#0A2647;font-size:1rem;border-bottom:2px solid #d7b971;padding-bottom:0.25rem;">County Records</h3><div style="display:flex;justify-content:space-between;gap:0.75rem;padding:0.28rem 0;border-bottom:1px dotted #e1e4e8;"><span style="color:#555;">PID</span><span style="color:#0A2647;font-weight:600;text-align:right;">32-29-23-23-0151</span></div><div style="display:flex;justify-content:space-between;gap:0.75rem;padding:0.28rem 0;border-bottom:1px dotted #e1e4e8;"><span style="color:#555;">Address</span><span style="color:#0A2647;font-weight:600;text-align:right;">530 Desnoyer Ave, St. Paul, MN 55104</span></div><div style="display:flex;justify-content:space-between;gap:0.75rem;padding:0.28rem 0;border-bottom:1px dotted #e1e4e8;"><span style="color:#555;">Owner</span><span style="color:#0A2647;font-weight:600;text-align:right;">&mdash;</span></div><div style="display:flex;justify-content:space-between;gap:0.75rem;padding:0.28rem 0;border-bottom:1px dotted #e1e4e8;"><span style="color:#555;">Year Built</span><span style="color:#0A2647;font-weight:600;text-align:right;">1928</span></div><div style="display:flex;justify-content:space-between;gap:0.75rem;padding:0.28rem 0;border-bottom:1px dotted #e1e4e8;"><span style="color:#555;">Living Area</span><span style="color:#0A2647;font-weight:600;text-align:right;">2,369 SF</span></div><div style="display:flex;justify-content:space-between;gap:0.75rem;padding:0.28rem 0;border-bottom:1px dotted #e1e4e8;"><span style="color:#555;">Lot Size</span><span style="color:#0A2647;font-weight:600;text-align:right;">0.16 ac</span></div><div style="display:flex;justify-content:space-between;gap:0.75rem;padding:0.28rem 0;border-bottom:1px dotted #e1e4e8;"><span style="color:#555;">Style</span><span style="color:#0A2647;font-weight:600;text-align:right;">&mdash;</span></div><div style="display:flex;justify-content:space-between;gap:0.75rem;padding:0.28rem 0;border-bottom:1px dotted #e1e4e8;"><span style="color:#555;">Plat</span><span style="color:#0A2647;font-weight:600;text-align:right;">Desnoyer Park</span></div><div style="display:flex;justify-content:space-between;gap:0.75rem;padding:0.28rem 0;border-bottom:1px dotted #e1e4e8;"><span style="color:#555;">EMV Land</span><span style="color:#0A2647;font-weight:600;text-align:right;">$130,800</span></div><div style="display:flex;justify-content:space-between;gap:0.75rem;padding:0.28rem 0;border-bottom:1px dotted #e1e4e8;"><span style="color:#555;">EMV Building</span><span style="color:#0A2647;font-weight:600;text-align:right;">$705,700</span></div><div style="display:flex;justify-content:space-between;gap:0.75rem;padding:0.28rem 0;border-bottom:1px dotted #e1e4e8;"><span style="color:#555;">EMV Total</span><span style="color:#0A2647;font-weight:600;text-align:right;">$836,500</span></div></div></div></div></section><section><h2>Work Completed</h2><p style="margin:0.3rem 0 0.6rem;color:#555;">Here's what we looked at before reaching the recommendation above.</p><ul style="margin:0.5rem 0;padding:0;"><li style="list-style:none;padding:0.3rem 0;border-bottom:1px dotted #e1e4e8;"><span style="display:inline-block;width:1.1em;color:#0A2647;font-weight:700;">&#9745;</span> Pulled the 3-year assessment history from Ramsey County</li><li style="list-style:none;padding:0.3rem 0;border-bottom:1px dotted #e1e4e8;"><span style="display:inline-block;width:1.1em;color:#0A2647;font-weight:700;">&#9745;</span> Pulled 56 arm&#x27;s-length neighborhood sales (Apr 2024 – Mar 2026)</li><li style="list-style:none;padding:0.3rem 0;border-bottom:1px dotted #e1e4e8;"><span style="display:inline-block;width:1.1em;color:#0A2647;font-weight:700;">&#9745;</span> Computed the neighborhood EMV-to-sale ratio</li><li style="list-style:none;padding:0.3rem 0;border-bottom:1px dotted #e1e4e8;"><span style="display:inline-block;width:1.1em;color:#0A2647;font-weight:700;">&#9745;</span> Compared the subject&#x27;s land and building $/SF to same-size peers</li><li style="list-style:none;padding:0.3rem 0;border-bottom:1px dotted #e1e4e8;"><span style="display:inline-block;width:1.1em;color:#0A2647;font-weight:700;">&#9745;</span> Identified the strongest comp the county would lead with</li><li style="list-style:none;padding:0.3rem 0;border-bottom:1px dotted #e1e4e8;"><span style="display:inline-block;width:1.1em;color:#0A2647;font-weight:700;">&#9745;</span> Tested the building $/SF signal against actual market sales</li></ul></section><section><h2>Assessment History</h2><table style="width:100%;border-collapse:collapse;margin:0.75rem 0;background:#FFFFFF;border:1px solid #e1e4e8;font-size:0.95em;"><thead><tr style="background:#0A2647;color:#FFFFFF;"><th style="padding:8pt;text-align:left;">Tax Year</th><th style="padding:8pt;text-align:left;">Assess Year</th><th style="padding:8pt;text-align:right;">EMV Land</th><th style="padding:8pt;text-align:right;">EMV Building</th><th style="padding:8pt;text-align:right;">EMV Total</th><th style="padding:8pt;text-align:right;">YoY</th><th style="padding:8pt;text-align:right;">Total Tax</th></tr></thead><tbody><tr><td style="padding:6pt 8pt;border-bottom:1px solid #e1e4e8;">2025</td><td style="padding:6pt 8pt;border-bottom:1px solid #e1e4e8;">2024</td><td style="padding:6pt 8pt;text-align:right;border-bottom:1px solid #e1e4e8;">$130,800</td><td style="padding:6pt 8pt;text-align:right;border-bottom:1px solid #e1e4e8;">$634,800</td><td style="padding:6pt 8pt;text-align:right;border-bottom:1px solid #e1e4e8;font-weight:600;">$765,600</td><td style="padding:6pt 8pt;text-align:right;border-bottom:1px solid #e1e4e8;">&mdash;</td><td style="padding:6pt 8pt;text-align:right;border-bottom:1px solid #e1e4e8;">&mdash;</td></tr><tr><td style="padding:6pt 8pt;border-bottom:1px solid #e1e4e8;">2026</td><td style="padding:6pt 8pt;border-bottom:1px solid #e1e4e8;">2025</td><td style="padding:6pt 8pt;text-align:right;border-bottom:1px solid #e1e4e8;">$130,800</td><td style="padding:6pt 8pt;text-align:right;border-bottom:1px solid #e1e4e8;">$733,000</td><td style="padding:6pt 8pt;text-align:right;border-bottom:1px solid #e1e4e8;font-weight:600;">$863,800</td><td style="padding:6pt 8pt;text-align:right;border-bottom:1px solid #e1e4e8;"><span style="color:#c0392b;font-weight:600;">+12.8%</span></td><td style="padding:6pt 8pt;text-align:right;border-bottom:1px solid #e1e4e8;">&mdash;</td></tr><tr><td style="padding:6pt 8pt;border-bottom:1px solid #e1e4e8;">2027</td><td style="padding:6pt 8pt;border-bottom:1px solid #e1e4e8;">2026</td><td style="padding:6pt 8pt;text-align:right;border-bottom:1px solid #e1e4e8;">$130,800</td><td style="padding:6pt 8pt;text-align:right;border-bottom:1px solid #e1e4e8;">$705,700</td><td style="padding:6pt 8pt;text-align:right;border-bottom:1px solid #e1e4e8;font-weight:600;">$836,500</td><td style="padding:6pt 8pt;text-align:right;border-bottom:1px solid #e1e4e8;"><span style="color:#27ae60;font-weight:600;">-3.2%</span></td><td style="padding:6pt 8pt;text-align:right;border-bottom:1px solid #e1e4e8;">&mdash;</td></tr></tbody></table></section><section><h2>Key Findings</h2><div class="finding callout" style="background:#e7f1fa;border-left:4px solid #2c6e9b;color:#123c5a;padding:0.85rem 1.15rem;margin:0.9rem 0;border-radius:4px;"><div style="font-weight:700;font-size:1.02em;margin-bottom:0.3rem;">The county already cut the 2026 value 3.2%</div><div style="line-height:1.5;">After a 12.8% jump in 2025 ($765,600 → $863,800), the county trimmed the 2026 EMV to $836,500 (−$27,300, −3.2%). The aggressive year was already partly corrected.</div></div><div class="finding callout" style="background:#e7f1fa;border-left:4px solid #2c6e9b;color:#123c5a;padding:0.85rem 1.15rem;margin:0.9rem 0;border-radius:4px;"><div style="font-weight:700;font-size:1.02em;margin-bottom:0.3rem;">Building $/SF looks high against a broad median — worth checking</div><div style="line-height:1.5;">The subject's building is assessed at $298/SF vs. a $218 same-size neighborhood median. On its own that reads as a possible over-assessment, so we tested it against the market.</div></div><div class="finding callout" style="background:#e7f1fa;border-left:4px solid #2c6e9b;color:#123c5a;padding:0.85rem 1.15rem;margin:0.9rem 0;border-radius:4px;"><div style="font-weight:700;font-size:1.02em;margin-bottom:0.3rem;">...but against the immediate peer group it is mid-pack</div><div style="line-height:1.5;">The closest same-street peers run higher, not lower: 472 Otis $316/SF, 375 Pelham $306/SF, 492 Otis $272/SF. The subject's $298/SF sits inside that immediate range. The broad median is pulled down by lower-value pockets that aren't truly comparable.</div></div><div class="finding callout" style="background:#e7f1fa;border-left:4px solid #2c6e9b;color:#123c5a;padding:0.85rem 1.15rem;margin:0.9rem 0;border-radius:4px;"><div style="font-weight:700;font-size:1.02em;margin-bottom:0.3rem;">A recent arm&#x27;s-length sale supports the value</div><div style="line-height:1.5;">38 Otis Ave (2,170 SF, two blocks away) sold for $800,000 in April 2025 and is itself assessed at $765,800. The subject is larger (2,369 SF); its $836,500 EMV is consistent with that sale on a per-SF basis.</div></div><div class="finding callout" style="background:#e7f1fa;border-left:4px solid #2c6e9b;color:#123c5a;padding:0.85rem 1.15rem;margin:0.9rem 0;border-radius:4px;"><div style="font-weight:700;font-size:1.02em;margin-bottom:0.3rem;">Neighborhood assessments run slightly below market</div><div style="line-height:1.5;">Across 56 arm's-length sales the median EMV-to-sale ratio is 0.976 — assessments run about 2.4% below sale prices. The subject is not an outlier the other way.</div></div></section><section><h2>Statistical Summary</h2><div class="stats" style="display:flex;flex-wrap:wrap;gap:0.75rem;margin:0.75rem 0;"><div style="flex:1;min-width:120px;text-align:center;padding:0.9rem 0.6rem;background:#f8f9fa;border:1px solid #e1e4e8;border-radius:4px;"><div style="font-size:1.75rem;font-weight:700;color:#0A2647;line-height:1.1;">40</div><div style="font-size:0.82em;color:#555;margin-top:0.25rem;text-transform:uppercase;letter-spacing:0.05em;">Properties analyzed</div></div><div style="flex:1;min-width:120px;text-align:center;padding:0.9rem 0.6rem;background:#f8f9fa;border:1px solid #e1e4e8;border-radius:4px;"><div style="font-size:1.75rem;font-weight:700;color:#0A2647;line-height:1.1;">56</div><div style="font-size:0.82em;color:#555;margin-top:0.25rem;text-transform:uppercase;letter-spacing:0.05em;">Sales analyzed</div></div><div style="flex:1;min-width:120px;text-align:center;padding:0.9rem 0.6rem;background:#f8f9fa;border:1px solid #e1e4e8;border-radius:4px;"><div style="font-size:1.75rem;font-weight:700;color:#0A2647;line-height:1.1;">2</div><div style="font-size:0.82em;color:#555;margin-top:0.25rem;text-transform:uppercase;letter-spacing:0.05em;">Regression models</div></div><div style="flex:1;min-width:120px;text-align:center;padding:0.9rem 0.6rem;background:#f8f9fa;border:1px solid #e1e4e8;border-radius:4px;"><div style="font-size:1.75rem;font-weight:700;color:#0A2647;line-height:1.1;">1</div><div style="font-size:0.82em;color:#555;margin-top:0.25rem;text-transform:uppercase;letter-spacing:0.05em;">Plats analyzed</div></div></div></section><section><h2>Equalization</h2><h3>Building $/SF</h3><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" style="max-width:100%;height:auto;background:#FFFFFF;font-family:Arial,sans-serif;"><rect x="60" y="25" width="560" height="290" fill="#f8f9fa" stroke="#e1e4e8"/><line x1="172.0" y1="25" x2="172.0" y2="315" stroke="#e1e4e8" stroke-dasharray="2,3"/><text x="172.0" y="329" text-anchor="middle" font-size="10" fill="#555">2,061</text><line x1="60" y1="83.0" x2="620" y2="83.0" stroke="#e1e4e8" stroke-dasharray="2,3"/><text x="54" y="86.0" text-anchor="end" font-size="10" fill="#555">$306</text><line x1="284.0" y1="25" x2="284.0" y2="315" stroke="#e1e4e8" stroke-dasharray="2,3"/><text x="284.0" y="329" text-anchor="middle" font-size="10" fill="#555">2,246</text><line x1="60" y1="141.0" x2="620" y2="141.0" stroke="#e1e4e8" stroke-dasharray="2,3"/><text x="54" y="144.0" text-anchor="end" font-size="10" fill="#555">$291</text><line x1="396.0" y1="25" x2="396.0" y2="315" stroke="#e1e4e8" stroke-dasharray="2,3"/><text x="396.0" y="329" text-anchor="middle" font-size="10" fill="#555">2,431</text><line x1="60" y1="199.0" x2="620" y2="199.0" stroke="#e1e4e8" stroke-dasharray="2,3"/><text x="54" y="202.0" text-anchor="end" font-size="10" fill="#555">$275</text><line x1="508.0" y1="25" x2="508.0" y2="315" stroke="#e1e4e8" stroke-dasharray="2,3"/><text x="508.0" y="329" text-anchor="middle" font-size="10" fill="#555">2,616</text><line x1="60" y1="257.0" x2="620" y2="257.0" stroke="#e1e4e8" stroke-dasharray="2,3"/><text x="54" y="260.0" text-anchor="end" font-size="10" fill="#555">$260</text><circle cx="98.6" cy="45.0" r="4" fill="#0A2647" fill-opacity="0.7" stroke="#FFFFFF" stroke-width="1"><title>472 Otis Ave ($316/SF)</title></circle><circle cx="322.7" cy="82.9" r="4" fill="#0A2647" fill-opacity="0.7" stroke="#FFFFFF" stroke-width="1"><title>375 Pelham Blvd ($306/SF)</title></circle><circle cx="465.7" cy="170.0" r="4" fill="#0A2647" fill-opacity="0.7" stroke="#FFFFFF" stroke-width="1"><title>2301 Beverly Rd ($283/SF)</title></circle><circle cx="485.7" cy="211.7" r="4" fill="#0A2647" fill-opacity="0.7" stroke="#FFFFFF" stroke-width="1"><title>492 Otis Ave ($272/SF)</title></circle><circle cx="113.8" cy="223.0" r="4" fill="#0A2647" fill-opacity="0.7" stroke="#FFFFFF" stroke-width="1"><title>554 Glendale St ($269/SF)</title></circle><circle cx="138.6" cy="238.2" r="4" fill="#0A2647" fill-opacity="0.7" stroke="#FFFFFF" stroke-width="1"><title>2454 Beverly Rd ($265/SF)</title></circle><circle cx="581.4" cy="268.5" r="4" fill="#0A2647" fill-opacity="0.7" stroke="#FFFFFF" stroke-width="1"><title>586 Eustis St ($257/SF)</title></circle><circle cx="287.6" cy="291.2" r="4" fill="#0A2647" fill-opacity="0.7" stroke="#FFFFFF" stroke-width="1"><title>444 Otis Ave ($251/SF)</title></circle><circle cx="375.4" cy="295.0" r="4" fill="#0A2647" fill-opacity="0.7" stroke="#FFFFFF" stroke-width="1"><title>412 Otis Ave ($250/SF)</title></circle><circle cx="358.5" cy="113.2" r="9" fill="none" stroke="#d7b971" stroke-width="3"/><circle cx="358.5" cy="113.2" r="5" fill="#d7b971" stroke="#0A2647" stroke-width="1.5"><title>Subject</title></circle><text x="320.0" y="352" text-anchor="middle" font-size="11" fill="#0A2647" font-weight="600">Size (SF / Lot)</text><text x="16" y="180.0" text-anchor="middle" font-size="11" fill="#0A2647" font-weight="600" transform="rotate(-90 16 180.0)">$/SF</text><rect x="470" y="31" width="140" height="22" fill="#FFFFFF" stroke="#e1e4e8" opacity="0.9"/><line x1="476" y1="42" x2="492" y2="42" stroke="#d7b971" stroke-width="3"/><text x="498" y="45" font-size="10" fill="#333">Subject</text></svg></section><section><h3>Predicted vs Current EMV</h3><p style="margin:0.3rem 0;color:#555;">Each row is a separate regression model. The county's EMV and each model's predicted value are side by side.</p><table style="width:100%;border-collapse:collapse;margin:0.5rem 0;background:#FFFFFF;border:1px solid #e1e4e8;font-size:0.94em;"><thead><tr style="background:#0A2647;color:#FFFFFF;"><th style="padding:8pt;text-align:left;">Model</th><th style="padding:8pt;text-align:right;">Predicted</th><th style="padding:8pt;text-align:right;">Current EMV</th><th style="padding:8pt;text-align:right;">Δ $</th><th style="padding:8pt;text-align:right;">Δ %</th></tr></thead><tbody><tr><td style="padding:6pt 8pt;border-bottom:1px solid #e1e4e8;color:#0A2647;font-weight:600;">Neighborhood EMV-to-sale ratio (56 sales)</td><td style="padding:6pt 8pt;text-align:right;border-bottom:1px solid #e1e4e8;">$816,000</td><td style="padding:6pt 8pt;text-align:right;border-bottom:1px solid #e1e4e8;">$836,500</td><td style="padding:6pt 8pt;text-align:right;border-bottom:1px solid #e1e4e8;">−$20,500</td><td style="padding:6pt 8pt;text-align:right;border-bottom:1px solid #e1e4e8;">-2.4%</td></tr></tbody></table></section><section><h2>Best Comparable</h2><p style="margin:0.3rem 0 0.6rem;color:#333;line-height:1.5;">The strongest comp the county would lead with: a recent arm&#x27;s-length sale two blocks away, similar era, slightly smaller.</p><div style="background:#FFFFFF;border:1px solid #e1e4e8;border-left:4px solid #d7b971;border-radius:4px;padding:0.85rem 1.15rem;margin:0.75rem 0;max-width:520px;"><div style="display:flex;justify-content:space-between;padding:0.25rem 0;border-bottom:1px dotted #e1e4e8;"><span style="color:#555;">Address</span><span style="color:#0A2647;font-weight:600;">38 Otis Ave</span></div><div style="display:flex;justify-content:space-between;padding:0.25rem 0;border-bottom:1px dotted #e1e4e8;"><span style="color:#555;">Sale price</span><span style="color:#0A2647;font-weight:600;">$800,000</span></div><div style="display:flex;justify-content:space-between;padding:0.25rem 0;border-bottom:1px dotted #e1e4e8;"><span style="color:#555;">Sale date</span><span style="color:#0A2647;font-weight:600;">Apr 2025</span></div><div style="display:flex;justify-content:space-between;padding:0.25rem 0;border-bottom:1px dotted #e1e4e8;"><span style="color:#555;">Distance</span><span style="color:#0A2647;font-weight:600;">0.20 mi</span></div></div><h3>What's different</h3><div style="display:flex;flex-wrap:wrap;gap:1rem;margin:0.75rem 0;"><div style="flex:1;min-width:240px;background:#FFFFFF;border:1px solid #e1e4e8;border-left:4px solid #d7b971;border-radius:4px;padding:0.85rem 1.1rem;"><div style="font-weight:700;color:#0A2647;margin-bottom:0.4rem;">Where the subject is better</div><ul style="margin:0;padding-left:1.1rem;font-size:0.94em;"><li style="padding:0.25rem 0;color:#0A2647;">Larger (2,369 SF vs. 2,170 SF)</li></ul></div><div style="flex:1;min-width:240px;background:#FFFFFF;border:1px solid #e1e4e8;border-left:4px solid #0A2647;border-radius:4px;padding:0.85rem 1.1rem;"><div style="font-weight:700;color:#0A2647;margin-bottom:0.4rem;">Where the comp is better</div><ul style="margin:0;padding-left:1.1rem;font-size:0.94em;"><li style="padding:0.25rem 0;color:#0A2647;">More recent reference point</li></ul></div></div><h3>Adjustment math</h3><table style="width:100%;max-width:680px;border-collapse:collapse;margin:0.5rem 0;background:#FFFFFF;border:1px solid #e1e4e8;font-size:0.94em;"><thead><tr style="background:#0A2647;color:#FFFFFF;"><th style="padding:8pt;text-align:left;">Item</th><th style="padding:8pt;text-align:left;">Direction</th><th style="padding:8pt;text-align:right;">Amount</th></tr></thead><tbody><tr><td style="padding:6pt 8pt;border-bottom:1px solid #e1e4e8;">Size (subject +199 SF)</td><td style="padding:6pt 8pt;border-bottom:1px solid #e1e4e8;color:#555;font-size:0.9em;">up (comp up)</td><td style="padding:6pt 8pt;text-align:right;border-bottom:1px solid #e1e4e8;">$30,000</td></tr><tr><td style="padding:6pt 8pt;border-bottom:1px solid #e1e4e8;">Sale date / time (Apr 2025 → 1/2/2026)</td><td style="padding:6pt 8pt;border-bottom:1px solid #e1e4e8;color:#555;font-size:0.9em;">up</td><td style="padding:6pt 8pt;text-align:right;border-bottom:1px solid #e1e4e8;">$18,000</td></tr><tr style="background:#f8f9fa;"><td style="padding:6pt 8pt;font-weight:700;color:#0A2647;">Net adjustment</td><td></td><td style="padding:6pt 8pt;text-align:right;font-weight:700;color:#0A2647;">+$48,000</td></tr></tbody></table><h3>Why this comp matters</h3><div class="recommendation callout" style="background:#eaf7ee;border-left:5px solid #27ae60;padding:1.1rem 1.4rem;margin:1rem 0;border-radius:4px;"><div style="font-size:0.8rem;letter-spacing:0.1em;text-transform:uppercase;font-weight:700;color:#27ae60;margin-bottom:0.4rem;">RECOMMENDATION: NO APPEAL</div><div style="font-size:1.3rem;font-weight:700;color:#0A2647;margin-bottom:0.5rem;line-height:1.3;">Why this comp matters</div><div style="color:#333;line-height:1.5;font-size:0.98em;">A real, recent, arm's-length sale at this value level — assessed below its own sale price — is the evidence an appeal would have to overcome. It does not support a reduction.</div></div></section><section><h2>Final Recommendation</h2><div class="recommendation callout" style="background:#eaf7ee;border-left:5px solid #27ae60;padding:1.1rem 1.4rem;margin:1rem 0;border-radius:4px;"><div style="font-size:0.8rem;letter-spacing:0.1em;text-transform:uppercase;font-weight:700;color:#27ae60;margin-bottom:0.4rem;">RECOMMENDATION: NO APPEAL</div><div style="font-size:1.3rem;font-weight:700;color:#0A2647;margin-bottom:0.5rem;line-height:1.3;">No Appeal</div><div style="color:#333;line-height:1.5;font-size:0.98em;"><ul style="margin:0.3rem 0 0;padding-left:1.25rem;"><li style="padding:0.25rem 0;">The 2026 EMV of $836,500 is supported by a recent arm&#x27;s-length sale two blocks away.</li><li style="padding:0.25rem 0;">The building $/SF signal does not survive contact with the immediate peer group or the market.</li><li style="padding:0.25rem 0;">The county already corrected most of the 2025 jump (−3.2% for 2026).</li><li style="padding:0.25rem 0;">If filed, the county would lead with the 38 Otis sale, and we&#x27;d have no clear answer.</li></ul></div></div></section>
+<div class="footer">Residential Property Tax Appeal<span class="disclaimer">This findings report summarizes our analysis of the subject parcel. Data is sourced from public county records and market comparables.</span></div>
+</div>
+</body>
+</html>

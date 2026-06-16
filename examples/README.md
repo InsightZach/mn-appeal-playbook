@@ -43,3 +43,15 @@ read after listing enrichment: it leads with the MLS-confirmed arm's-length sale
 sales-comparison approach indicating ~$409K, treats equalization as a low-weight cross-check, flags the
 SF/year record discrepancies, and claims no condition adjustment because the listing photos show a
 renovated home.
+
+[`sample-no-appeal-findings.html`](sample-no-appeal-findings.html) is the other side of the discipline —
+the honest **no-appeal** deliverable, rendered by the same framework
+([`../scripts/render_no_appeal_sample.py`](../scripts/render_no_appeal_sample.py), property: 530 Desnoyer
+Ave). It shows the playbook *finding* a possible angle (building $/SF high against a broad median) and then
+*killing it* against the market: the immediate peer group runs higher, a recent arm's-length sale two
+blocks away supports the value, and the county already cut 3.2%. A credible "no" is a product —
+demonstrating it is part of showing the work is honest, not a reduction mill.
+
+```bash
+uv run python -m scripts.render_no_appeal_sample   # regenerates examples/sample-no-appeal-findings.html
+```
