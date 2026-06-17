@@ -4,8 +4,9 @@ The appraisal discipline behind a residential appeal. Every other prompt cites t
 every section is one question: given the subject and its neighborhood, is there a defensible path to a
 lower market value as of **January 2 of the assessment year**?
 
-> The numeric rates below are **example defaults**. Calibrate them to your market with paired sales —
-> a rate that materially drives the conclusion should be supported by local evidence, not a default.
+> Any numeric rate below is an **illustrative example, not a default to apply**. Derive each rate that
+> drives the conclusion from *this* comp set with the appropriate TARE technique (regression first; see
+> Adjustment discipline) — a table number is never the support; the market data is.
 
 ## Grade (construction quality)
 
@@ -65,46 +66,59 @@ Relax in this order when needed: style → year → size → neighborhood. Relax
 
 ## Adjustment discipline
 
-- **Every adjustment needs same-type comparable support.** Per *Diamond Lake v. Hennepin County*, an
-  adjustment must be backed by paired-sales or market evidence of that adjustment — not pulled from the
-  air.
+- **Every adjustment must reflect the reactions of market participants** (*The Appraisal of Real Estate*,
+  15th ed., Ch. 21). The standard is market support, not a number pulled from the air or imported from a
+  table. **Support it with whichever of TARE's techniques the data allows — not paired sales alone**
+  (paired data needs two sales alike in all respects but one, which is rarely findable):
+  - **Statistical analysis / regression on the comp set** — the practical primary; a regression across
+    SF / age (or effective year) / lot / time reads the marginal contributions off the data at once.
+  - **Grouped-data analysis** — compare group means (e.g., sales by year) for a time or feature trend.
+  - **Secondary-data analysis** — outside market data, *including the county assessor's*, to support a rate
+    (this is the basis of our assessed-$/SF tier work).
+  - **Trend analysis** — TARE's recommended tool *"when there is a limited number of closely comparable
+    sales but a large number of properties with less similar characteristics"* — i.e. when pairs are scarce.
+  - **Cost-related** (cost-to-cure, depreciated cost) for condition; **paired data** where a variable can
+    genuinely be isolated; **qualitative** (relative-comparison / ranking) where the data won't support a
+    precise number — bracket the subject as inferior/superior/similar.
 - **Gross-adjustment thresholds:** < 50% reliable; 50–75% reduced weight; 75–100% minimal weight;
   > 100% do not use the comp.
-- **Bracket the subject** — at least one comp adjusting up and one down, so the indicated value is
-  interpolated, not extrapolated.
+- **Bracket the subject on FEATURES, not price** (TARE Ch. 21: *"it is improper to select comparable
+  properties based solely on price"*) — at least one comp adjusting up and one down, so the indicated value
+  is interpolated, not extrapolated.
 - **Same county only** — finished-SF basis differs across counties.
 
 ### Adjustment mechanics (illustrative — DERIVE every rate from the data)
 
 This grid shows the **mechanics only** — percentage-of-sale-price, additive across categories, applied once
 (`adjusted = sale × (1 + net%)`), with the **direction** comp→subject. The magnitudes below are
-**illustrative placeholders to show the shape of an adjustment — they are NOT rates to apply.** Under
-*Diamond Lake v. Hennepin County*, **every rate that touches the conclusion must be derived from
-paired sales (or a regression) in *this* comp set and documented (show the pairs).** Importing a number
-from this table — or from any textbook/house default — is not support; the data is the support.
+**illustrative placeholders to show the shape of an adjustment — they are NOT rates to apply.** Every rate
+that touches the conclusion is **derived from *this* comp set with the TARE technique the data supports**
+(see Adjustment discipline above) and documented. Importing a number from this table — or any textbook/house
+default — is not support; the data is.
 
-| Adjustment | Mechanic | How to DERIVE the rate from the data |
-|------------|----------|--------------------------------------|
-| Time | % per month, sale→effective date | repeat-sales / a $/SF-vs-sale-date regression on the comp set |
-| Size | (subj SF − comp SF) / comp SF × *pass-through%* | paired sales differing mainly in SF → solve the pass-through |
-| Condition | one or more grade steps (comp→subject) | paired sales differing mainly in condition (rare — see note) |
-| Quality (grade) | one construction-grade step | paired sales differing mainly in grade |
-| Lot | premium for the subject's larger lot | the equalization land $/SF trend (land target) |
-| Age / effective age | $/SF-vs-`year_built` (or effective year) slope | regress the comp set itself — the worked model below |
+| Adjustment | Mechanic | How to DERIVE the rate (TARE Ch. 21 technique) |
+|------------|----------|------------------------------------------------|
+| Time | % per month, sale→effective date | regression of $/SF on sale date, or grouped-data (year means) |
+| Size | (subj SF − comp SF) / comp SF × *pass-through%* | regress $/SF (or price) on SF across the comp set |
+| Age / effective age | slope on `year_built` / effective year | regress the comp set — the worked model below |
+| Condition | grade step(s), comp→subject | cost-to-cure / depreciated cost; or qualitative inferior/superior bracket |
+| Quality (grade) | one construction-grade step | regression incl. a grade variable; else qualitative ranking |
+| Lot | premium for the subject's larger lot | regress land $/SF on lot size (the equalization land trend) |
 
-The **age/effective-age slope** below is the template for *all* of these: pull the rate out of the comp
-set, don't import it. **Drop comps of unknown condition** from the math (list them for transparency) — and
-note: because condition/quality paired sales are the *scarcest and least-supportable*, the right move is to
-**select comps that don't need a condition/quality adjustment in the first place** (the assessed-$/SF tier
-screen + effective-age match in triage) rather than to manufacture an unsupported one.
+A **multiple regression across the comp set** derives most of these at once — it is the practical primary
+(paired data is one technique, rarely findable). The **age/effective-age slope below is the worked model**:
+pull the rate out of the comp set, don't import it. **Drop comps of unknown condition** from the math (list
+them for transparency) — and because condition/quality are the *scarcest to support*, the right move is to
+**select comps that need no condition/quality adjustment** (the assessed-$/SF tier screen + effective-age
+match in triage — TARE secondary-data analysis) rather than manufacture an unsupported one.
 
 **Age / vintage adjustment (within the selection band).** Where the comp set spans vintage *within* the
 ±20yr selection band, the raw $/SF median is pulled toward the older comps and understates a newer subject.
 Derive a **$/SF-vs-`year_built` slope from the comp set itself** (the data supports a regression) and apply
 it as an **age / effective-age adjustment** to the subject's vintage. **Where grade / condition is
 unpublished (e.g. Ramsey), `year_built` is the proxy for build quality / effective age** — use it. This
-turns the eyeball "these comps are older" judgment into a supportable, *Diamond Lake*-compliant adjustment
-rather than an unsupported eyeball. Example: a 1994 subject against comps spanning 1957–2011 (all in-band on
+turns the eyeball "these comps are older" judgment into a market-derived, supportable adjustment (TARE
+statistical analysis — the slope is read off this comp set) rather than an unsupported eyeball. Example: a 1994 subject against comps spanning 1957–2011 (all in-band on
 size) shows a ~$100/SF vintage-driven spread the flat grid cannot resolve — the slope does.
 
 ## Equalization (independent basis in Minnesota)
@@ -179,7 +193,8 @@ bands are **numeric and non-overlapping** so a sale exactly on a boundary has on
 
 - **≤ 2.0 years** before the effective date: the **unadjusted** own sale is governing.
 - **2.0 – 3.5 years** (`2.0 < x ≤ 3.5`): **time-trend** the sale to the effective date at the default time
-  rate (≈ +0.25%/month, ≈ 3%/yr — calibrate to local paired sales) and treat the trended figure as governing.
+  rate (≈ +0.25%/month, ≈ 3%/yr — calibrate to the comp set: regress $/SF on sale date) and treat the
+  trended figure as governing.
 - **3.5 – 4.0 years** (`3.5 < x ≤ 4.0`): **corroborating only** — it supports the direction of the
   conclusion but does not set it; lead with current comp sales and equalization instead.
 - **4.0 – 5.0 years** (`4.0 < x ≤ 5.0`): **non-governing, but may be cited as TIME-TRENDED directional
