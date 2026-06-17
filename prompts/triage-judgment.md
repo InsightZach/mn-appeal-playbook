@@ -24,6 +24,21 @@ Do not read the full data files into a narrative; query the specific records you
 
 The script's verdict is a starting point. Pressure-test each signal:
 
+0. **Quotable sales indication overrides a no_angle headline (top-level rule — check this FIRST).** If
+   `analysis.json` carries `sales_comparison_indicated.sales_angle: true` with a quotable reliability
+   (NOT `directional_screen_only_do_not_quote`, and `lot_match_weak` not true), the verdict is **at minimum
+   a provisional `appeal_angle` regardless of the script's headline verdict.** Historically the script's
+   verdict could fire `no_angle` off equalization / killer-comp / convergence while orphaning this field
+   (now corrected, but the rule still governs your independent read). When the size-matched pocket sold
+   ~1.0x its own EMV (`sold_comp_median_own_emv_ratio` ≈ 1.0 ⇒ peers fairly assessed) AND the sales
+   indication is below EMV, the over-assessment is **subject-specific** — never write "no subject-specific
+   angle." Run the worth-it gate; **only the gate can downgrade it** to `no_appeal` (and that is the
+   "angle present but sub-floor" disposition, not "fairly assessed").
+
+0a. **No own sale on record (`subject_own_sale: null`).** State plainly that the property has not sold and
+   the own-sale indicator is unavailable, then lean on current comp sales and equalization. Do **not** treat
+   a null own sale as a missing data gap to enrich, and do not waste effort hunting for one.
+
 1. **Subject's own recent sale.** If the subject itself sold arm's-length, that is the strongest single
    piece of evidence in either direction. A sale below the EMV is a near-decisive angle; a sale at or
    above it usually kills the appeal. Always address it. **Horizon (reconciled with `methodology.md`):**
@@ -77,15 +92,30 @@ The script's verdict is a starting point. Pressure-test each signal:
    of 1960s–70s homes will otherwise show a **false below-EMV $/SF gap**. **A comp-median or
    regression value materially below EMV is an angle even when the script says `no_angle`** — the script's
    no-angle path can fire on a single trivially-"tight" model or on a convergence that points below EMV.
-   **Borderline-default backstop (explicit rule):** a `borderline` verdict whose **sole** reason is "No
-   single threshold tripped" is a **script default, not a finding.** Do not route it to an open-book
-   conversation by default. Run the independent best 5–8 comp $/SF reconciliation: if it lands **at or
-   above EMV** and equalization shows **no** building inequity, conclude **`no_angle`**; if it lands
-   **materially below EMV**, conclude **`appeal_angle`**. Only stay at `borderline` when the independent
-   signals are genuinely mixed.
+   **Borderline-default backstop (explicit rule):** a `borderline` verdict whose reasons are **all
+   non-dispositive screens** is a **script default, not a finding.** This covers both the literal "No
+   single threshold tripped" default AND a borderline built **entirely** of weakening/neutral signals —
+   e.g. "the county already cut the value", a **stale own sale**, a **sub-p75 building $/SF** line, or a
+   **land-only percentile** (especially one the script flags as a size artifact or a presumptively-
+   legitimate locational premium). None of those is an over-assessment angle on its own. Do not route such
+   a borderline to an open-book conversation by default. Run the independent best 5–8 comp $/SF
+   reconciliation: if it lands **at or above EMV** and equalization shows **no building inequity**
+   (building $/SF below the p75–p90 band), conclude **`no_angle`**; if it lands **materially below EMV**,
+   conclude **`appeal_angle`**. Only stay at `borderline` when at least one reason is a genuine,
+   dispositive over-assessment signal AND the independent reconciliation is mixed. **A positive
+   `sales_comparison_indicated.indicated_gap_vs_emv` (indicated value AT/ABOVE EMV, `sales_angle: false`)
+   plus `equalization_neutral: true` resolves a non-dispositive borderline to `no_angle`.**
 3. **Equalization percentiles.** Building $/SF at or above the ~80th percentile of comparable homes is a
    real angle. Before claiming a *land* inequity, check whether the neighborhood splits into value tiers
    (bimodal land $/SF) — a high percentile inside a genuinely higher-value pocket is not inequity.
+   **Which approach governs when sales and equalization both point down (mirror of
+   [`methodology.md`](methodology.md) Reconciliation):** when the sales reconciliation is AVAILABLE
+   (size+vintage+lot-matched, distressed-screened) AND lands below the equalization figure, the SALES
+   conclusion governs the ask and equalization corroborates direction only. Equalization drives the
+   number BELOW the sales conclusion only when top-percentile (p90+) inequity is the explicit stated
+   basis. Do not headline the equalization p80 figure as the ask when a larger, supported sales-based
+   reduction exists — the script's verdict reason may lead with the narrow p80 figure; the
+   governing-approach conclusion overrides that headline.
    **Rich-land / neutral-building pocket (mirror of [`methodology.md`](methodology.md) Equalization):** when
    the **only** rich line is land AND the land $/SF percentile sits inside a **bimodal high-land pocket**
    (lake / view / corner premium) while the building line is at/below the band, equalization is **neither**

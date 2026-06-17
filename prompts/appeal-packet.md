@@ -46,13 +46,22 @@ a value the evidence brackets.
        the packet leads with the equalization distribution (subject's assessed $/SF vs. its peer band) and
        the EMV history, and **states plainly that no tier-matched sales exist**, rather than building a
        grid from out-of-tier sales.
-     - **Lot outlier.** When the subject's lot is materially larger or smaller than the comp set, the
-       `$/SF × subject SF` projection **silently strips lot value and is unreliable** — it values a
-       5-acre subject's lot at the same increment as a quarter-acre comp lot. Restrict the comp set to
-       **lot-comparable sales** and reconcile on **whole-property adjusted sale prices** (or add an
-       explicit land-adjustment line to the grid). State that the bare $/SF method **understates value for
-       a large-lot subject** (and overstates it for a small-lot subject), so the reader knows why the
-       reconciliation departs from a flat $/SF.
+     - **Condo / common-interest subject (check before treating it as a lot problem).** If the subject is
+       a **condominium** (`land_use` = CONDO / `APT OWN` / CIC, or a **nominal `emv_land`**), the triage
+       may fire `lot_outlier` / `land_term_unreliable` — but the subject is **not a small-lot house**, it
+       owns **no deeded lot at all**. Do **NOT** "add a land adjustment" or hunt for lot-comparable house
+       sales (there are none — `lot_matched_n=0`). The correct response is: the **sales-comparison approach
+       is UNAVAILABLE** absent condo comps, because a house's land-bundled $/SF cannot be applied to a
+       landless unit (it overstates the condo). Route to **own-sale + EMV history** and state the absence
+       of condo comps as a finding (see [`methodology.md`](methodology.md) Property type / ownership form
+       gate). Treat the rest of this bullet as applying only to fee-simple SFH subjects.
+     - **Lot outlier (fee-simple SFH subjects).** When a house subject's lot is materially larger or
+       smaller than the comp set, the `$/SF × subject SF` projection **silently strips lot value and is
+       unreliable** — it values a 5-acre subject's lot at the same increment as a quarter-acre comp lot.
+       Restrict the comp set to **lot-comparable sales** and reconcile on **whole-property adjusted sale
+       prices** (or add an explicit land-adjustment line to the grid). State that the bare $/SF method
+       **understates value for a large-lot subject** (and overstates it for a small-lot subject), so the
+       reader knows why the reconciliation departs from a flat $/SF.
      - **Lot-comparable but $/SF and whole-price diverge.** When the comps are **lot-comparable**
        (`lot_outlier` is false) yet the **$/SF** and **whole-price** conclusions still diverge materially
        (~10%+), **prefer the whole-price median for similarly-sized homes** (it carries land value intact) and

@@ -205,30 +205,64 @@ def _normalize_pid(pid: str) -> str:
     return re.sub(r"\D", "", pid or "")
 
 
-def _split_address(address: str) -> tuple[str | None, str | None]:
-    """Split a free-form address into ``(building_number, street_name)``.
+class AmbiguousAddressError(RuntimeError):
+    """Raised when an address resolves to more than one distinct parcel.
 
-    The street name is uppercased and stripped of the common suffix tokens
-    (AVE, ST, RD, ...) because Ramsey's ``StreetName`` field stores the bare
-    street name with suffix in a separate column.
+    Carries the candidate subject dicts so the caller can disambiguate (e.g. by
+    directional or unit) rather than silently proceeding on an arbitrary row.
+    Silently returning the first row is unsafe for any address carrying a
+    directional, unit, or duplicated street name (e.g. Lexington Pkwy N vs S in
+    St. Paul are genuinely separate streets).
+    """
+
+    def __init__(self, address: str, candidates: list[dict[str, Any]]):
+        self.address = address
+        self.candidates = candidates
+        super().__init__(
+            f"Address {address!r} matched {len(candidates)} distinct parcels — "
+            f"disambiguate before proceeding: "
+            + ", ".join(
+                f"{c.get('pid')} ({c.get('address')})" for c in candidates
+            )
+        )
+
+
+# Directional tokens are NOT street-type suffixes — in St. Paul a directional
+# (N/S/E/W/NE/...) distinguishes genuinely separate streets (Lexington Pkwy N vs
+# Lexington Pkwy S), so it must be PRESERVED, not stripped from the match.
+_DIRECTIONALS = {"N", "S", "E", "W", "NE", "NW", "SE", "SW"}
+
+
+def _split_address(address: str) -> tuple[str | None, str | None, str | None]:
+    """Split a free-form address into ``(building_number, street_name, directional)``.
+
+    The street name is uppercased and stripped of the common street-TYPE suffix
+    tokens (AVE, ST, RD, ...) because Ramsey's ``StreetName`` field stores the bare
+    street name with suffix in a separate column. Directionals (N/S/E/W/...) are
+    NOT stripped from the name — they are returned separately so the caller can
+    require them in the match instead of collapsing two distinct streets.
     """
     if not address:
-        return None, None
+        return None, None, None
     tokens = address.strip().upper().split()
     if not tokens:
-        return None, None
+        return None, None, None
     number = tokens[0] if tokens[0].isdigit() else None
     rest = tokens[1:] if number else tokens
     suffixes = {
         "AVE", "AVENUE", "ST", "STREET", "RD", "ROAD", "DR", "DRIVE",
         "BLVD", "BOULEVARD", "LN", "LANE", "CT", "COURT", "WAY", "PL",
         "PLACE", "TER", "TERRACE", "CIR", "CIRCLE", "PKWY", "PARKWAY",
-        "TRL", "TRAIL", "HWY", "HIGHWAY", "N", "S", "E", "W", "NE", "NW",
-        "SE", "SW",
+        "TRL", "TRAIL", "HWY", "HIGHWAY",
     }
-    name_tokens = [t for t in rest if t not in suffixes]
+    # Pull a trailing/leading directional out separately so it can be required in
+    # the WHERE match rather than dropped (which would collapse N/S/E/W streets).
+    directional = next((t for t in rest if t in _DIRECTIONALS), None)
+    name_tokens = [
+        t for t in rest if t not in suffixes and t not in _DIRECTIONALS
+    ]
     name = " ".join(name_tokens) if name_tokens else None
-    return number, name
+    return number, name, directional
 
 
 def _subject_from_attrs(attrs: dict[str, Any]) -> dict[str, Any]:
@@ -243,6 +277,12 @@ def _subject_from_attrs(attrs: dict[str, Any]) -> dict[str, Any]:
         "land_use": attrs.get("LandUseCodeDescription") or attrs.get("LandUseCode"),
         "parcel_acres": attrs.get("ParcelAcresDeed"),
         "plat_name": attrs.get("PlatName"),
+        # Land EMV is the tell for a condominium / common-interest unit (a nominal
+        # land value, e.g. $1,000) — surfaced so the ownership-form guard in
+        # scripts/collect.py and the equalization land-line math can use it.
+        "emv_land": attrs.get("EMVLand"),
+        "emv_building": attrs.get("EMVBuilding"),
+        "emv_total": attrs.get("EMVTotal"),
         "last_sale_price": attrs.get("SalePrice") or None,
         "last_sale_date": _parse_epoch_ms(attrs.get("LastSaleDate")),
     }
@@ -256,19 +296,33 @@ def _subject_from_attrs(attrs: dict[str, Any]) -> dict[str, Any]:
 def resolve_address(address: str) -> dict[str, Any] | None:
     """Look up a Ramsey County parcel by free-form street address.
 
-    Returns the first matching parcel as a subject dictionary or ``None``.
-    Tries a ``BuildingNumber``/``StreetName`` exact match first and falls back
-    to a ``SiteAddress LIKE`` search.
+    Returns the single matching parcel as a subject dictionary, or ``None`` when
+    nothing matches. Tries a ``BuildingNumber``/``StreetName`` exact match first
+    (REQUIRING the directional in the ``SiteAddress`` when the query carries one,
+    so N/S/E/W variants of the same street are not collapsed) and falls back to a
+    ``SiteAddress LIKE`` search.
+
+    Raises:
+        AmbiguousAddressError: when the match returns more than one DISTINCT
+            parcel. The first row is never returned silently — a multi-row match
+            on an address carrying a directional, unit, or duplicated street name
+            is unsafe to resolve arbitrarily (e.g. Lexington Pkwy N vs S).
     """
     if not address:
         return None
 
-    number, street = _split_address(address)
+    number, street, directional = _split_address(address)
     rows: list[dict[str, Any]] = []
     if number and street:
         # Escape single quotes for SQL safety
         safe_street = street.replace("'", "''")
         where = f"BuildingNumber='{number}' AND StreetName='{safe_street}'"
+        # Require the directional in the SiteAddress so a directional query does
+        # not match the opposite-directional parcel. Ramsey's SiteAddress carries
+        # the directional inline (e.g. '660 LEXINGTON PKWY S'); a bare StreetName
+        # match would return both N and S rows.
+        if directional:
+            where += f" AND UPPER(SiteAddress) LIKE '%{directional}%'"
         rows = _query_api(where, fields=SUBJECT_FIELDS)
 
     if not rows:
@@ -278,7 +332,21 @@ def resolve_address(address: str) -> dict[str, Any] | None:
 
     if not rows:
         return None
-    return _subject_from_attrs(rows[0])
+
+    # Collapse rows to DISTINCT parcels (same PID can appear once). A multi-row
+    # match across distinct PIDs must NOT silently return rows[0] — that is the
+    # 660-Lexington failure (the resolver returned the N parcel for an S query).
+    subjects: list[dict[str, Any]] = []
+    seen_pids: set[str] = set()
+    for r in rows:
+        subj = _subject_from_attrs(r)
+        if subj["pid"] not in seen_pids:
+            seen_pids.add(subj["pid"])
+            subjects.append(subj)
+
+    if len(subjects) > 1:
+        raise AmbiguousAddressError(address, subjects)
+    return subjects[0]
 
 
 def get_assessment_history(pid: str) -> list[dict[str, Any]]:

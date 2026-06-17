@@ -29,14 +29,61 @@ honestly — what was checked and why an appeal is not warranted. Follow [`metho
 - If **borderline**, state what specific new fact would change the conclusion (an inspection, a verified
   comp, an owner condition photo) so the owner can decide whether to pursue the low-cost open-book route.
 
+> **There are FOUR canonical no-appeal scenarios — identify which one this is before writing.** The finding
+> must lead with the governing approach for the scenario at hand, not pattern-match to scenario 1.
+>
+> **1. Own sale at/above EMV (the most common case).** The subject's **own recent arm's-length sale at or
+> above EMV**. Per the own-sale relevance horizon in [`methodology.md`](methodology.md), a sale within ~2
+> years of the January 2 effective date is the **single most reliable indicator** and a **market-value
+> floor** — when it sits at/above EMV it is the decisive no-appeal signal and the finding leads with it.
+> A sale in the **2.0–3.5yr band is GOVERNING after time-trending** (it is *not* "stale"; stale is reserved
+> for >4yr / non-evidentiary) — `analysis.json` carries `subject_own_sale.trended_sale_price` /
+> `trended_delta_pct`; lead with the **trended** figure. *Worked example:* subject sold **$850,000** on
+> 2025-06-03 (0.6 yr before effective), **$18,300 above** the **$831,700** EMV; size+vintage-matched comps
+> reconcile **above EMV** and equalization is neutral. Conclusion: **No Appeal** — own sale governs; comps
+> and equalization corroborate. Lead with the own sale, then the corroborating approaches.
+>
+> **2. Held property, NO own sale on record (`subject_own_sale: null`).** The own-sale indicator is simply
+> unavailable — do **not** hunt for one or treat its absence as a data gap to enrich. **Lead with the
+> size+vintage+lot-matched sales reconciliation** (indicated value at/above EMV), then the neutral/below-band
+> equalization line, then EMV history. *Worked example:* long-held 1913 home, no own sale; size+vintage-matched
+> sales indicate ~$680K vs a $413,800 EMV (assessed ~38% below market) and building $/SF is at the 3rd
+> percentile of peers. Conclusion: **No Appeal** — the market has run well past the assessment; lead with the
+> sales reconciliation and the below-peer equalization line.
+>
+> **3. Angle present but sub-floor (the assessment is HIGH, but pursuit is uneconomic).** This is a
+> *materially different deliverable* from "fairly assessed" — do not mischaracterize it. A genuine, quotable
+> over-assessment angle exists (e.g. `sales_comparison_indicated.sales_angle: true`, indicated value below
+> EMV) but the [run-appeal-review.md](run-appeal-review.md) Step 3 worth-it gate FAILS (reduction × ETR ×
+> contingency < the ~$450 floor). State plainly: **"the assessment appears high by ~$X, but the expected
+> year-1 savings (~$Y) does not justify the engagement cost"** — and show the gate math. Do **not** write
+> "the assessment is fair." *Worked example:* size+vintage+lot-matched sales indicate ~$725K vs a $788,600
+> EMV (a real $57K over-assessment), but $57,017 × 0.0162 ETR × 30% ≈ $277/yr on a one-year hold, below the
+> ~$450 floor → **No Appeal (economic gate)**, not "fairly assessed."
+>
+> **4. Fairly assessed.** All available approaches sit at/above EMV with no own-sale below EMV and no
+> economic angle. Say so plainly. **Concluded value:** when all approaches indicate AT or ABOVE the current
+> EMV, state the concluded value **AS the current EMV** (the assessment is at or below the market
+> indications) and the reduction as **$0**. Do **not** headline the highest sales indication (e.g. $354K) or
+> the trended own sale ($313K) as a "concluded value" — the market value is *at least* EMV, so the
+> assessment stands and the concluded value is the EMV itself.
+
 ## Output structure
 
 1. **Recommendation** — No Appeal (or: open-book conversation only, if borderline).
 2. **Subject property** — county record snapshot.
 3. **Assessment history** — 3-year EMV table.
 4. **What was checked** — methods run and results.
-5. **Why no appeal** — the specific evidence supporting the conclusion.
-6. **What would change this** — only if borderline.
+5. **Why no appeal** — the specific evidence supporting the conclusion. Use the branch for the scenario:
+   - *Fairly assessed (scenario 1/2/4):* the approaches sit at/above EMV — name them and their figures.
+   - *Economic gate (scenario 3):* state the indicated reduction AND the gate math (reduction × ETR ×
+     contingency vs the ~$450 floor) and say plainly "the assessment appears high by ~$X but the expected
+     savings does not justify the engagement cost." Distinct from "the assessment is fair."
+6. **Concluded value** — for the fairly-assessed scenarios, when all approaches indicate at/above EMV, state
+   the concluded value **AS the current EMV** with a **$0** reduction (do not headline the highest sales
+   indication or a trended own sale as the concluded value). For the economic-gate scenario, state the
+   indicated value and the un-pursued reduction explicitly.
+7. **What would change this** — only if borderline.
 
 Plain, factual register. The owner should finish reading it confident the property was genuinely
 reviewed.

@@ -215,13 +215,51 @@ def triage(data: dict, baseline_emv: float | None = None) -> dict:
         # A subject sale exists but carries no price — do NOT emit null (which
         # reads as 'no own sale'). Flag the missing price so the dangling record
         # triage-judgment.md item 1 says to always address is visible, with an
-        # instruction to recover the price downstream.
+        # instruction to recover the price downstream. Compute the actual horizon
+        # disposition from the real sale/effective dates (same machinery as a
+        # priced sale) instead of a generic 'corroborating only' boilerplate — a
+        # sale that PRE-dates the effective date within the ≤2yr window is
+        # potentially GOVERNING once the price is recovered, not corroborating.
+        missing_date = subject.get("last_sale_date")
+        yrs_before = _years_between(missing_date, assess_date)
+        if yrs_before is None:
+            disposition = (
+                "recover price downstream (eCRV / listing); sale date does not "
+                "parse — cannot place it on the relevance horizon"
+            )
+        elif yrs_before < 0:
+            disposition = (
+                "sale POST-dates the Jan 2 effective date — corroborating only "
+                "for the current assessment year, never the governing floor"
+            )
+        elif yrs_before <= 2.0:
+            disposition = (
+                "sale PRE-dates the effective date by "
+                f"~{yrs_before}yr (≤2yr window) — potentially GOVERNING once the "
+                "price is recovered; recover it before concluding no_appeal"
+            )
+        elif yrs_before <= 3.5:
+            disposition = (
+                f"sale pre-dates the effective date by ~{yrs_before}yr — time-trend "
+                "to the effective date once the price is recovered, then govern on "
+                "the trended figure"
+            )
+        elif yrs_before <= 4.0:
+            disposition = (
+                f"sale pre-dates the effective date by ~{yrs_before}yr — "
+                "corroborating only once recovered, not governing"
+            )
+        else:
+            disposition = (
+                f"sale pre-dates the effective date by ~{yrs_before}yr — "
+                "non-evidentiary for value; note it exists but it does not set the ask"
+            )
         own_sale_finding = {
             "price_missing": True,
-            "sale_date": subject.get("last_sale_date"),
+            "sale_date": missing_date,
+            "years_before_effective": yrs_before,
             "note": "subject sale present but price missing — recover price "
-                    "downstream (eCRV / listing); if it post-dates the Jan 2 "
-                    "effective date it is corroborating only for the current year",
+                    "downstream (eCRV / listing). " + disposition,
         }
 
     # identify_killer_comp scores on Beacon-shaped keys (absf, lot_acres,
@@ -431,7 +469,24 @@ def triage(data: dict, baseline_emv: float | None = None) -> dict:
             # the p80 band — equalizing to p80 reproduces EMV (the band-floor
             # clamp), so equalized_total_p80 == EMV means "no reduction
             # available", NOT a genuine reduced indicated value.
-            "equalization_neutral": bool(subj_bpsf <= p80_bpsf and subj_lpsf <= p80_lpsf),
+            # On an OUTLIER LOT the land $/SF is a size artifact (a small lot reads
+            # rich, a big lot reads cheap), so the land line must NOT be allowed to
+            # flip equalization_neutral to False — a small-lot subject whose land
+            # $/SF exceeds p80 purely because its lot is tiny is NOT inequitably
+            # assessed. When the land term is unreliable, fall back to the BUILDING
+            # line alone; otherwise test both lines. equalization_neutral and
+            # equalized_total_p80 (== EMV ⇒ no reduction) must never contradict.
+            "equalization_neutral": bool(
+                subj_bpsf <= p80_bpsf
+                if lot_outlier
+                else (subj_bpsf <= p80_bpsf and subj_lpsf <= p80_lpsf)
+            ),
+            # Documents that equalization_neutral fell back to the building line
+            # only because the land line is a size artifact (lot_outlier).
+            "equalization_neutral_basis": (
+                "building_line_only_land_term_unreliable" if lot_outlier
+                else "building_and_land"
+            ),
             "lot_outlier": lot_outlier,
             "land_term_unreliable": lot_outlier,
             "land_trend": land_trend,
@@ -443,6 +498,126 @@ def triage(data: dict, baseline_emv: float | None = None) -> dict:
             reg_total = round(bldg_pred + _land_term(land_pred))
             equalization["regression_implied_total"] = reg_total
             equalization["regression_gap_vs_emv"] = round(reg_total - current["emv_total"])
+
+    # Sales-comparison indicated value (first-class, separate from sales_convergence
+    # and from equalization's assessment-$/SF median_implied_total). When the script
+    # discounts/nulls the single killer comp (comp_own_emv_ratio >= 0.95), the agent
+    # is otherwise left with no POSITIVE sales-indicated value to anchor on and must
+    # reconcile by hand. This block gives that anchor: the size+vintage-matched
+    # (lot-matched where lot is load-bearing), distressed-screened comp-SALE $/SF
+    # median/mean × subject SF, PLUS the size-matched sold-comp median own_emv_ratio
+    # — the single fact distinguishing subject-specific from area-wide over-assessment.
+    # Legal basis is MARKET VALUE (sale $/SF), NOT Federated Mutual equalization; do
+    # not fuse it with equalization's assessment-$/SF median_implied_total.
+    sales_comparison_indicated = None
+    if sf:
+        subj_year = subject.get("year_built")
+        # Arm's-length, distressed-screened, quarantine-cleaned (kc_sales is already
+        # arm's-length+quarantine-clean; drop the < 0.80x own-EMV distressed records).
+        distressed_pids = {d["pid"] for d in distressed_sales}
+        sc_pool = [
+            s for s in kc_sales
+            if s.get("sale_price") and s.get("sf")
+            and s.get("pid") != subject.get("pid")
+            and s.get("pid") not in distressed_pids
+        ]
+        # Size-matched (±30% SF).
+        size_matched = [s for s in sc_pool if _in_sf_band(s.get("sf"), sf)]
+        # Size + vintage-matched (±20 yr) when the subject's year_built is known.
+        sv_matched = [
+            s for s in size_matched
+            if subj_year and s.get("year_built")
+            and abs(s["year_built"] - subj_year) <= 20
+        ] if subj_year else list(size_matched)
+        # Lot-matched layer (where lot is load-bearing): keep separately rather than
+        # narrowing the primary set, since not all sales carry lot_acres.
+        sv_lot_matched = [
+            s for s in sv_matched
+            if lot_sf and s.get("lot_acres")
+            and _in_sf_band((s["lot_acres"] or 0) * SQFT_PER_ACRE, lot_sf)
+        ] if lot_sf else []
+
+        def _median(vals: list[float]) -> float | None:
+            v = sorted(vals)
+            return v[len(v) // 2] if v else None
+
+        # Prefer the tightest available matched set (vintage-matched), but report
+        # which basis was used and the n so the agent can judge reliability.
+        if sv_matched:
+            basis_set, basis_label = sv_matched, "size+vintage_matched"
+        elif size_matched:
+            basis_set, basis_label = size_matched, "size_matched_only"
+        else:
+            basis_set, basis_label = [], "none"
+        psf_vals = [s["sale_price"] / s["sf"] for s in basis_set]
+        median_psf = _median(psf_vals)
+        mean_psf = (sum(psf_vals) / len(psf_vals)) if psf_vals else None
+        # Size-matched sold-comp median own_emv_ratio — subject-specific vs area-wide
+        # over-assessment discriminator. ~1.0 => peers fairly assessed (over-assessment
+        # is subject-specific); < ~0.90 => area-wide pocket over-assessment (equalization).
+        ratio_vals = [
+            s["sale_price"] / s["emv_total"]
+            for s in basis_set
+            if s.get("emv_total")
+        ]
+        median_own_emv_ratio = _median(ratio_vals)
+        if median_psf is not None:
+            indicated_median = round(median_psf * sf)
+            indicated_mean = round(mean_psf * sf) if mean_psf is not None else None
+            indicated_gap = indicated_median - current["emv_total"]
+            # Explicit angle label so the SIGN of the gap is not left for the agent
+            # to interpret (2090 Dayton: a POSITIVE gap next to a borderline verdict
+            # reads as an angle when it is the opposite). sales_angle is True only
+            # when the size+vintage-matched sales indicate a value MATERIALLY below
+            # EMV (> ~2% below); at/above EMV there is no sales-based angle.
+            sales_angle = bool(indicated_gap < -0.02 * current["emv_total"])
+            # Lot reliability: the flat sale-$/SF median silently strips lot value.
+            # When few of the matched comps actually match the subject's lot
+            # (lot_matched_n low vs n), or the subject's lot is an outlier, the
+            # indicated_value_median is land-contaminated and must NOT be quoted as
+            # a reconciled value (a condo/tiny-lot subject projected against
+            # land-bearing house $/SF, or a small-lot subject against large-lot
+            # comps). Self-disclaim it the way single-model sales_convergence is.
+            lot_match_weak = bool(
+                (equalization or {}).get("lot_outlier")
+                or (len(sv_lot_matched) == 0)
+                or (len(basis_set) and len(sv_lot_matched) / len(basis_set) < 0.34)
+            )
+            sales_comparison_indicated = {
+                "basis": basis_label,
+                "n": len(basis_set),
+                "legal_basis": "market value (sale $/SF) — NOT Federated Mutual "
+                               "equalization; do not fuse with equalization "
+                               "median_implied_total",
+                "median_sale_psf": round(median_psf, 1),
+                "mean_sale_psf": round(mean_psf, 1) if mean_psf is not None else None,
+                "indicated_value_median": indicated_median,
+                "indicated_value_mean": indicated_mean,
+                "indicated_gap_vs_emv": indicated_gap,
+                "sales_angle": sales_angle,
+                "sales_angle_note": (
+                    "indicated median is BELOW EMV — sales-based angle present"
+                    if sales_angle else
+                    f"indicated median is AT/ABOVE EMV (gap {indicated_gap:+,}); "
+                    "peers fairly assessed → NO sales-based angle"
+                ),
+                "lot_matched_n": len(sv_lot_matched),
+                "lot_match_weak": lot_match_weak,
+                "indicated_value_reliability": (
+                    "directional_screen_only_do_not_quote — lot-unmatched/outlier "
+                    "$/SF strips land value; reconcile on lot-comparable whole prices"
+                    if lot_match_weak else "lot-matched — quotable"
+                ),
+                "sold_comp_median_own_emv_ratio": (
+                    round(median_own_emv_ratio, 2)
+                    if median_own_emv_ratio is not None else None
+                ),
+                "note": "size+vintage-matched (lot-matched count reported separately), "
+                        "distressed- and quarantine-screened sale $/SF × subject SF. "
+                        "sold_comp_median_own_emv_ratio ≈ 1.0 ⇒ peers fairly assessed "
+                        "(over-assessment is subject-specific); < ~0.90 ⇒ area-wide "
+                        "pocket (equalization basis).",
+            }
 
     # Verdict (methodology.md Phase 5 thresholds, minus condition which needs
     # client input, minus building-inequity which needs Beacon ABSF).
@@ -471,7 +646,12 @@ def triage(data: dict, baseline_emv: float | None = None) -> dict:
         #   ≤ 2.0 yr → governing (unadjusted)
         #   2.0 < x ≤ 3.5 yr → time-trend to the effective date, govern on trended
         #   3.5 < x ≤ 4.0 yr → corroborating only
-        #   > 4.0 yr → non-evidentiary (raw delta already flagged meaningless above)
+        #   > 4.0 yr → non-governing (raw delta already flagged meaningless above)
+        # NOTE: methodology.md adds a 4.0-5.0yr band where a sale may be cited as
+        # TIME-TRENDED directional corroboration (disclosed stale). The script keeps
+        # the conservative >4.0yr → non-governing cutoff for VERDICT purposes (it
+        # never sets the ask off a >4yr sale); the 4-5yr directional-corroboration
+        # nuance is an agent-layer judgment call, not a script verdict change.
         yrs = own_sale_finding.get("years_before_effective")
         if yrs is None or yrs <= 2:
             # Within ~2yr: unadjusted own sale is governing.
@@ -487,15 +667,69 @@ def triage(data: dict, baseline_emv: float | None = None) -> dict:
             own_sale_finding["trended_delta_pct"] = trended_delta_pct
             if trended_delta_pct < -5:
                 verdict = "appeal_angle"
+            # "Stale" is doctrinally reserved for the >4yr non-evidentiary band
+            # (methodology.md own-sale horizon). A 2.0-3.5yr sale is GOVERNING after
+            # time-trending — labeling it "stale" contradicts the doctrine the agent
+            # is told to apply and invites discarding a governing trended sale.
+            governing_str = (
+                "governing" if trended_delta_pct < -5
+                else "governing — at/above EMV, supports no-appeal"
+            )
             reasons.append(f"Subject sold ${own_sale_finding['sale_price']:,.0f} on "
-                           f"{own_sale_finding['sale_date']} ({yrs} yrs stale); time-trended to "
-                           f"~${trended:,.0f} ({trended_delta_pct}% vs EMV)")
+                           f"{own_sale_finding['sale_date']} ({yrs} yrs before effective); "
+                           f"time-trended to ~${trended:,.0f} ({trended_delta_pct}% vs EMV) — "
+                           f"{governing_str}")
         else:
             # Beyond ~3-4yr: corroborating only — do NOT let the own sale flip the
             # verdict on its own, and do not report the raw delta as a finding.
+            # 3.5-4.0yr is corroborating-only (not "stale" — that word is reserved
+            # for the >4yr non-evidentiary band); >4yr is genuinely stale but is also
+            # surfaced as corroborating-only (it never flips the verdict). Label by band.
+            band_str = (
+                f"({yrs} yrs before effective — corroborating only, not governing)"
+                if yrs <= 4.0
+                else f"({yrs} yrs stale — non-evidentiary for value, corroborating only)"
+            )
             reasons.append(f"Subject sold ${own_sale_finding['sale_price']:,.0f} on "
-                           f"{own_sale_finding['sale_date']} ({yrs} yrs stale) — corroborating only, "
-                           f"not governing")
+                           f"{own_sale_finding['sale_date']} {band_str}")
+    # p80-equalization vs the larger supported reduction. The equalization reason
+    # below headlines equalized_total_p80, but the worth_it_gate's
+    # illustrative_reduction (sized later) is sourced from conv_gap and
+    # median_gap_vs_emv — a different, usually LARGER number. Headlining the narrow
+    # p80 figure while the gate silently sizes off a larger reduction is the
+    # 1024-Lincoln trap: an agent trusting the headline runs the gate against the
+    # smaller ask and may flip a genuine appeal to no_appeal. Pre-compute whether a
+    # larger, supported reduction exists so the p80 reason can be annotated
+    # ('smaller reduction; sales/median conclusion governs the ask') — keeping the
+    # verdict reason traceable to the same governing ask the gate sizes off.
+    def _p80_reason_annotation() -> str:
+        if not equalization:
+            return ""
+        p80_total = equalization.get("equalized_total_p80")
+        if p80_total is None:
+            return ""
+        p80_reduction = current["emv_total"] - p80_total
+        # Candidate larger reductions (all from a governing/market or median basis).
+        candidates = []
+        med_gap = equalization.get("median_gap_vs_emv")
+        if med_gap is not None and med_gap < 0:
+            candidates.append(-med_gap)
+        if sales_comparison_indicated and sales_comparison_indicated.get("indicated_gap_vs_emv") is not None:
+            sci_gap = sales_comparison_indicated["indicated_gap_vs_emv"]
+            if sci_gap < 0:
+                candidates.append(-sci_gap)
+        # NOTE: convergence (conv_gap) is sized LATER in the verdict flow, so it is
+        # intentionally not referenced here; median + sales-comparison-indicated are
+        # the reductions available at reason-build time. The worth_it_gate, sized
+        # after convergence, may pick up an even larger conv reduction — that only
+        # reinforces "sales/median governs", never contradicts this annotation.
+        larger = max(candidates) if candidates else 0
+        if larger > p80_reduction:
+            return (" — p80 equalization floor (smaller reduction of "
+                    f"~${p80_reduction:,.0f}; a larger ~${larger:,.0f} sales/median "
+                    "reduction exists — the sales/median conclusion governs the ask)")
+        return ""
+
     if equalization:
         bldg_pct = equalization["building_psf_percentile"]
         # On an outlier lot the land $/SF percentile is a size artifact, not
@@ -515,7 +749,8 @@ def triage(data: dict, baseline_emv: float | None = None) -> dict:
                 f"Subject assessed above {min(bldg_pct, land_pct)}% "
                 f"of comps on BOTH building $/SF (${equalization['subject_building_psf']}/SF vs ${equalization['comp_p80_building_psf']} at p80) "
                 f"and land $/SF (${equalization['subject_land_psf']} vs ${equalization['comp_p80_land_psf']} at p80); "
-                f"equalizing to the p80 band implies ~${equalization['equalized_total_p80']:,.0f}")
+                f"equalizing to the p80 band implies ~${equalization['equalized_total_p80']:,.0f}"
+                + _p80_reason_annotation())
         elif bldg_pct >= 95 or land_pct >= 95:
             # An extreme single-axis percentile is a standalone equalization
             # angle (a 95th-percentile building $/SF is size-robust inequity);
@@ -529,14 +764,31 @@ def triage(data: dict, baseline_emv: float | None = None) -> dict:
                 reasons.append(
                     f"Subject land $/SF at {equalization['land_psf_percentile']}th percentile of comps "
                     f"(${equalization['subject_land_psf']} vs ${equalization['comp_p80_land_psf']} at p80) — standalone equalization angle")
-        elif bldg_pct >= 80 or land_pct >= 80:
+        elif bldg_pct >= 80:
+            # BUILDING-side inequity is the governing equalization signal — the
+            # building line drives inequity, land does not. Fire borderline only on
+            # a rich building line.
             if verdict == "no_angle":
                 verdict = "borderline"
             land_note = (" (land $/SF excluded — size artifact on an outlier lot)"
                          if equalization.get("land_psf_percentile_size_artifact") else "")
             reasons.append(
-                f"Equalization: building $/SF at {bldg_pct}th percentile, "
+                f"Equalization: building $/SF at {bldg_pct}th percentile (governing line), "
                 f"land $/SF at {equalization['land_psf_percentile']}th percentile of comps{land_note}")
+        elif land_pct >= 80:
+            # ONLY the land line is rich while the building line is mid-pack
+            # (< p80). Per methodology.md "Rich-land / neutral-building pocket":
+            # a high land $/SF with a neutral building line is a presumptively
+            # LEGITIMATE locational premium (lake / view / corner), NOT inequity —
+            # the sales conclusion governs. Do NOT fire borderline on the land line
+            # alone, and label the reason so it cannot read as an angle (2090
+            # Dayton: building 44th pctile + land 80th was firing borderline and
+            # leading with the non-actionable land figure).
+            reasons.append(
+                f"Equalization: building $/SF mid-pack ({bldg_pct}th pctile) — NO building "
+                f"inequity; land $/SF rich ({equalization['land_psf_percentile']}th pctile) is a "
+                f"presumptively-legitimate locational premium, not a reduction lever — "
+                f"sales conclusion governs")
         else:
             # No inequity threshold tripped. When BOTH implied totals land at or
             # above EMV, that is an explicit no-inequity confirmation (assessment
@@ -603,6 +855,31 @@ def triage(data: dict, baseline_emv: float | None = None) -> dict:
             verdict = "appeal_angle"
         reasons.append(f"Sales models converge ${-conv_gap:,.0f} below EMV")
 
+    # Quotable size+vintage+lot-matched sales indication BELOW EMV is a first-class
+    # angle the verdict must consult — it is the script's single most reliable
+    # below-EMV market signal, and orphaning it (firing no_angle off equalization /
+    # killer / convergence while sales_comparison_indicated.sales_angle is true) is
+    # the failure triage-judgment.md warns about. A quotable, lot-matched indication
+    # below EMV escalates to appeal_angle regardless of the killer/convergence path;
+    # only the downstream worth-it gate (run-appeal-review.md Step 3) can downgrade it.
+    sci_angle_live = bool(
+        sales_comparison_indicated
+        and sales_comparison_indicated.get("sales_angle")
+        and sales_comparison_indicated.get("indicated_value_reliability")
+        != "directional_screen_only_do_not_quote"
+        and sales_comparison_indicated.get("lot_match_weak") is not True
+    )
+    if sci_angle_live:
+        sci_gap = sales_comparison_indicated.get("indicated_gap_vs_emv")
+        sci_med = sales_comparison_indicated.get("indicated_value_median")
+        if verdict == "no_angle":
+            verdict = "appeal_angle"
+        reasons.append(
+            f"Size+vintage+lot-matched sales indicate ~${sci_med:,.0f} "
+            f"(${-sci_gap:,.0f} below EMV) — quotable sales angle"
+            if sci_med is not None and sci_gap is not None
+            else "Size+vintage+lot-matched sales indicate a value below EMV — quotable sales angle")
+
     if verdict == "no_angle":
         conv_at_emv = (
             conv_tight
@@ -614,6 +891,16 @@ def triage(data: dict, baseline_emv: float | None = None) -> dict:
         # and must not require multi-model convergence (structurally unavailable
         # for a single-plat neighborhood). Any one of these confirms no angle.
         killer_confirms = killer and killer.get("verdict") in ("kills_appeal", "confirms_fair")
+        # When the best comp sold AT or ABOVE its own EMV (comp_own_emv_ratio >=
+        # 0.95) the county assessed THAT comp correctly — its low absolute sale is
+        # just a cheaper value tier, NOT evidence the subject is fairly assessed.
+        # triage-judgment.md item 2 tells the agent to DISCOUNT such a comp, so the
+        # script must not headline "best comp brackets the subject at or above EMV"
+        # off it. Suppress the comp as a value indicator and base the no_angle /
+        # borderline reason on the size-matched pocket median own_emv_ratio and the
+        # equalization-neutral result instead.
+        kc_ratio = killer.get("comp_own_emv_ratio") if killer else None
+        killer_comp_discounted = kc_ratio is not None and kc_ratio >= 0.95
         eq_confirms = bool(
             equalization
             and equalization["building_psf_percentile"] <= 40
@@ -636,10 +923,33 @@ def triage(data: dict, baseline_emv: float | None = None) -> dict:
             comp_median_psf = psf_pool[len(psf_pool) // 2]
             if comp_median_psf * sf >= current["emv_total"]:
                 sales_confirms = True
-        if killer and killer.get("verdict") == "kills_appeal" and conv_at_emv:
+        if killer and killer.get("verdict") == "kills_appeal" and conv_at_emv and not killer_comp_discounted:
             reasons.append("Best comp at EMV and sales models converge near EMV — no angle")
-        elif killer_confirms:
+        elif killer_confirms and not killer_comp_discounted:
             reasons.append("Best comp brackets the subject at or above EMV — no angle")
+        elif killer_comp_discounted and (
+            (pocket_median_own_emv_ratio is not None and pocket_median_own_emv_ratio >= 0.95)
+            or (equalization and equalization.get("equalization_neutral"))
+        ):
+            # Best comp discounted (sold at/above its own EMV); base the no-angle
+            # reason on the size-matched pocket median own-EMV ratio and the
+            # equalization-neutral result, NOT on the discounted comp.
+            # GUARD: only assert "no subject-specific angle" when there is genuinely
+            # no quotable below-EMV sales indication. When the pocket sold ~1.0x (peers
+            # fairly assessed) AND sales_comparison_indicated is below EMV, the
+            # over-assessment IS subject-specific — sci_angle_live above will already
+            # have flipped the verdict to appeal_angle, so this branch is unreachable
+            # in that case. The explicit not-sci_angle_live guard prevents a future
+            # edit from re-emitting the factually-false "no subject-specific angle".
+            pocket_str = (
+                f"the size-matched pocket sold at ~{pocket_median_own_emv_ratio:.2f}x its own EMV"
+                if pocket_median_own_emv_ratio is not None
+                else "equalization is neutral (subject at/below the p80 peer band)"
+            )
+            if not sci_angle_live:
+                reasons.append(
+                    f"Best comp discounted (sold ~{kc_ratio:.2f}x its own EMV — cheaper value tier, "
+                    f"not a fair-assessment signal); {pocket_str} — no subject-specific angle")
         elif eq_confirms:
             reasons.append("Subject building $/SF at/below peer level and equalization implies a "
                            "total at or above EMV — no angle")
@@ -698,13 +1008,33 @@ def triage(data: dict, baseline_emv: float | None = None) -> dict:
     # Illustrative savings from a default reduction assumption so the worth-it
     # threshold (docs/04, docs/09) can be sized at triage — NOT a forecast and
     # NOT a concluded number (there is no reconciliation yet). The illustrative
-    # reduction is the best available implied gap below EMV (convergence or
-    # equalization median), floored at 0.
+    # reduction is the best available implied gap below EMV from a DEFENSIBLE
+    # basis, floored at 0.
+    # Track which source the illustrative_reduction came from so the verdict
+    # reason and worth_it_gate.illustrative_reduction are traceable to the SAME ask
+    # (the 1024-Lincoln mismatch: the reason headlined the narrow p80 figure while
+    # the gate silently sized off the larger median_gap). Two figures are
+    # deliberately NOT candidates here:
+    #   - the p80 equalization floor — the smaller, non-governing figure; and
+    #   - the equalization MEDIAN gap — methodology.md (Equalization: band-floor
+    #     neutrality, use p75–p90 not the median) forbids equalizing to the median,
+    #     and the script itself relabels it `median_gap_directional_not_a_basis`.
+    #     Sizing the gate off a basis the playbook forbids produced a misleading
+    #     sub-EMV "illustrative reduction" (2090 Dayton / 1325 Hartford: a phantom
+    #     ~$5K/$21K gate built entirely on the median artifact on fairly-assessed
+    #     parcels). The gate sizes off the GOVERNING (market / sales) reduction
+    #     only — sales convergence or the size+vintage-matched sales-comparison
+    #     indicated value. If neither lands below EMV, no reduction is implied.
     illustrative_reduction = 0
-    if conv_gap is not None and conv_gap < 0:
-        illustrative_reduction = max(illustrative_reduction, -conv_gap)
-    if equalization and equalization.get("median_gap_vs_emv") is not None:
-        illustrative_reduction = max(illustrative_reduction, -equalization["median_gap_vs_emv"])
+    illustrative_reduction_source = None
+    if conv_gap is not None and conv_gap < 0 and -conv_gap > illustrative_reduction:
+        illustrative_reduction = -conv_gap
+        illustrative_reduction_source = "sales_convergence_gap_vs_emv"
+    if sales_comparison_indicated and \
+            sales_comparison_indicated.get("indicated_gap_vs_emv") is not None and \
+            -sales_comparison_indicated["indicated_gap_vs_emv"] > illustrative_reduction:
+        illustrative_reduction = -sales_comparison_indicated["indicated_gap_vs_emv"]
+        illustrative_reduction_source = "sales_comparison_indicated_gap_vs_emv"
     tax_economics = {
         "etr": round(etr, 4),
         "etr_proxy_source": etr_source,
@@ -738,9 +1068,15 @@ def triage(data: dict, baseline_emv: float | None = None) -> dict:
     )
     gate_flag = "unknown"
     if min_reduction_to_clear is not None:
-        if illustrative_reduction <= 0:
-            # No script-implied reduction yet — gate cannot be sized; leave to
-            # downstream reconciliation rather than asserting pass/fail.
+        if illustrative_reduction <= 0 and verdict == "no_angle":
+            # Verdict already forecloses an appeal — there is no ask to size and the
+            # gate is moot. Emit n/a (terminal), not "not_yet_sized", so the analyst
+            # is not prompted to size an ask that doesn't exist (run-appeal-review.md
+            # Step 3 treats this as terminal).
+            gate_flag = "n/a — no supportable reduction"
+        elif illustrative_reduction <= 0:
+            # No script-implied reduction yet but the verdict is not a hard no_angle
+            # — gate cannot be sized; leave to downstream reconciliation.
             gate_flag = "not_yet_sized"
         elif illustrative_reduction >= min_reduction_to_clear:
             gate_flag = "pass"
@@ -755,6 +1091,12 @@ def triage(data: dict, baseline_emv: float | None = None) -> dict:
     tax_economics["worth_it_gate"] = {
         "min_reduction_to_clear_floor": min_reduction_to_clear,
         "illustrative_reduction": illustrative_reduction if illustrative_reduction > 0 else None,
+        # Which figure the gate sized off, so the verdict reason and the gate are
+        # traceable to the SAME ask. The p80 equalization floor is intentionally
+        # excluded as a source — it is the smaller, non-governing figure.
+        "illustrative_reduction_source": (
+            illustrative_reduction_source if illustrative_reduction > 0 else None
+        ),
         "illustrative_year1_fee": illustrative_year1_savings,
         "year1_fee_floor_assumed": YEAR1_FEE_FLOOR_PLACEHOLDER,
         "contingency_pct_assumed": CONTINGENCY_PCT_PLACEHOLDER,
@@ -806,6 +1148,7 @@ def triage(data: dict, baseline_emv: float | None = None) -> dict:
         "subject_own_sale": own_sale_finding,
         "killer_comp": killer,
         "sales_convergence": convergence,
+        "sales_comparison_indicated": sales_comparison_indicated,
         "distressed_sales": distressed_sales,
         "quarantined_sales": quarantined_sales,
         "equalization": equalization,

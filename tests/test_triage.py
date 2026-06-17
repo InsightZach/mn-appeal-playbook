@@ -293,6 +293,94 @@ def test_own_sale_horizon_boundaries_are_unambiguous():
     assert any("corroborating only" in reason for reason in r2["reasons"])
 
 
+# ---------------------------------------------------------------------------
+# Loop-3 additions: sales_comparison_indicated, gate sourcing, rich-land split
+# ---------------------------------------------------------------------------
+
+def _matched_sales(n=6, psf=180, emv=365_000, sf=2000, year=1990, lot=0.2):
+    """n size+vintage+lot-matched, fairly-assessed (non-distressed) sales."""
+    return [{
+        "pid": f"M{i}", "address": f"{i} Match St", "plat_name": "OTHER",
+        "sale_price": psf * sf, "sf": sf, "year_built": year,
+        "lot_acres": lot, "emv_total": emv, "sale_date": f"2025-0{(i % 8) + 1}-12",
+        "lat": 44.95, "lon": -93.15,
+    } for i in range(n)]
+
+
+def test_sales_comparison_indicated_emits_quotable_below_emv_angle():
+    """The size+vintage+lot-matched sale $/SF × subject SF anchor is emitted, and
+    when it lands materially below EMV with lot-matched comps it is a quotable
+    sales angle that escalates the verdict."""
+    # indicated = 180 × 2000 = 360k vs 400k EMV → -10% → quotable angle.
+    r = triage(_data(sales=_matched_sales(n=6, psf=180, emv=365_000)))
+    sci = r["sales_comparison_indicated"]
+    assert sci is not None
+    assert sci["indicated_value_median"] == 360_000
+    assert sci["sales_angle"] is True
+    assert sci["indicated_value_reliability"] == "lot-matched — quotable"
+    assert sci["sold_comp_median_own_emv_ratio"] is not None
+    assert r["verdict"] == "appeal_angle"
+    assert any("quotable sales angle" in reason for reason in r["reasons"])
+
+
+def test_sales_comparison_indicated_no_angle_when_at_or_above_emv():
+    """When the matched sales indicate at/above EMV, sales_angle is False and no
+    sales angle is asserted."""
+    # indicated = 210 × 2000 = 420k vs 400k EMV → above → no angle.
+    r = triage(_data(sales=_matched_sales(n=6, psf=210, emv=430_000)))
+    sci = r["sales_comparison_indicated"]
+    assert sci["sales_angle"] is False
+    assert not any("quotable sales angle" in reason for reason in r["reasons"])
+
+
+def test_worth_it_gate_never_sources_from_the_equalization_median():
+    """methodology.md forbids equalizing to the median, so the gate's
+    illustrative_reduction must come only from a governing (sales) basis."""
+    r = triage(_data(sales=_matched_sales(n=6, psf=180, emv=365_000)))
+    gate = r["tax_economics"]["worth_it_gate"]
+    assert gate["illustrative_reduction_source"] in (
+        "sales_convergence_gap_vs_emv",
+        "sales_comparison_indicated_gap_vs_emv",
+        None,
+    )
+
+
+def test_rich_land_neutral_building_does_not_fire_an_equalization_angle():
+    """A rich land $/SF (p80–p94) with a mid-pack building line is a presumptively
+    legitimate locational premium — the sales conclusion governs, not a borderline
+    equalization angle off the land line alone."""
+    # Subject: mid-pack building $/SF, high (but < p95) land $/SF, normal lot.
+    comps = []
+    for i in range(8):
+        comps.append({
+            "pid": f"C{i}", "address": f"{i} Comp St",
+            # building $/SF straddles the subject (subject 120 → mid-pack)
+            "sf": 2000, "emv_building": 220_000 + i * 12_000,
+            # land $/SF mostly below the subject's, one above → subject ~p88
+            "lot_acres": 0.2,
+            "emv_land": (60_000 + i * 4_000) if i < 7 else 170_000,
+            "lat": 44.95, "lon": -93.15,
+        })
+    r = triage(_data(
+        subject={"living_area_sf": 2000, "parcel_acres": 0.2},
+        comps=comps,
+    ))
+    eq = r["equalization"]
+    assert eq["lot_outlier"] is False
+    # land rich, building mid-pack
+    assert eq["land_psf_percentile"] >= 80
+    assert eq["building_psf_percentile"] < 80
+    # rich-land-only must NOT create an equalization angle off the land line
+    assert any("locational premium" in reason and "sales conclusion governs" in reason
+               for reason in r["reasons"])
+    assert not any("BOTH building" in reason for reason in r["reasons"])
+
+
+def test_sales_comparison_indicated_is_a_documented_top_level_key():
+    r = triage(_data())
+    assert "sales_comparison_indicated" in r
+
+
 def test_worth_it_gate_is_informational_and_never_relabels_the_verdict():
     """The worth-it gate must NOT modulate the verdict or invent a new verdict
     value — the script never concludes the worth-it call (it belongs to the

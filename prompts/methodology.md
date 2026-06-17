@@ -36,6 +36,19 @@ deterioration, permits for emergency repairs.
 
 ## Comparable selection
 
+**Property type / ownership form gate (check this FIRST).** A comp must be the same **ownership form** as
+the subject before any other screen. The collectors return **single-family houses only** (Ramsey queries
+`LandUseCode='510'`; the Hennepin collectors are SFH-oriented), so the comp/sales sets are houses
+regardless of what the subject is. When the subject is a **condominium / common-interest unit** — flagged
+by `land_use` containing `CONDO` / `APT OWN` / `CIC` / `COMMON INTEREST`, or by a **nominal `emv_land`**
+(e.g. ≤ ~$5,000, because a condo owns no deeded lot) — a fee-simple house's sale **$/SF is land-bundled and
+must NOT be applied to the landless condo unit** (it systematically OVERSTATES the condo). The reverse is
+equally invalid. In that case the **sales-comparison approach yields NO indicated value** absent true condo
+comps (parallel to the "No tier-matched sale" rule below): **state the absence of condo comps as a
+finding**, do not project house $/SF onto the unit, and conclude on the **subject's own sale + EMV history +
+equalization** (and note that any equalization land percentile is meaningless for a near-zero-land unit).
+`scripts/collect.py` prints a `WARNING:` when the subject looks like a condo — do not ignore it.
+
 Tighter is better, but over-filtering leaves you no comps. Rough hierarchy:
 
 1. **Same neighborhood / plat** — a plat-mate beats a comp two neighborhoods over.
@@ -143,6 +156,14 @@ premium, not inequity.)
   reconciliation may conclude below the sales range *and* below the subject's own sale when equalization
   is the explicit basis and the assessment-level inequity is shown. When the sales conclusion and the
   equalized value disagree, state which one governs and why — do not average them.
+- **Equalization can land EITHER below OR above the sales conclusion.** (a) When the equalized value is
+  LOWER than the sales range and assessment-level inequity (*Federated Mutual*) is the explicit stated
+  basis, equalization may govern and pull the conclusion below the sales range. (b) When the equalized
+  value is HIGHER than (or yields a SMALLER reduction than) the sales conclusion, the SALES conclusion
+  governs the request; equalization is reported only as corroboration that the assessment exceeds peer
+  level — never as the requested value. In both cases the request is the largest defensible reduction
+  from the GOVERNING approach; do not anchor on the equalization figure merely because the script
+  headlines it.
 - State the effective date (January 2 of the assessment year) in the conclusion.
 
 ## Own-sale relevance horizon (single rule)
@@ -156,7 +177,12 @@ bands are **numeric and non-overlapping** so a sale exactly on a boundary has on
   rate (≈ +0.25%/month, ≈ 3%/yr — calibrate to local paired sales) and treat the trended figure as governing.
 - **3.5 – 4.0 years** (`3.5 < x ≤ 4.0`): **corroborating only** — it supports the direction of the
   conclusion but does not set it; lead with current comp sales and equalization instead.
-- **> 4.0 years**: **non-evidentiary for value** — note it exists, but the raw delta vs current EMV is
+- **4.0 – 5.0 years** (`4.0 < x ≤ 5.0`): **non-governing, but may be cited as TIME-TRENDED directional
+  corroboration of the conclusion's direction** (disclosed as stale) — do not set the ask off it. A sale
+  just past the 4.0yr line still time-trends to a figure that confirms the *direction* of the conclusion
+  about the subject itself, which is more reliable than imperfectly-adjusted inferior comps; cite it as
+  disclosed-stale directional support, not as the value indicator.
+- **> ~5.0 years**: **non-evidentiary for value** — note it exists, but the raw delta vs current EMV is
   meaningless; do not report it as a finding.
 
 ## EMV cross-check (reconciliation aid)
