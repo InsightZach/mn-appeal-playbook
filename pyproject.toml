@@ -5,6 +5,7 @@ description = "Minnesota residential property tax appeal playbook — data colle
 requires-python = ">=3.11"
 dependencies = [
     "requests>=2.31",
+    "numpy>=1.26",
 ]
 
 [dependency-groups]

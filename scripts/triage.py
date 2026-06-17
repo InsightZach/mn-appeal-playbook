@@ -26,6 +26,7 @@ from analysis.equalization import (
     compute_building_psf_trend,
     apply_trend_to_subject,
 )
+from analysis.comp_regression import derive_adjustments
 
 SQFT_PER_ACRE = 43560
 
@@ -700,6 +701,18 @@ def triage(data: dict, baseline_emv: float | None = None) -> dict:
             }
             for s in sorted(basis_set, key=_verify_key)[:6]
         ]
+
+        # Data-derived adjustment rates (TARE Ch. 21 statistical analysis) — a
+        # multiple regression of comp sale price on the elements of comparison,
+        # run on the same-tier, arm's-length, quarantine-clean pool (sc_pool, the
+        # broad set, NOT the narrowed median set — regression wants the variance
+        # across size/age/lot/time to estimate the marginals). The coefficients
+        # are the SUPPORTABLE adjustment rates the sales-comp grid applies; each
+        # carries its t-stat + reliability so the packet quotes a derived rate,
+        # not a table number. Condition/quality are NOT regressed (not in the
+        # data) — they come from the agent condition read.
+        derived_adjustments = derive_adjustments(sc_pool, subject, assess_date)
+
         psf_vals = [s["sale_price"] / s["sf"] for s in basis_set]
         median_psf = _median(psf_vals)
         mean_psf = (sum(psf_vals) / len(psf_vals)) if psf_vals else None
@@ -764,6 +777,13 @@ def triage(data: dict, baseline_emv: float | None = None) -> dict:
                     else "unavailable — agent condition read required (Hennepin/Mpls)"
                 ),
                 "condition_verify_shortlist": condition_verify_shortlist,
+                # Data-derived adjustment RATES for the sales-comp grid (TARE
+                # statistical analysis) — regression coefficients on this comp
+                # pool, each with t-stat + reliability. The supportable rates to
+                # apply (comp→subject: adjusted = price + Σ coef × (subj − comp)),
+                # NOT a table default. Condition/quality are filled by the agent
+                # read, not here. null when too few comps to regress.
+                "derived_adjustments": derived_adjustments,
                 "legal_basis": "market value (sale $/SF) — NOT Federated Mutual "
                                "equalization; do not fuse with equalization "
                                "median_implied_total",
