@@ -1,0 +1,94 @@
+{
+  "_doc": "Agent-authored NO-APPEAL judgment for 530 Desnoyer Ave, St. Paul. The scenario (fairly_assessed) and the $0 reduction are DERIVED by scripts.build_finding, not asserted here — there are no central extraction comps below EMV, so the builder concludes the value AT the current EMV. The `finding` block is the agent's narrative (rendered verbatim). Illustrative worked example. Render: uv run python -m scripts.build_finding properties/desnoyer/judgment.json --output properties/desnoyer/finding.html",
+  "meta": {
+    "assessment_year": 2026,
+    "payable_year": 2027,
+    "brand": "Residential Property Tax Appeal",
+    "report_title": "Assessment Review Findings — 530 Desnoyer Ave, St. Paul",
+    "tax_rate": 0.0135,
+    "banner": "ILLUSTRATIVE SAMPLE — built from public Ramsey County assessment and sale data. Not a filed document."
+  },
+  "subject": {
+    "address": "530 Desnoyer Ave, St. Paul, MN 55104",
+    "pid": "32-29-23-23-0151",
+    "year_built": 1928,
+    "living_area_sf": 2369,
+    "lot_acres": 0.16,
+    "plat_name": "Desnoyer Park",
+    "emv_land": 130800,
+    "emv_building": 705700,
+    "emv_total": 836500
+  },
+  "assessments": [
+    {"tax_year": 2025, "assess_year": 2024, "emv_land": 130800, "emv_building": 634800, "emv_total": 765600},
+    {"tax_year": 2026, "assess_year": 2025, "emv_land": 130800, "emv_building": 733000, "emv_total": 863800},
+    {"tax_year": 2027, "assess_year": 2026, "emv_land": 130800, "emv_building": 705700, "emv_total": 836500}
+  ],
+  "finding": {
+    "summary_headline": "No clear angle — the assessment is supported by recent sales.",
+    "summary_body": "We pulled the county data and the recent neighborhood sales. The subject's building value per square foot looks high against a broad neighborhood median, which is worth a look — but against its immediate Otis Ave / Pelham peers it is mid-pack, and a recent arm's-length sale two blocks away supports values at this level. The county also already trimmed the 2026 EMV 3.2%. We don't see a clear angle to appeal.",
+    "work_completed": [
+      "Pulled the 3-year assessment history from Ramsey County",
+      "Pulled 56 arm's-length neighborhood sales (Apr 2024 – Mar 2026)",
+      "Computed the neighborhood EMV-to-sale ratio",
+      "Compared the subject's land and building $/SF to same-size peers",
+      "Identified the strongest comp the county would lead with",
+      "Tested the building $/SF signal against actual market sales"
+    ],
+    "findings": [
+      {"title": "The county already cut the 2026 value 3.2%",
+       "body": "After a 12.8% jump in 2025 ($765,600 → $863,800), the county trimmed the 2026 EMV to $836,500 (−$27,300, −3.2%). The aggressive year was already partly corrected."},
+      {"title": "Building $/SF looks high against a broad median — worth checking",
+       "body": "The subject's building is assessed at $298/SF vs. a $218 same-size neighborhood median. On its own that reads as a possible over-assessment, so we tested it against the market."},
+      {"title": "...but against the immediate peer group it is mid-pack",
+       "body": "The closest same-street peers run higher, not lower: 472 Otis $316/SF, 375 Pelham $306/SF, 492 Otis $272/SF. The subject's $298/SF sits inside that immediate range. The broad median is pulled down by lower-value pockets that aren't truly comparable."},
+      {"title": "A recent arm's-length sale supports the value",
+       "body": "38 Otis Ave (2,170 SF, two blocks away) sold for $800,000 in April 2025 and is itself assessed at $765,800. The subject is larger (2,369 SF); its $836,500 EMV is consistent with that sale on a per-SF basis."},
+      {"title": "Neighborhood assessments run slightly below market",
+       "body": "Across 56 arm's-length sales the median EMV-to-sale ratio is 0.976 — assessments run about 2.4% below sale prices. The subject is not an outlier the other way."}
+    ],
+    "stat_summary": {
+      "properties_analyzed": 40, "sales_analyzed": 56, "models_run": 2,
+      "plats_analyzed": 1, "years_of_history": 3
+    },
+    "bldg_psf_chart": {
+      "data": [
+        {"x": 1940, "y": 316, "label": "472 Otis Ave ($316/SF)"},
+        {"x": 2310, "y": 306, "label": "375 Pelham Blvd ($306/SF)"},
+        {"x": 2546, "y": 283, "label": "2301 Beverly Rd ($283/SF)"},
+        {"x": 2579, "y": 272, "label": "492 Otis Ave ($272/SF)"},
+        {"x": 1965, "y": 269, "label": "554 Glendale St ($269/SF)"},
+        {"x": 2006, "y": 265, "label": "2454 Beverly Rd ($265/SF)"},
+        {"x": 2737, "y": 257, "label": "586 Eustis St ($257/SF)"},
+        {"x": 2252, "y": 251, "label": "444 Otis Ave ($251/SF)"},
+        {"x": 2397, "y": 250, "label": "412 Otis Ave ($250/SF)"}
+      ],
+      "subject_xy": {"x": 2369, "y": 298},
+      "trends": [],
+      "caption": "Building $/SF vs. finished SF — subject (highlighted) sits inside the immediate Otis/Pelham peer range, not above it."
+    },
+    "killer_comp": {
+      "address": "38 Otis Ave", "sale_price": 800000, "sale_date": "Apr 2025", "distance_mi": 0.2,
+      "summary": "The strongest comp the county would lead with: a recent arm's-length sale two blocks away, similar era, slightly smaller.",
+      "subject_advantages": ["Larger (2,369 SF vs. 2,170 SF)"],
+      "comp_advantages": ["More recent reference point"],
+      "adjustments": [
+        {"description": "Size (subject +199 SF)", "direction": "up (comp up)", "amount": 30000},
+        {"description": "Sale date / time (Apr 2025 → 1/2/2026)", "direction": "up", "amount": 18000}
+      ],
+      "matters_headline": "Why this comp matters",
+      "matters_body": "A real, recent, arm's-length sale at this value level — assessed below its own sale price — is the evidence an appeal would have to overcome. It does not support a reduction."
+    },
+    "regression_conclusions": [
+      {"model_name": "Neighborhood EMV-to-sale ratio (56 sales)", "predicted_value": 816000,
+       "current_emv": 836500, "delta": -20500, "delta_pct": -2.4}
+    ],
+    "final_headline": "No Appeal",
+    "final_bullets": [
+      "The 2026 EMV of $836,500 is supported by a recent arm's-length sale two blocks away.",
+      "The building $/SF signal does not survive contact with the immediate peer group or the market.",
+      "The county already corrected most of the 2025 jump (−3.2% for 2026).",
+      "If filed, the county would lead with the 38 Otis sale, and we'd have no clear answer."
+    ]
+  }
+}

@@ -45,13 +45,17 @@ SF/year record discrepancies, and claims no condition adjustment because the lis
 renovated home.
 
 [`sample-no-appeal-findings.html`](sample-no-appeal-findings.html) is the other side of the discipline —
-the honest **no-appeal** deliverable, rendered by the same framework
-([`../scripts/render_no_appeal_sample.py`](../scripts/render_no_appeal_sample.py), property: 530 Desnoyer
-Ave). It shows the playbook *finding* a possible angle (building $/SF high against a broad median) and then
-*killing it* against the market: the immediate peer group runs higher, a recent arm's-length sale two
-blocks away supports the value, and the county already cut 3.2%. A credible "no" is a product —
-demonstrating it is part of showing the work is honest, not a reduction mill.
+the honest **no-appeal** deliverable (property: 530 Desnoyer Ave), derived by
+[`scripts/build_finding.py`](../scripts/build_finding.py) from
+[`../properties/desnoyer/judgment.json`](../properties/desnoyer/judgment.json). The **scenario
+(`fairly_assessed`) and the $0 reduction are computed, not asserted** — there is no central comp below EMV,
+so the builder concludes the value at the current EMV. It shows the playbook *finding* a possible angle
+(building $/SF high against a broad median) and then *killing it* against the market: the immediate peer
+group runs higher, a recent arm's-length sale two blocks away supports the value, and the county already cut
+3.2%. A credible "no" is a product — demonstrating it is part of showing the work is honest, not a reduction
+mill.
 
 ```bash
+uv run python -m scripts.build_finding properties/desnoyer/judgment.json --output /tmp/desnoyer.html
 uv run python -m scripts.render_no_appeal_sample   # regenerates examples/sample-no-appeal-findings.html
 ```

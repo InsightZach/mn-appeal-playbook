@@ -22,6 +22,7 @@ properties/**/beacon_raw.json
 properties/**/beacon_raw/
 properties/**/analysis.json
 properties/**/packet.html
+properties/**/finding.html
 
 # Internal working docs (never ship)
 HANDOFF.md

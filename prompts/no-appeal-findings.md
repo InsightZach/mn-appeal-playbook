@@ -90,3 +90,26 @@ honestly — what was checked and why an appeal is not warranted. Follow [`metho
 
 Plain, factual register. The owner should finish reading it confident the property was genuinely
 reviewed.
+
+## Rendering — write a `judgment.json` with a `finding` block, run `build_finding`
+
+Like the appeal packet, the no-appeal report is assembled **deterministically** — do not hand-build the dict.
+Author a `judgment.json` (same `meta` / `subject` / `assessments` as the appeal path) plus a **`finding`**
+block holding the narrative: `summary_headline` / `summary_body`, `work_completed` (list), `findings`
+(`{title, body, color}` callouts), optional `stat_summary` / `bldg_psf_chart` / `killer_comp` /
+`regression_conclusions`, and `final_headline` / `final_bullets`. Then run
+[`scripts/build_finding.py`](../scripts/build_finding.py):
+
+```
+uv run python -m scripts.build_finding properties/<slug>/judgment.json \
+    [--analysis ...] [--beacon ...] --output properties/<slug>/finding.html
+```
+
+`build_finding` **classifies the scenario from the numbers** — `fairly_assessed` (no indicated reduction →
+concluded AT the EMV, $0) vs `below_savings_floor` (a real reduction whose client savings fall short of the
+~$1,000/yr floor) — and **refuses to label an appealable property "no appeal"**: if the indicated reduction
+clears the floor it raises and points you at `build_packet`. Supply `comps` (extraction style, `role:central`)
+only when you want the builder to derive and weigh a sales indication; for a pure fairly-assessed case the
+narrative carries the evidence. Narrative strings are templated against the derived numbers (`{emv}`,
+`{reduction}`, `{annual_savings}`, …). See [`properties/desnoyer/judgment.json`](../properties/desnoyer/judgment.json)
+for the worked example. **Never type the concluded value or the scenario — let the builder derive them.**

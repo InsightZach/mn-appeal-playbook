@@ -46,7 +46,7 @@ Plus the [assessor contact directory](contacts/).
 ```
 collectors/   residential data collectors for Ramsey and Hennepin (+ county source & listing-enrichment guides)
 analysis/     over-assessment analysis: equalization, sales regression, killer comp, condition, Beacon parser
-scripts/      collect.py → triage.py → parse_beacon.py → build_packet.py (the pipeline; see Quick start)
+scripts/      collect.py → triage.py → parse_beacon.py → build_packet.py (appeal) / build_finding.py (no-appeal)
 prompts/      packet-gen, triage-judgment, no-appeal, methodology, orchestration (run-appeal-review.md)
 report/       HTML packet generator (branded, $/SF adjustment grid + supported value, charts)
 properties/   per-property work; the tracked judgment.json + beacon.json are runnable worked examples

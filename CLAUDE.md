@@ -32,7 +32,9 @@ collect → triage → (browser) Beacon parse → judgment.json → build_packet
    `beacon.json` (the ABSF / finished-basement / garage split the API lacks).
 4. **You** author a small `properties/<slug>/judgment.json` — the irreducible judgment: per comp, a PID +
    `role` + listing-verified quality/condition grades + the sale facts. **This is the only by-hand step.**
-5. `scripts/build_packet.py` — assembles the report dict and renders the HTML packet.
+5. `scripts/build_packet.py` — assembles the report dict and renders the HTML packet. (For a property that
+   is **not** worth appealing, `scripts/build_finding.py` is the twin: it classifies the no-appeal scenario
+   from the numbers and renders the findings report — and refuses to call an appealable property "no appeal.")
 
 **The dividing line that matters: scripts are deterministic and never conclude a value; the agent supplies
 judgment.** `build_packet` *derives* the concluded value (median of the `role:central` comps) — you never
