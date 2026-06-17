@@ -1492,8 +1492,12 @@ def render_equalization_table(comps: list[dict], subject: dict) -> str:
     if not comps:
         return ""
 
+    def _gsf(r):
+        # subject rows carry `living_area_sf`; comp rows carry `sf`
+        return r.get("sf") or r.get("living_area_sf") or 0
+
     def _bpsf(r):
-        sf = r.get("sf") or 0
+        sf = _gsf(r)
         return (r.get("emv_building") or 0) / sf if sf else 0
 
     def _lpsf(r):
@@ -1518,7 +1522,7 @@ def render_equalization_table(comps: list[dict], subject: dict) -> str:
             f"<td {cell}>{_ac(r.get('lot_acres'))}</td>"
             f"<td {cell}>{_money(r.get('emv_land'))}</td>"
             f"<td {cell}>${_lpsf(r):,.0f}</td>"
-            f"<td {cell}>{_sf(r.get('sf'))}</td>"
+            f"<td {cell}>{_sf(_gsf(r))}</td>"
             f"<td {cell}>{_money(r.get('emv_building'))}</td>"
             f"<td {cell}><strong>${_bpsf(r):,.0f}</strong></td></tr>"
         )

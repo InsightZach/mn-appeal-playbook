@@ -60,8 +60,10 @@ EQ_PEERS = [
     dict(address="1573 Fulham St", year_built=1924, lot_acres=0.15, emv_land=150_400, emv_building=428_100, sf=1735),
     dict(address="2333 Chilcombe Ave", year_built=1909, lot_acres=0.15, emv_land=134_400, emv_building=385_700, sf=1220),
 ]
+# Subject carries `living_area_sf` (the schema key), NOT `sf` — the component must
+# read it so the subject's $/SF isn't $0 (regression guard for that bug).
 EQ_SUBJECT = {"address": "1589 Fulham St, Lauderdale", "year_built": 1923,
-              "lot_acres": 0.35, "emv_land": 182_600, "emv_building": 351_200, "sf": 1440}
+              "lot_acres": 0.35, "emv_land": 182_600, "emv_building": 351_200, "living_area_sf": 1440}
 
 
 def test_equalization_table_shows_peers_and_subject_with_psf():
