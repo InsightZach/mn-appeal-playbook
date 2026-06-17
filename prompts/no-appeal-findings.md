@@ -54,12 +54,15 @@ honestly — what was checked and why an appeal is not warranted. Follow [`metho
 > **3. Angle present but sub-floor (the assessment is HIGH, but pursuit is uneconomic).** This is a
 > *materially different deliverable* from "fairly assessed" — do not mischaracterize it. A genuine, quotable
 > over-assessment angle exists (e.g. `sales_comparison_indicated.sales_angle: true`, indicated value below
-> EMV) but the [run-appeal-review.md](run-appeal-review.md) Step 3 worth-it gate FAILS (reduction × ETR ×
-> contingency < the ~$450 floor). State plainly: **"the assessment appears high by ~$X, but the expected
-> year-1 savings (~$Y) does not justify the engagement cost"** — and show the gate math. Do **not** write
-> "the assessment is fair." *Worked example:* size+vintage+lot-matched sales indicate ~$725K vs a $788,600
-> EMV (a real $57K over-assessment), but $57,017 × 0.0162 ETR × 30% ≈ $277/yr on a one-year hold, below the
-> ~$450 floor → **No Appeal (economic gate)**, not "fairly assessed."
+> EMV) but the [run-appeal-review.md](run-appeal-review.md) Step 3 worth-it gate FAILS — the recurring
+> **client savings** fall below the **~$1,000/yr** floor. The test is `concluded reduction × ETR` (the savings
+> to the homeowner); there is **no** contingency multiplier and **no** fixed cost-to-pursue (an automated
+> operation has ~$0 marginal cost). State plainly: **"the assessment appears high by ~$X, but the recurring
+> tax savings (~$Y/yr) are below the threshold to pursue"** — and show the gate math. Do **not** write "the
+> assessment is fair." *Worked example:* size+vintage matched sales indicate ~$725K vs a $788,600 EMV (a real
+> ~$57K over-assessment), but $57,000 × 1.0% ETR ≈ **$570/yr** in client savings, below the ~$1,000 floor →
+> **No Appeal (below the savings floor)**, not "fairly assessed." (Near the floor, confirm the actual ETR from
+> the tax statement before concluding — a placeholder ETR can flip a borderline call.)
 >
 > **4. Fairly assessed.** All available approaches sit at/above EMV with no own-sale below EMV and no
 > economic angle. Say so plainly. **Concluded value:** when all approaches indicate AT or ABOVE the current
@@ -76,9 +79,9 @@ honestly — what was checked and why an appeal is not warranted. Follow [`metho
 4. **What was checked** — methods run and results.
 5. **Why no appeal** — the specific evidence supporting the conclusion. Use the branch for the scenario:
    - *Fairly assessed (scenario 1/2/4):* the approaches sit at/above EMV — name them and their figures.
-   - *Economic gate (scenario 3):* state the indicated reduction AND the gate math (reduction × ETR ×
-     contingency vs the ~$450 floor) and say plainly "the assessment appears high by ~$X but the expected
-     savings does not justify the engagement cost." Distinct from "the assessment is fair."
+   - *Below the savings floor (scenario 3):* state the indicated reduction AND the gate math (reduction × ETR
+     = recurring client savings vs the ~$1,000/yr floor) and say plainly "the assessment appears high by ~$X
+     but the recurring tax savings (~$Y/yr) are below the threshold to pursue." Distinct from "fairly assessed."
 6. **Concluded value** — for the fairly-assessed scenarios, when all approaches indicate at/above EMV, state
    the concluded value **AS the current EMV** with a **$0** reduction (do not headline the highest sales
    indication or a trended own sale as the concluded value). For the economic-gate scenario, state the

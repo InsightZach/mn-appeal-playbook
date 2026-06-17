@@ -732,9 +732,11 @@ def triage(data: dict, baseline_emv: float | None = None) -> dict:
 
         # Data-derived adjustment rates (TARE Ch. 21 statistical analysis) — a
         # multiple regression of comp sale price on the elements of comparison,
-        # run on the same-tier, arm's-length, quarantine-clean pool (sc_pool, the
-        # broad set, NOT the narrowed median set — regression wants the variance
-        # across size/age/lot/time to estimate the marginals). The coefficients
+        # run on the arm's-length, quarantine-clean pool (sc_pool). It is tier-screened
+        # (clear tier-offs dropped — that REMOVES noise, good for the fit) but NOT
+        # narrowed to the size/vintage/effective-age median set: the regression wants
+        # the variance across size/age/lot/time to estimate the marginals, so it uses
+        # the broader sc_pool, not basis_set. The coefficients
         # are the SUPPORTABLE adjustment rates the sales-comp grid applies; each
         # carries its t-stat + reliability so the packet quotes a derived rate,
         # not a table number. Condition/quality are NOT regressed (not in the

@@ -42,7 +42,7 @@ sales grid.
   is interpolated, not extrapolated.
 - **Every adjustment must reflect the reactions of market participants** and be **derived from *this* comp
   set** — not pulled from the air or imported from a table (*The Appraisal of Real Estate*, 15th ed., Ch. 21;
-  see [methodology](methodology.md) "Adjustment discipline"). Use whichever of TARE's techniques the data
+  see [methodology](../prompts/methodology.md) "Adjustment discipline"). Use whichever of TARE's techniques the data
   supports, **regression first** — `scripts/triage.py` runs that regression and emits the derived size / age /
   lot / time rates as `sales_comparison_indicated.derived_adjustments` (each with its n / R² / t-stat /
   reliability); `analysis/adjustment_grid.py` turns them into the packet's grid. Paired-sales is one

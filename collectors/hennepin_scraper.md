@@ -44,8 +44,8 @@ year-built + distance and $/SF analyses are skipped. Say so in any report.
 - Hennepin GIS (`LAND_PROPERTY` layer) carries the **prior** assessment
   (LAND_MV1/BLDG_MV1) plus current-payable tax. Not the appealed value.
 - The appealed 26p27 value comes ONLY from PINS `assmt=1`.
-- MetroGIS parcel EMVs for Hennepin lag two years; Owlue's spreadsheet
-  values matched the 2024 assessment.
+- MetroGIS parcel EMVs for Hennepin lag two years (e.g. they matched the
+  2024 assessment, not the current payable year).
 - `sf` everywhere in Hennepin records is **above-grade** SF. Ramsey's
   `LivingAreaSquareFeet` includes finished basement. Never mix counties in
   one comp set.

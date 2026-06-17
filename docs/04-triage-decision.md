@@ -39,7 +39,7 @@ A signal is necessary but not sufficient. The expected result has to justify the
 expected tax savings  =  likely EMV reduction  ×  effective tax rate (ETR)
 ```
 
-**The test is the CLIENT SAVINGS, not a fee clearing a cost.** An automated (Owlue) operation has a
+**The test is the CLIENT SAVINGS, not a fee clearing a cost.** An automated operation has a
 **~$0 marginal cost per appeal** — there is no fixed "cost to pursue" (data + packet + filing) to recover,
 so the gate is **not** a fee-vs-cost break-even. It is simply: *is the recurring tax savings to the client
 large enough to be worth filing?* See [Reduction Math](09-reduction-math.md) for the ETR mechanics
@@ -48,7 +48,7 @@ large enough to be worth filing?* See [Reduction Math](09-reduction-math.md) for
 ### The minimum (illustrative — set per engagement)
 
 The gate is a hard yes/no, so the floor must be fixed up front. **The figures below are illustrative
-placeholders, not calibrated Owlue economics** — replace them per engagement; the triage script's
+placeholders, not calibrated engagement economics** — replace them per engagement; the triage script's
 `worth_it_gate` carries the same placeholders and flags itself informational-only.
 
 | Input | Illustrative placeholder (set per engagement) |

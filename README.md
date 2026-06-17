@@ -45,10 +45,11 @@ Plus the [assessor contact directory](contacts/).
 
 ```
 collectors/   residential data collectors for Ramsey and Hennepin (+ county source & listing-enrichment guides)
-analysis/     over-assessment analysis: equalization, sales regression, killer comp, condition
-scripts/      collect.py (gather county data) and triage.py (score + verdict)
-prompts/      packet-gen, triage-judgment, no-appeal, methodology, orchestration
+analysis/     over-assessment analysis: equalization, sales regression, killer comp, condition, Beacon parser
+scripts/      collect.py → triage.py → parse_beacon.py → build_packet.py (the pipeline; see Quick start)
+prompts/      packet-gen, triage-judgment, no-appeal, methodology, orchestration (run-appeal-review.md)
 report/       HTML packet generator (branded, $/SF adjustment grid + supported value, charts)
+properties/   per-property work; the tracked judgment.json + beacon.json are runnable worked examples
 contacts/     assessor contact directory (Ramsey, Hennepin county + self-assessing cities)
 examples/     three sanitized 26p27 case studies + a rendered sample appeal packet (HTML)
 ```
@@ -57,19 +58,51 @@ examples/     three sanitized 26p27 case studies + a rendered sample appeal pack
 
 Requires Python 3.11+ and [uv](https://docs.astral.sh/uv/).
 
+The pipeline is **collect → triage → (Beacon) parse → judgment.json → build_packet**. Steps 1–2 are
+deterministic; step 3 needs a browser (Beacon blocks headless HTTP); step 4 is the analyst's small judgment
+file; step 5 derives the conclusion and renders the packet.
+
 ```bash
 # 1. Collect county data for a property (Ramsey or Hennepin)
-uv run python -m scripts.collect "884 Ashland Ave" --county ramsey --output properties/884-ashland/
+uv run python -m scripts.collect "2162 Carroll Ave" --county ramsey --output properties/carroll/
 
-# 2. Triage it — is there an appeal angle?
-uv run python -m scripts.triage properties/884-ashland/collected_data.json --baseline-emv 511900
+# 2. Triage it — is there an appeal angle? (writes analysis.json next to the input)
+uv run python -m scripts.triage properties/carroll/collected_data.json
+
+# 3. Pull the Beacon card (browser) for the subject + the comps triage shortlisted,
+#    save each page's text under properties/carroll/beacon_raw/, then parse:
+uv run python -m scripts.parse_beacon properties/carroll/beacon_raw \
+    --subject-pid 322923440057 --collected properties/carroll/collected_data.json \
+    --output properties/carroll/beacon.json
+
+# 4. Author properties/carroll/judgment.json — the only by-hand step: per comp, a
+#    PID + role + listing-verified quality/condition grades + the sale facts. (See
+#    prompts/appeal-packet.md and the worked example's _doc field.)
+
+# 5. Build the packet — the conclusion is DERIVED (median of the central comps), not typed:
+uv run python -m scripts.build_packet properties/carroll/judgment.json \
+    --analysis properties/carroll/analysis.json --beacon properties/carroll/beacon.json \
+    --output properties/carroll/packet.html
 ```
 
-`collect.py` gathers the subject, three-year assessment history, neighborhood comps, and recent sales.
-`triage.py` scores the over-assessment signals and returns a verdict (`appeal_angle` / `borderline` /
-`no_angle`) with reasons — the screen that decides which properties get a full packet.
+`collect.py` gathers the subject, assessment history, neighborhood comps, and recent sales. `triage.py`
+scores the over-assessment signals → a verdict (`appeal_angle` / `borderline` / `no_angle`) with reasons
+and a comp shortlist. `parse_beacon.py` turns pulled Beacon cards into structured `beacon.json` (ABSF /
+finished-basement / garage — the above-grade split the API lacks). `build_packet.py` assembles the report
+dict and renders the branded HTML, deriving the concluded value itself.
 
-- **Ramsey:** resolve by address or PID via the Ramsey OpenData FeatureServer.
+**Reproduce the two worked examples (no network/browser needed — fully offline):**
+
+```bash
+uv run python -m scripts.build_packet properties/fulham/judgment.json --output /tmp/fulham.html
+uv run python -m scripts.build_packet properties/carroll/judgment.json \
+    --beacon properties/carroll/beacon.json --output /tmp/carroll.html
+```
+
+The end-to-end orchestration (automated steps + the human-judgment steps) is mapped in
+**[`prompts/run-appeal-review.md`](prompts/run-appeal-review.md)** — start there to understand the workflow.
+
+- **Ramsey:** resolve by address or PID via the Ramsey OpenData FeatureServer; structure from Beacon.
 - **Hennepin:** combines the Hennepin GIS parcel layer, PINS (current 26p27 value), and Minneapolis
   Assessing open data; resolve by 13-digit PID for reliability.
 

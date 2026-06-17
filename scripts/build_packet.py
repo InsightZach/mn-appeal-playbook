@@ -202,8 +202,13 @@ def build_packet(judgment: dict, analysis: dict | None = None,
     ceiling_inds = [v for v in (_ind(c) for c in ceilings) if v is not None]
     ceiling_value = _round_k(max(ceiling_inds)) if ceiling_inds else None
 
+    if emv <= 0:
+        raise ValueError(
+            "build_packet: subject emv_total is missing/zero — set it in judgment.json "
+            "(or pass --analysis to backfill it). Every appeal needs the current EMV to "
+            "compute the reduction and savings.")
     reduction = int(round(emv - concluded))
-    reduction_pct = round(reduction / emv * 100, 1) if emv else 0.0
+    reduction_pct = round(reduction / emv * 100, 1)
     tax_rate = float(meta_in.get("tax_rate") or 0.0)
     annual_savings = int(round(reduction * tax_rate)) if reduction > 0 else 0
 

@@ -42,7 +42,7 @@ result.
      (≈ a $300 firm fee at the 30% contingency). Compute it on the concluded ask:
      `concluded reduction × ETR ≥ ~$1,000/yr`.
      - **Do NOT model a fixed "cost to pursue."** There is no ~$1,500 loaded cost to recover — an automated
-       (Owlue) operation has a **~$0 marginal cost per appeal**, so the gate is purely the minimum-savings
+       operation has a **~$0 marginal cost per appeal**, so the gate is purely the minimum-savings
        floor, not a fee-vs-cost test. A genuine ~$73K reduction at 1.5% ETR is **$1,100/yr to the client** —
        clearly worth filing; never reject it because a 30%-of-savings fee looks small.
      - A high EMV does not by itself clear the gate: a modest equalization-only reduction on a high-value

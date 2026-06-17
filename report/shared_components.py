@@ -1234,9 +1234,7 @@ def _fmt_pct(v) -> str:
     if abs(f) < 0.01:
         return "0.0%"
     sign = "+" if f > 0 else "&minus;"
-    return f"{sign}{abs(f):.2f}%".rstrip("0").rstrip(".") + "%" if False else (
-        f"{sign}{abs(f):.1f}%"
-    )
+    return f"{sign}{abs(f):.1f}%"
 
 
 def _median(vals: list[float]) -> float:
