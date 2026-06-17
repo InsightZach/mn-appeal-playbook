@@ -1404,11 +1404,21 @@ def render_adjustment_grid(comps: list[dict], excluded_note: str = "", subject_s
 
 def extraction_comp_indication(comp: dict, subject_absf: float, subject_land: float,
                                bsmt_psf: float = 50.0, gar_psf: float = 30.0,
-                               econ_psf_per_sf: float = 0.06) -> dict | None:
+                               econ_psf_per_sf: float = 0.06,
+                               subject_fin_bsmt_sf: float = 0.0,
+                               subject_garage_sf: float = 0.0) -> dict | None:
     """One comp's above-grade extraction math — the SINGLE source of truth shared by
     `render_extraction_grid` (display) and `scripts/build_packet.py` (the derived
     conclusion). Returns the intermediate terms and the indicated subject value, or
     None when the comp lacks a sale price or above-grade SF.
+
+    Each comp's sale is reduced to its ABOVE-GRADE building value (strip land, finished
+    basement, garage), divided by ABSF, adjusted to the subject. The indicated value
+    rebuilds the subject: adjusted $/SF × subject ABSF + subject land + the SUBJECT's
+    OWN finished basement and garage contributory value (subject_fin_bsmt_sf × bsmt_psf,
+    subject_garage_sf × gar_psf). Those last two default to 0 — a subject that lacks a
+    basement/garage (e.g. 1589 Fulham) is unaffected; a subject that HAS them (the common
+    case) is credited so the conclusion isn't understated.
 
     comp keys: {sale_price, land, absf, fin_bsmt_sf, garage_sf, time_pct,
                 quality_pct, condition_pct}.
@@ -1427,14 +1437,18 @@ def extraction_comp_indication(comp: dict, subject_absf: float, subject_land: fl
     agpsf = agval / absf
     size = econ_psf_per_sf * (absf - subject_absf)   # smaller comp → higher $/SF → adjust toward subject
     adj = (agpsf + size) * (1 + t / 100 + q / 100 + cd / 100)
-    ind = round(adj * subject_absf + subject_land)
+    subj_bsmt_gar = subject_fin_bsmt_sf * bsmt_psf + subject_garage_sf * gar_psf
+    ind = round(adj * subject_absf + subject_land + subj_bsmt_gar)
     return {"above_grade_value": agval, "above_grade_psf": agpsf, "size_adj_psf": size,
-            "adjusted_psf": adj, "indicated_value": ind}
+            "adjusted_psf": adj, "subject_bsmt_garage_value": subj_bsmt_gar,
+            "indicated_value": ind}
 
 
 def render_extraction_grid(comps: list[dict], subject_absf: float, subject_land: float,
                            bsmt_psf: float = 50.0, gar_psf: float = 30.0,
-                           econ_psf_per_sf: float = 0.06, note: str = "") -> str:
+                           econ_psf_per_sf: float = 0.06, note: str = "",
+                           subject_fin_bsmt_sf: float = 0.0,
+                           subject_garage_sf: float = 0.0) -> str:
     """Above-grade adjustment grid for a subject whose lot / basement / garage differ
     materially from the comps (where a flat percentage-of-sale grid would blow up the
     lot line). Each comp's sale is reduced to its ABOVE-GRADE building value — remove
@@ -1452,7 +1466,8 @@ def render_extraction_grid(comps: list[dict], subject_absf: float, subject_land:
     cell = f'style="padding:4pt 6pt;border-bottom:1px solid {BORDER};"'
     body, inds = [], []
     for c in comps:
-        m = extraction_comp_indication(c, subject_absf, subject_land, bsmt_psf, gar_psf, econ_psf_per_sf)
+        m = extraction_comp_indication(c, subject_absf, subject_land, bsmt_psf, gar_psf,
+                                       econ_psf_per_sf, subject_fin_bsmt_sf, subject_garage_sf)
         if m is None:
             continue
         sale = float(c.get("sale_price") or 0)
@@ -1484,12 +1499,21 @@ def render_extraction_grid(comps: list[dict], subject_absf: float, subject_land:
     heads = ["Comparable", "Sale", "&minus; Land*", "&minus; Fin. bsmt†", "&minus; Garage†",
              "= Above-grade", "ABSF", "$/SF", "Size ($/SF)‡", "Qual / Cond (%)", "Time (%)", "Adj $/SF", "Indicated"]
     head = "".join(f'<th style="padding:5pt 6pt;text-align:left;">{h}</th>' for h in heads)
+    subj_addback = subject_fin_bsmt_sf * bsmt_psf + subject_garage_sf * gar_psf
+    addback_clause = (
+        f" Indicated value = adjusted $/SF × the subject's {subject_absf:,.0f} ABSF + the subject's land + "
+        f"the subject's OWN finished basement ({subject_fin_bsmt_sf:,.0f} SF) and garage "
+        f"({subject_garage_sf:,.0f} SF) at the same rates (+{_money(subj_addback)}), so the subject is "
+        f"credited for the basement and garage it has."
+        if subj_addback else ""
+    )
     footnote = note or (
-        f"*Land at the county's assessed value. †The subject's finished-basement and garage "
-        f"(${bsmt_psf:,.0f}/SF, ${gar_psf:,.0f}/SF) are removed from each comp so above-grade is compared to "
+        f"*Land at the county's assessed value. †Each comp's finished basement and garage "
+        f"(${bsmt_psf:,.0f}/SF, ${gar_psf:,.0f}/SF) are removed so above-grade is compared to "
         f"above-grade. ‡Size is a <strong>$/SF</strong> adjustment to the building rate (economy of scale, "
         f"~${econ_psf_per_sf*100:.0f}/SF per 100 SF of above-grade); quality, condition, and time are "
         f"percentages of the building value. Adjusted $/SF = ($/SF + Size) × (1 + Qual + Cond + Time)."
+        + addback_clause
     )
     stat = (
         f'<div class="stats" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));'

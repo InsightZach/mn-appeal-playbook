@@ -1,0 +1,104 @@
+{
+  "_doc": "Agent-authored judgment for 2162 Carroll Ave, St. Paul. Comps + structure from Beacon CAMA cards; subject condition verified on Zillow listing photos (original, well-maintained 1911 character home). Comp interior photos were not retained post-close, so condition adjustments are kept conservative and evidence-based. Render: uv run python -m scripts.build_packet properties/carroll/judgment.json --analysis properties/carroll/analysis.json --output properties/carroll/packet.html",
+  "meta": {
+    "assessment_year": 2026,
+    "payable_year": 2027,
+    "brand": "Residential Property Tax Appeal",
+    "report_title": "Assessment Review — 2162 Carroll Ave, St. Paul",
+    "assessment_date": "January 2, 2026",
+    "tax_rate": 0.0135,
+    "banner": "LIVE REVIEW — Ramsey assessment + sale data; structure from county cards (Beacon); subject condition verified on listing photos. Comp interior photos were not retained post-close; condition adjustments are conservative. Not a filed appeal."
+  },
+  "subject": {
+    "address": "2162 Carroll Ave, St. Paul, MN 55104",
+    "pid": "32-29-23-44-0057",
+    "year_built": 1911,
+    "absf": 2091,
+    "land": 131800,
+    "fin_bsmt_sf": 600,
+    "garage_sf": 572,
+    "emv_total": 721900,
+    "emv_building": 590100,
+    "lot_acres": 0.207,
+    "plat_name": "Merriam Park",
+    "style": "1911 stucco two-story (American Foursquare) — original, well-maintained; 2,091 SF above grade, 600 SF finished basement rec, 572 SF detached garage",
+    "assessed_bpsf": 282
+  },
+  "assessments": [
+    {"assess_year": 2024, "tax_year": 2025, "emv_land": 131800, "emv_building": 577100, "emv_total": 708900},
+    {"assess_year": 2025, "tax_year": 2026, "emv_land": 131800, "emv_building": 600500, "emv_total": 732300},
+    {"assess_year": 2026, "tax_year": 2027, "emv_land": 131800, "emv_building": 590100, "emv_total": 721900}
+  ],
+  "rates": {
+    "bsmt_psf": 50.0,
+    "gar_psf": 30.0,
+    "econ_psf_per_sf": 0.06,
+    "time_label": "+0.25% / month to 1/2/2026",
+    "quality_label": "±2–5% per grade step (stucco/build vs. comps)",
+    "condition_label": "0% comparable · +10–15% for an inferior/dated comp"
+  },
+  "comps": [
+    {"address": "2010 Carroll Ave", "year_built": 1908, "sale_price": 499990, "sale_date": "Aug 2024",
+     "land": 91800, "absf": 1669, "fin_bsmt_sf": 500, "garage_sf": 528,
+     "time_pct": 4.2, "quality_pct": 2, "condition_pct": 0,
+     "descriptor": "same block, wood frame, 2½ baths", "role": "central"},
+    {"address": "2248 Goodrich Ave", "year_built": 1925, "sale_price": 700000, "sale_date": "Nov 2025",
+     "land": 209000, "absf": 2169, "fin_bsmt_sf": 350, "garage_sf": 399,
+     "time_pct": 0.5, "quality_pct": 0, "condition_pct": 0,
+     "descriptor": "stucco two-story, premium block (high land value)", "role": "central"},
+    {"address": "2244 Dayton Ave", "year_built": 1915, "sale_price": 565000, "sale_date": "Jan 2026",
+     "land": 137800, "absf": 1691, "fin_bsmt_sf": 0, "garage_sf": 308,
+     "time_pct": 0.0, "quality_pct": 0, "condition_pct": 0,
+     "descriptor": "stucco bungalow, finished attic", "role": "central"},
+    {"address": "1809 Marshall Ave", "year_built": 1910, "sale_price": 550000, "sale_date": "Mar 2026",
+     "land": 52600, "absf": 1832, "fin_bsmt_sf": 300, "garage_sf": 400,
+     "time_pct": -0.6, "quality_pct": 0, "condition_pct": 0,
+     "descriptor": "vinyl-sided, busy-corner location", "role": "central"},
+    {"address": "2079 Iglehart Ave", "year_built": 1908, "sale_price": 435000, "sale_date": "Nov 2025",
+     "land": 131800, "absf": 2301, "fin_bsmt_sf": 500, "garage_sf": 400,
+     "time_pct": 0.3, "quality_pct": 0, "condition_pct": 12,
+     "descriptor": "dated/inferior (as-is sale, no interior photos) — lowest residual; lower-bracket context", "role": "context"}
+  ],
+  "equalization": {
+    "intro": "Ten size-matched neighborhood homes (±30% of the subject's above-grade area) at the county's own assessed values, sampled across the range.",
+    "subject_assessed_bpsf": 282,
+    "suppress_indicated": true,
+    "peers": [
+      {"address": "1968 Marshall Ave", "year_built": 1909, "lot_acres": 0.19, "emv_land": 77100, "emv_building": 290900, "sf": 2617},
+      {"address": "2129 Selby Ave", "year_built": 1913, "lot_acres": 0.17, "emv_land": 111400, "emv_building": 391200, "sf": 2632},
+      {"address": "2138 Marshall Ave", "year_built": 1909, "lot_acres": 0.16, "emv_land": 74900, "emv_building": 333600, "sf": 1960},
+      {"address": "1975 Selby Ave", "year_built": 1904, "lot_acres": 0.17, "emv_land": 115200, "emv_building": 323900, "sf": 1701},
+      {"address": "2080 Roblyn Ave", "year_built": 1923, "lot_acres": 0.16, "emv_land": 92200, "emv_building": 343700, "sf": 1686},
+      {"address": "2097 Carroll Ave", "year_built": 1915, "lot_acres": 0.20, "emv_land": 125800, "emv_building": 470500, "sf": 2186},
+      {"address": "300 Cleveland Ave N", "year_built": 1910, "lot_acres": 0.19, "emv_land": 79500, "emv_building": 358900, "sf": 1595},
+      {"address": "2001 Laurel Ave", "year_built": 1912, "lot_acres": 0.17, "emv_land": 121000, "emv_building": 374000, "sf": 1556},
+      {"address": "2139 Carroll Ave", "year_built": 1911, "lot_acres": 0.20, "emv_land": 125800, "emv_building": 612900, "sf": 2337},
+      {"address": "2264 Riverwood Pl", "year_built": 1925, "lot_acres": 0.15, "emv_land": 143800, "emv_building": 680000, "sf": 1936}
+    ],
+    "chart_peers": [
+      {"sf": 2617, "bpsf": 111, "label": "1968 Marshall"},
+      {"sf": 2632, "bpsf": 149, "label": "2129 Selby"},
+      {"sf": 1960, "bpsf": 170, "label": "2138 Marshall"},
+      {"sf": 1701, "bpsf": 190, "label": "1975 Selby"},
+      {"sf": 1686, "bpsf": 204, "label": "2080 Roblyn"},
+      {"sf": 2186, "bpsf": 215, "label": "2097 Carroll"},
+      {"sf": 1595, "bpsf": 225, "label": "300 Cleveland"},
+      {"sf": 1556, "bpsf": 240, "label": "2001 Laurel"},
+      {"sf": 2337, "bpsf": 262, "label": "2139 Carroll"},
+      {"sf": 1936, "bpsf": 351, "label": "2264 Riverwood"}
+    ],
+    "chart_caption": "Assessed building $/SF vs. above-grade SF — subject (highlighted, $282) vs. size-matched neighborhood homes. The subject sits at the top of the distribution.",
+    "land_observation": "The subject's land is assessed at the 38th percentile of its size-matched peers — the lower third. Land is fairly assessed; no land adjustment is sought. The question is entirely the building line.",
+    "building_observation": "On the county's own figures the subject's building is assessed at <strong>$282/SF of above-grade area — the top of its size-matched neighborhood</strong> (peer median ≈ ${peer_median_bpsf}/SF). Part of that gap is real: the subject carries a 600 SF finished basement and a 572 SF detached garage that many peers do not, and that value loads onto the building line. The sales analysis above credits the basement and garage explicitly and still indicates about <strong>${concluded:,}</strong> — so the building line is over-stated even after accounting for what the subject has. Equalization is directional support here; the sales evidence governs the request."
+  },
+  "narrative": {
+    "sales_subtitle": "Primary method. Recent arm's-length sales of similar-age homes within ~1 mile, each reduced to its above-grade building value and adjusted to the subject as of January 2, 2026.",
+    "sales_intro": "Each comp's sale is reduced to its above-grade building value — its land removed at the county's own land value, and its finished basement and garage removed at standard contributory rates — then divided by its above-grade area and adjusted to the subject. The subject is then credited for its own 600 SF finished basement and 572 SF detached garage. Subject and comp structure are from the county's record cards; the subject's condition (original, well-maintained) was verified on listing photos.",
+    "subject_finding_title": "An original home assessed at the top of its block",
+    "subject_finding_body": "2162 Carroll is a <strong>well-maintained but original 1911 Foursquare</strong> — period kitchen, baths, and woodwork — with 2,091 SF above grade, a finished basement rec room, and a detached garage. For 2026 the county assesses its building at $590,100, or <strong>$282/SF of above-grade area — the top of the size-matched neighborhood</strong> (peer median ≈ ${peer_median_bpsf}/SF), the rate one would expect of an updated or renovated home rather than an original one.",
+    "sales_finding_title": "Comparable sales indicate about ${concluded:,}",
+    "sales_finding_body": "Recent arm's-length sales of similar-age homes nearby — reduced to their above-grade building value, adjusted to the subject, and crediting the subject's own finished basement and garage — bracket the subject and indicate a median of <strong>${concluded:,}</strong> (mean ~${concluded_mean:,}), about <strong>{reduction_pct}% below</strong> the $721,900 assessment. This is a modest, well-supported reduction, not an aggressive one.",
+    "sales_reconciliation": "The adjusted comparables <strong>bracket the subject</strong> from ${concluded:,} on either side and converge on a median of <strong>${concluded:,}</strong> (mean ~${concluded_mean:,}). We adopt the median. (2079 Iglehart, a dated as-is sale at the bottom of the range, is shown in 4.1 as a lower-bracket reference but set aside from the conclusion — its condition could not be verified and it is materially inferior.)",
+    "conclusion": "2162 Carroll is a well-kept but original 1911 home with 2,091 SF above grade, a finished basement rec room, and a detached garage. For 2026 the county assesses the building at $590,100 — $282/SF of above-grade area, the top of its size-matched neighborhood and the rate of an updated home this one is not. Recent comparable sales, reduced to their above-grade building value and adjusted to the subject — and crediting the subject's own basement and garage — indicate a median of <strong>${concluded:,}</strong> (mean ~${concluded_mean:,}). We respectfully request the 2026 estimated market value be reduced from $721,900 to <strong>${concluded:,}</strong> — a reduction of ${reduction:,} ({reduction_pct}%), entirely on the over-stated building line (about ${annual_savings:,}/year in tax at the current rate). The county's own neighborhood assessment data points the same direction."
+  }
+}

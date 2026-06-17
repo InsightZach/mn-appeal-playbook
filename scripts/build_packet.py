@@ -105,6 +105,8 @@ def build_packet(judgment: dict, analysis: dict | None = None,
 
     subject_absf = float(subj_in.get("absf") or subj_in.get("living_area_sf") or 0)
     subject_land = float(subj_in.get("land") or subj_in.get("emv_land") or 0)
+    subject_fin_bsmt = float(subj_in.get("fin_bsmt_sf") or 0)
+    subject_garage = float(subj_in.get("garage_sf") or 0)
     emv = float(subj_in.get("emv_total") or 0)
 
     # --- comps: join beacon structure by pid where judgment omits it ---
@@ -130,7 +132,8 @@ def build_packet(judgment: dict, analysis: dict | None = None,
 
     # --- DERIVE the conclusion: median indicated value of the central comps ---
     def _ind(c):
-        m = extraction_comp_indication(c, subject_absf, subject_land, bsmt_psf, gar_psf, econ)
+        m = extraction_comp_indication(c, subject_absf, subject_land, bsmt_psf, gar_psf, econ,
+                                       subject_fin_bsmt, subject_garage)
         return m["indicated_value"] if m else None
 
     central_inds = sorted(v for v in (_ind(c) for c in central) if v is not None)
@@ -164,7 +167,14 @@ def build_packet(judgment: dict, analysis: dict | None = None,
     if chart_peers and subject_absf:
         slope, intercept = _linfit([p["sf"] for p in chart_peers], [p["bpsf"] for p in chart_peers])
         eq_psf = round(intercept + slope * subject_absf)
-        eq_total = _round_k(eq_psf * subject_absf + subject_land)
+        # A trend-implied equalization total is only emitted when the equalization
+        # basis is clean enough to quote a dollar figure. When the peers' raw
+        # building $/SF bundles their basement/garage (so applying it to the subject
+        # would double-count against the sales conclusion that credits those), set
+        # `suppress_indicated: true` and equalization stays DIRECTIONAL support — the
+        # trend chart renders, but no dollar indication competes with the sales value.
+        if not eq_in.get("suppress_indicated"):
+            eq_total = _round_k(eq_psf * subject_absf + subject_land)
     peer_median_bpsf = round(_median([p["bpsf"] for p in chart_peers])) if chart_peers else None
 
     # --- numbers exposed to narrative templates (single source of truth) ---
@@ -250,6 +260,7 @@ def build_packet(judgment: dict, analysis: dict | None = None,
         ],
         "subject_absf": subject_absf, "subject_land": subject_land,
         "bsmt_psf": bsmt_psf, "gar_psf": gar_psf, "econ_psf_per_sf": econ,
+        "subject_fin_bsmt_sf": subject_fin_bsmt, "subject_garage_sf": subject_garage,
     }
     data["sales_reconciliation"] = N("sales_reconciliation")
     data["sales_indicated_value"] = concluded

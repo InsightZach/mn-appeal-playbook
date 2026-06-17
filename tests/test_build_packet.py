@@ -85,6 +85,35 @@ def test_full_render_has_every_section(judgment):
     assert "county's own data" not in html.lower(), "banned gotcha phrasing"
 
 
+def test_subject_basement_garage_credited(judgment):
+    """A subject WITH a finished basement/garage is credited (add-back); a subject
+    WITHOUT (the Fulham default) is unaffected."""
+    comp = {"sale_price": 500000, "land": 100000, "absf": 1800,
+            "fin_bsmt_sf": 400, "garage_sf": 400}
+    base = extraction_comp_indication(comp, 2000, 130000)
+    credited = extraction_comp_indication(comp, 2000, 130000,
+                                          subject_fin_bsmt_sf=600, subject_garage_sf=500)
+    # 600 SF bsmt @ $50 + 500 SF garage @ $30 = $45,000 added.
+    assert credited["indicated_value"] - base["indicated_value"] == 45000
+    # Default (no subject basement/garage) adds nothing.
+    assert extraction_comp_indication(comp, 2000, 130000,
+                                      subject_fin_bsmt_sf=0, subject_garage_sf=0)["indicated_value"] \
+        == base["indicated_value"]
+
+
+def test_carroll_fixture_builds_if_present():
+    """The second worked example (a borderline St. Paul case) builds end-to-end and
+    derives, not types, its conclusion."""
+    fx = Path(__file__).parent.parent / "properties" / "carroll" / "judgment.json"
+    if not fx.exists():
+        pytest.skip("carroll fixture not present")
+    data = build_packet(json.loads(fx.read_text()))
+    n = data["_numbers"]
+    assert n["concluded"] == 641000 and n["reduction"] == 80900
+    html = generate_appeal_report(data)
+    assert "$0/SF" not in html and "county's own data" not in html.lower()
+
+
 def test_narrative_numbers_are_consistent(judgment):
     """Templated narrative references the derived figures, so prose can't drift
     from the arithmetic."""

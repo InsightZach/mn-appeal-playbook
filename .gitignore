@@ -18,6 +18,7 @@ examples/raw/
 # The sanitized judgment.json worked example IS tracked (it's the demonstration).
 properties/**/collected_data.json
 properties/**/beacon.json
+properties/**/analysis.json
 properties/**/packet.html
 
 # Internal working docs (never ship)

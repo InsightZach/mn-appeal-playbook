@@ -276,6 +276,8 @@ def _build_sales_comparison_section(data: dict) -> str:
             gar_psf=extraction_grid.get("gar_psf", 30.0),
             econ_psf_per_sf=extraction_grid.get("econ_psf_per_sf", 0.06),
             note=extraction_grid.get("note", ""),
+            subject_fin_bsmt_sf=extraction_grid.get("subject_fin_bsmt_sf", 0.0),
+            subject_garage_sf=extraction_grid.get("subject_garage_sf", 0.0),
         ))
 
     if sales_recon:
