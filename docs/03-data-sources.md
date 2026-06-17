@@ -83,7 +83,9 @@ own good-for-study determination on every completed sale:
   - **County Recommendation for State Study → "Good for study"** — **this is the field that governs an
     arm's-length comp** (it's the *state* sales-ratio study). If **No**, read the **Reject reason** code
     (e.g. `09a – Estate Sale`, relative/related-party, foreclosure, atypical financing) and **do not use
-    the sale as a comp.**
+    the sale as a comp.** The full DOR reject-reason taxonomy — and which codes are the common comp-killers
+    — is in [eCRV reject-reason codes](ecrv-reject-reasons.md). (Only ~48% of recorded sales pass the state
+    study, so this check matters.)
   - Note the **County Study** "Good for study" is a *separate* field and can say **Yes** while the State
     Study says **No** — don't confuse them; the **State** study is the one for arm's-length comps.
   - The page also gives **deed type** (e.g. *Probate Deed*), **sale net amount**, year built, and the
