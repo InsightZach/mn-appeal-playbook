@@ -39,43 +39,34 @@ A signal is necessary but not sufficient. The expected result has to justify the
 expected tax savings  =  likely EMV reduction  ×  effective tax rate (ETR)
 ```
 
-Under a contingency model:
+**The test is the CLIENT SAVINGS, not a fee clearing a cost.** An automated (Owlue) operation has a
+**~$0 marginal cost per appeal** — there is no fixed "cost to pursue" (data + packet + filing) to recover,
+so the gate is **not** a fee-vs-cost break-even. It is simply: *is the recurring tax savings to the client
+large enough to be worth filing?* See [Reduction Math](09-reduction-math.md) for the ETR mechanics
+(including the prior-year-ETR proxy used before payable-year rates publish).
 
-```
-expected revenue  =  expected tax savings  ×  contingency %   (× years the reduction holds)
-```
+### The minimum (illustrative — set per engagement)
 
-If expected revenue does not clear the fully-loaded cost to pursue (data, packet, inspection,
-negotiation, possible escalation), the parcel is not worth a full appeal — even if it is mildly
-over-assessed. See [Reduction Math](09-reduction-math.md) for the ETR mechanics, including the
-prior-year-ETR proxy used before payable-year rates are published.
-
-### Worked defaults (illustrative — set the real numbers per engagement)
-
-The gate is a hard yes/no, so two analysts must reach the same call on the same parcel — which means the
-inputs have to be fixed up front. **The figures below are illustrative placeholders to make the mechanics
-concrete, not calibrated house/Owlue economics.** Replace them with the engagement's actual contingency,
-cost, and floor before relying on the gate; the triage script's `worth_it_gate` carries the same
-placeholders and flags itself as informational-only.
+The gate is a hard yes/no, so the floor must be fixed up front. **The figures below are illustrative
+placeholders, not calibrated Owlue economics** — replace them per engagement; the triage script's
+`worth_it_gate` carries the same placeholders and flags itself informational-only.
 
 | Input | Illustrative placeholder (set per engagement) |
 |-------|-----------------------------------------------|
-| **Contingency %** | **~30%** of year-1 tax savings (typical contingency engagement) |
-| **Fully-loaded cost to pursue** | **≈ $1,500** (data + packet + open-book engagement; add for inspection/escalation) |
-| **Equivalent year-1-savings floor** | **Pursue only if `year-1 savings × contingency % ≥ ~$450`** (≈ the cost-to-pursue × contingency, the break-even on a single-year hold) |
+| **Minimum annual client savings** | **~$1,000/yr** — pursue only if `likely EMV reduction × ETR ≥ ~$1,000` |
+| **Contingency %** | **~30%** of the client's savings — so the ~$1,000 floor ≈ a **~$300** year-1 firm fee |
+| **NOT used** | ~~a fixed "cost to pursue"~~ — automated marginal cost is ~$0; do not subtract a loaded cost |
 
-Apply it as a single line you can actually evaluate: **`likely EMV reduction × ETR × 30% ≥ ~$450`** to
-clear on a one-year hold (less if the reduction holds multiple years — multiply the savings across the
-years it is expected to hold).
+Apply it as a single line: **`likely EMV reduction × ETR ≥ ~$1,000/yr`** in client savings. (Multiply
+across years if the reduction is expected to hold more than one.)
 
-> **Reconcile with [docs/09](09-reduction-math.md): "high value clears easily" is only true for
-> large-% reductions.** docs/09 notes a fixed % reduction on a high-value parcel produces more dollars
-> than on a modest one — true, but it is the **dollar reduction**, not the EMV, that drives the gate. A
-> **modest equalization-only reduction on a high-value parcel can still FAIL the gate.** *Worked example:*
-> a **$1.8M** parcel at a **4.8%** reduction (≈ $86K off EMV) and a **1.3% ETR** yields ≈ $1,118/yr of tax
-> savings; at **30% contingency** that is only **≈ $335/yr** — **below the ~$450 floor** on a one-year
-> hold. High EMV does not by itself clear the gate; the *reduction* has to be large enough. Do not read
-> docs/09's "easily does" as a blanket pass for high-value parcels on thin reductions.
+> **High EMV does not by itself clear the gate — it is the dollar SAVINGS that decides.** A fixed %
+> reduction yields more dollars on a high-value parcel ([docs/09](09-reduction-math.md)), but a **modest
+> equalization-only reduction can still fall below the $1,000/yr savings floor.** *Worked example:* a
+> **$1.8M** parcel with a thin **$40K** reduction at a **1.3% ETR** is only **≈ $520/yr** of client savings
+> — **below the ~$1,000 floor**, so not worth filing despite the high value. Conversely a genuine **$73K**
+> reduction at **1.5% ETR** is **~$1,100/yr** — clearly worth it. The *reduction*, not the EMV, drives the
+> gate; never reject a real four-figure-savings reduction because a 30%-of-savings fee looks small.
 
 ## The verdict
 

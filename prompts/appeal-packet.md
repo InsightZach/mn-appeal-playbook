@@ -32,12 +32,28 @@ the evidence brackets.
    effective date.
 2. **Use more than one method.** A bare three-comp sales grid is the weakest defensible form. Build the
    methods the evidence supports:
-   - **Sales comparison ($/SF method)** — good-for-state-study comps only. Adjust each comp's **sale
-     $/SF** for time, condition, quality, and lot (size is *not* a grid line — it is resolved by applying
-     the reconciled $/SF to the subject's own SF). That yields an **adjusted $/SF** per comp and an
-     indicated subject value (adjusted $/SF × subject SF). Reconcile to a supported $/SF (mean/median) and
-     report the **supported value = reconciled $/SF × subject SF**. Bracket the subject; use same-type
-     support for every adjustment; apply gross-adjustment thresholds.
+   - **Sales comparison (adjustment grid) — the grid MUST carry every standard line; a partial grid is not
+     acceptable.** Good-for-state-study comps only. The required structure (model it on the worked example
+     below):
+     - **SF basis = Total Finished SF, with ABSF and finished-basement SF broken out per comp AND the
+       subject.** Ramsey `LivingAreaSquareFeet` is **above-grade only** (see [Data Sources](../docs/03-data-sources.md#the-square-footage-basis-trap)); add the finished-basement SF from the assessor card / MLS
+       (Total Finished SF − ABSF). Compute $/SF on **Total Finished SF**. A subject with an unfinished
+       basement vs. comps with finished ones is a real difference — never divide a comp's price (which paid
+       for its basement) by ABSF alone.
+     - **Itemized adjustments, comp→subject, EACH a line:** **Time** (market trend to the effective date);
+       **Size / economy of scale** — `(subj SF − comp SF)/comp SF × pass-through%` (a partial pass-through,
+       ~30%, because the marginal SF is worth less per SF than the average — size is a GRID LINE, not a flat
+       ×subject-SF); **Quality / construction grade** (± per grade step); **Condition** (± per grade step,
+       calibrated to the cost-to-cure); **Lot / location** (the land differential — county land $/SF or the
+       equalization land trend). Verify **condition AND quality on listing photos** for the subject and every
+       load-bearing comp before grading them.
+     - **Bracket the subject (mandatory).** At least one comp adjusting **up** (inferior) and one **down**
+       (superior) so the conclusion is **interpolated, not extrapolated** — on BOTH the adjusted-value
+       indication and the raw sale prices (a conclusion above every comp's sale price is extrapolation). Do
+       not exclude every superior comp; keep one and adjust it down with supported rates.
+     - **Derive every rate from the data** (regression / paired clusters — e.g. the renovated-vs-original
+       cluster spread gives the condition step), apply **gross-adjustment thresholds** (>50% reduced weight;
+       >100% drop), and **reconcile** to mean/median of the adjusted values.
      - **No tier-matched sale.** If **no** arm's-length sale exists within the subject's **size band
        (±30% SF)** and value tier, the sales-comparison approach yields **NO indicated value** — state the
        *absence of tier-matched sales as a finding*. Do **not** extrapolate small-home $/SF onto a large

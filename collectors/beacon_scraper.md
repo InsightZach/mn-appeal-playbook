@@ -10,11 +10,18 @@ https://beacon.schneidercorp.com/Application.aspx?AppID=959&LayerID=18852&PageTy
 
 `{PID}` is the 12-digit ParcelID from the Ramsey API (no dashes).
 
-## Scraping (claude-in-chrome MCP)
+## Scraping (claude-in-chrome MCP — browser required)
+
+Beacon **blocks headless HTTP** (captcha / "you are unable to access"), so this must run through the
+browser, not `requests`. Steps:
 
 1. `mcp__claude-in-chrome__navigate(url=above, tabId=...)`
 2. `mcp__claude-in-chrome__get_page_text(tabId=...)` — returns the full Property Value page text
-3. Parse the text for these labeled values (they appear in this order):
+3. **Parse it with `analysis/beacon.parse_beacon_card(text)`** (deterministic) → `{absf, finished_basement_sf,
+   total_finished_sf, garage_sf, full_baths, half_baths, bedrooms, stories, style, exterior_wall, attic, ...}`.
+   Then call `analysis/beacon.reconcile_absf(parsed, api_living_area_sf)` to confirm
+   **ABSF + finished basement == API `LivingAreaSquareFeet`** (the built-in integrity check). The labeled
+   values, for reference:
 
 | Field | What it is |
 |-------|-----------|

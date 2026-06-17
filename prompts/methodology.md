@@ -87,6 +87,19 @@ Relax in this order when needed: style → year → size → neighborhood. Relax
   is interpolated, not extrapolated.
 - **Same county only** — finished-SF basis differs across counties.
 
+### Square-footage basis — Total Finished SF, with above-grade and basement broken out
+
+Build the grid on **Total Finished SF**, and **break out above-grade SF (ABSF) and finished-basement SF**
+for the subject and every comp. The Ramsey API's `LivingAreaSquareFeet` is **Total Finished = ABSF +
+finished basement** (verified against Beacon: 1704 Eustis 1,195 = 1,020 ABSF + 175). It does **not** carry
+the split, the garage, or baths — pull those from the **Beacon CAMA card** (`analysis/beacon.py`;
+[guide](../collectors/beacon_scraper.md)). Two homes with the same Total Finished SF are **not** comparable
+if one is mostly above-grade and the other carries a big finished basement (basement SF is worth less than
+above-grade) — so **basement and garage are explicit grid lines**: a subject with an unfinished basement
+and no garage vs. comps that have finished basements and garages adjusts the comps **down** (a real,
+value-lowering difference). Never divide a comp's sale price (which paid for its basement + garage) by ABSF
+alone, or compare raw Total Finished SF without the split.
+
 ### Adjustment mechanics (illustrative — DERIVE every rate from the data)
 
 This grid shows the **mechanics only** — percentage-of-sale-price, additive across categories, applied once
@@ -104,6 +117,10 @@ default — is not support; the data is.
 | Condition | grade step(s), comp→subject | cost-to-cure / depreciated cost; or qualitative inferior/superior bracket |
 | Quality (grade) | one construction-grade step | regression incl. a grade variable; else qualitative ranking |
 | Lot | premium for the subject's larger lot | regress land $/SF on lot size (the equalization land trend) |
+| Finished basement | $/SF on the finished-basement difference (comp − subject) | basement $/SF from the comp set (typically a fraction of above-grade $/SF); Beacon supplies the SF |
+| Garage | $ for the garage SF the subject lacks (or comp lacks) | grouped/secondary data on garage contribution; Beacon supplies the SF |
+
+**The grid must carry every applicable line** — Time, Size (economy-of-scale pass-through), Quality, Condition, Lot, Finished basement, Garage. A partial grid (e.g. condition-only, or ignoring the basement/garage split) is not defensible; omit a line only when the subject and comps genuinely match on it, and say so.
 
 A **multiple regression across the comp set** derives most of these at once — it is the practical primary
 (paired data is one technique, rarely findable). The **age/effective-age slope below is the worked model**:

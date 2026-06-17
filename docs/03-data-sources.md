@@ -8,7 +8,7 @@ residential data sources for the two example counties and the traps that produce
 
 | Source | Provides | County | Notes |
 |--------|----------|--------|-------|
-| **Ramsey OpenData FeatureServer** (parcels layer) | Subject, neighborhood comps, recent sales, 3-year assessments | Ramsey | `LivingAreaSquareFeet` **includes finished basement** |
+| **Ramsey OpenData FeatureServer** (parcels layer) | Subject, neighborhood comps, recent sales, 3-year assessments, **`BasementYN` / `Stories` / `BedRoom` / `GarageSquareFeet` / `ExteriorWallDescription`** | Ramsey | `LivingAreaSquareFeet` = **Total Finished SF** (above-grade ABSF **+** finished basement). The API carries **no ABSF / finished-basement split** — that (and garage/baths/attic detail) is **Beacon-only** (see [Beacon guide](../collectors/beacon_scraper.md)) |
 | **Hennepin GIS — LAND_PROPERTY layer** | Parcel master, owner, lot, sales, prior-year EMV | Hennepin | Current (appealed) value is *not* here — see PINS |
 | **Hennepin PINS** (`pidresult.jsp`) | Current 26p27 assessment value | Hennepin | Plain HTTP; two page formats (assessment vs. tax summary) |
 | **Minneapolis Assessing open data** | Above-grade SF, year built, baths, exterior, stories | Hennepin (Mpls only) | Minneapolis parcels only; no finished-basement split |
@@ -64,13 +64,22 @@ FeatureServer exposes the current-year fields directly.
 
 ## The square-footage basis trap
 
-Living area is **not** defined the same way across counties:
+Living area is **not** defined the same way across counties, and within Ramsey the API's SF blends
+above-grade and basement:
 
-- **Ramsey** `LivingAreaSquareFeet` **includes** finished basement.
+- **Ramsey** `LivingAreaSquareFeet` = **Total Finished SF = above-grade (ABSF) + finished basement.**
+  (Verified against Beacon CAMA cards: 1704 Eustis API 1,195 = ABSF 1,020 + 175 finished basement;
+  1589 Fulham API 1,440 = ABSF 1,440 + 0.) The API gives `BasementYN` (yes/no) but **not** the ABSF /
+  finished-basement split — that is **Beacon-only** ([Beacon guide](../collectors/beacon_scraper.md)).
 - **Hennepin / Minneapolis** SF is **above-grade only**.
 
-A $/SF comparison that mixes the two bases is meaningless. **Never mix counties in one comp set**, and
-always label which basis a figure uses. Within a county the basis is consistent, so percentile and
+**The basement trap.** A comp's sale price paid for its finished basement too, so two homes with the same
+Total Finished SF are not comparable if one is mostly above-grade and the other carries a big finished
+basement (basement SF is worth less than above-grade). Pull **ABSF + finished-basement SF from Beacon** for
+the subject and every load-bearing comp, show them broken out, and adjust the difference. A subject with an
+unfinished basement vs. comps with finished basements (and garages) is a real, value-lowering adjustment.
+A $/SF comparison that mixes counties — or that ignores the basement/garage split — is meaningless. **Never
+mix counties in one comp set**, and always label which basis a figure uses. Within a county the basis is consistent, so percentile and
 $/SF comparisons are valid.
 
 ## Sales: what counts, what the toolkit collects, and the eCRV upgrade

@@ -17,6 +17,23 @@ to be sold to. This guide governs the copy in every packet and no-appeal finding
 - "the strongest evidence the county would use" → "if we filed, the county would lead with"
 - **Never** use the word "comprehensive."
 
+## Write as ADVOCACY, not a methodology essay (the cardinal rule)
+
+The packet is an **argument to the assessor that THIS property's value is too high** — not a description of
+how we computed it. The reader is a working appraiser who cares about the subject's evidence, not our
+process.
+
+- **Lead with the claim and the evidence:** "the market value is ~$X because [the subject's own sale / its
+  condition / comparable sales / its assessed $/SF vs peers]." State the conclusion, then support it.
+- **Never name our internal machinery.** Do **not** write "extraction method," "TARE Ch. 19," "the
+  regression coefficient," "our model," "the tier screen," "building-residual $/SF as the governing
+  indicator," etc. Those are *how we work*, not *why the assessment is wrong*. Translate every internal
+  step into plain appraisal language the assessor already uses (e.g. say "setting aside each home's land at
+  the county's own land value, the building works out to $X/SF" — not "extraction (TARE Ch. 19)").
+- **Smell test:** if a sentence would only make sense to someone who has read our codebase or methodology
+  files, cut or rewrite it. The assessor should read an argument about their property, start to finish,
+  and never learn what tools we used.
+
 ## Tone
 
 - Write like a colleague explaining what they checked, not a brochure.

@@ -1390,60 +1390,67 @@ def triage(data: dict, baseline_emv: float | None = None) -> dict:
             "reconciliation"
         )
 
-    # Worth-it gate (docs/04, docs/09) — INFORMATIONAL sizing only.
-    # NOTE: the floor and contingency below are ILLUSTRATIVE PLACEHOLDERS, not
-    # calibrated house/Owlue doctrine — set them per engagement. The year-1 fee
-    # floor (~$450) ≈ likely reduction × ETR × contingency on a one-year hold, so
-    # the minimum EMV reduction that clears it is floor / (etr * contingency). The
-    # gate reports a flag for the analyst to weigh; it does NOT change the verdict,
-    # and downstream judgment (run-appeal-review.md Step 3) makes the worth-it call.
-    YEAR1_FEE_FLOOR_PLACEHOLDER = 450      # $/yr firm fee — set per engagement
-    CONTINGENCY_PCT_PLACEHOLDER = 0.30     # share of year-1 savings — set per engagement
+    # Worth-it gate (docs/04, docs/09) — INFORMATIONAL only.
+    # The TEST IS THE CLIENT SAVINGS: an appeal is worth pursuing only when the
+    # recurring tax savings to the homeowner clear a MINIMUM — set at $1,000/yr
+    # (≈ a $300 firm fee at the 30% contingency). This is NOT a fixed cost-to-pursue
+    # (an automated operation has ~$0 marginal cost per appeal); it is the floor
+    # below which a reduction is too small to bother filing. Headline
+    # `annual_client_savings` = reduction × ETR. The gate does NOT change the
+    # verdict; downstream judgment (run-appeal-review.md Step 3) makes the call.
+    MIN_ANNUAL_CLIENT_SAVINGS = 1000       # $/yr to the client — set per engagement
+    CONTINGENCY_PCT_PLACEHOLDER = 0.30     # firm fee = this × client savings (→ ~$300 min fee)
     min_reduction_to_clear = (
-        round(YEAR1_FEE_FLOOR_PLACEHOLDER / (etr * CONTINGENCY_PCT_PLACEHOLDER))
-        if etr else None
+        round(MIN_ANNUAL_CLIENT_SAVINGS / etr) if etr else None
+    )
+    annual_client_savings = (
+        round(illustrative_reduction * etr) if illustrative_reduction > 0 else None
     )
     gate_flag = "unknown"
     if min_reduction_to_clear is not None:
         if illustrative_reduction <= 0 and verdict == "no_angle":
-            # Verdict already forecloses an appeal — there is no ask to size and the
-            # gate is moot. Emit n/a (terminal), not "not_yet_sized", so the analyst
-            # is not prompted to size an ask that doesn't exist (run-appeal-review.md
-            # Step 3 treats this as terminal).
+            # Verdict already forecloses an appeal — no ask to size, gate moot.
+            # Emit n/a (terminal) so the analyst isn't prompted to size a missing ask.
             gate_flag = "n/a — no supportable reduction"
         elif illustrative_reduction <= 0:
-            # No script-implied reduction yet but the verdict is not a hard no_angle
-            # — gate cannot be sized; leave to downstream reconciliation.
+            # No script-implied reduction yet but not a hard no_angle — leave to
+            # downstream reconciliation.
             gate_flag = "not_yet_sized"
-        elif illustrative_reduction >= min_reduction_to_clear:
+        elif annual_client_savings >= MIN_ANNUAL_CLIENT_SAVINGS:
             gate_flag = "pass"
-        elif illustrative_reduction >= 0.8 * min_reduction_to_clear:
+        elif annual_client_savings >= 0.85 * MIN_ANNUAL_CLIENT_SAVINGS:
+            # Within ~15% of the floor → placeholder-sensitive (the ETR proxy / the
+            # exact reduction can flip it). run-appeal-review.md Step 3 treats this
+            # as the knife-edge band → open-book, not a hard pass/fail.
             gate_flag = "borderline"
         else:
             gate_flag = "fail"
-    illustrative_year1_savings = (
+    illustrative_year1_fee = (
         round(illustrative_reduction * etr * CONTINGENCY_PCT_PLACEHOLDER)
         if illustrative_reduction > 0 else None
     )
     tax_economics["worth_it_gate"] = {
         "min_reduction_to_clear_floor": min_reduction_to_clear,
         "illustrative_reduction": illustrative_reduction if illustrative_reduction > 0 else None,
+        # The headline: recurring tax savings to the CLIENT (reduction × ETR) — the
+        # number that decides whether the appeal is worth pursuing.
+        "annual_client_savings": annual_client_savings,
+        "min_annual_client_savings": MIN_ANNUAL_CLIENT_SAVINGS,
         # Which figure the gate sized off, so the verdict reason and the gate are
         # traceable to the SAME ask. The p80 equalization floor is intentionally
         # excluded as a source — it is the smaller, non-governing figure.
         "illustrative_reduction_source": (
             illustrative_reduction_source if illustrative_reduction > 0 else None
         ),
-        "illustrative_year1_fee": illustrative_year1_savings,
-        "year1_fee_floor_assumed": YEAR1_FEE_FLOOR_PLACEHOLDER,
+        "illustrative_year1_fee": illustrative_year1_fee,
         "contingency_pct_assumed": CONTINGENCY_PCT_PLACEHOLDER,
         "hold_years_assumed": 1,
         "flag": gate_flag,
-        "note": "INFORMATIONAL only — does not change the verdict. Floor and "
-                "contingency are illustrative placeholders (set per engagement), "
-                "not calibrated doctrine. 1-year hold assumed; stipulation/Tax "
-                "Court routes may assume 2 years (docs/09). The worth-it call is "
-                "made downstream (run-appeal-review.md Step 3).",
+        "note": "INFORMATIONAL only — does not change the verdict. The test is the "
+                "CLIENT SAVINGS (reduction × ETR): worth pursuing only when annual "
+                "savings clear ~$1,000 (≈ $300 fee at 30% contingency). This is a "
+                "minimum-savings floor, NOT a fixed cost-to-pursue — an automated "
+                "operation has ~$0 marginal cost. Set per engagement.",
     }
 
     # The worth-it gate is INFORMATIONAL only — it does NOT modulate the verdict.

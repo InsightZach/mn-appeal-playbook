@@ -68,6 +68,7 @@ be restated.
 ## Why this feeds triage
 
 The savings estimate is what makes the [worth-it decision](04-triage-decision.md) real: a 3% EMV
-reduction on a modestly assessed home may not clear the cost to pursue, while the same percentage on a
-high-value parcel easily does. Run the ETR math at triage, not after the work — it tells you which parcels
-deserve a full packet and which do not.
+reduction on a modestly assessed home may not clear the **~$1,000/yr minimum client savings**, while the
+same percentage on a high-value parcel can. But it is the **dollar savings** (reduction × ETR), not the EMV
+or the %, that decides — a thin reduction on a high-value parcel can still fall short. Run the ETR math at
+triage, not after the work — it tells you which parcels deserve a full packet and which do not.

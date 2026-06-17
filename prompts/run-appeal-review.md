@@ -35,18 +35,19 @@ result.
    collect; `baseline_comparison: null` is the expected output in that case.
 3. **Judgment** — apply [`triage-judgment.md`](triage-judgment.md) to the collected data + triage output.
    Confirm the verdict, set the recommended ask, record caveats.
-   - **Worth-it threshold (after the ask is set).** `analysis.json` carries `tax_economics.etr`,
-     `savings_per_10k_reduction`, and a pre-sized `tax_economics.worth_it_gate`
-     (`min_reduction_to_clear_floor`, `flag`, `illustrative_reduction_source`); its `illustrative_savings` is
-     illustrative only. Once the judgment sets a concluded ask, compute the actual economic gate from
-     [`docs/04-triage-decision.md`](../docs/04-triage-decision.md)
-     / [`docs/09-reduction-math.md`](../docs/09-reduction-math.md): `likely reduction × ETR × contingency %`
-     (× years held). **Use the illustrative placeholder defaults (docs/04 — set the real numbers per
-     engagement): ~30% contingency, ≈ $1,500 fully-loaded cost to pursue, ~$450 year-1-savings floor —
-     `likely reduction × ETR × 30% ≥ ~$450` on a one-year hold.** A high EMV does not by itself clear the
-     gate: a modest equalization-only reduction on a high-value parcel can still fail it. If it does not
-     clear the cost to pursue, fall back to no-appeal
-     even on a genuine angle.
+   - **Worth-it threshold (after the ask is set) — the test is the CLIENT SAVINGS.** `analysis.json` carries
+     `tax_economics.etr` and a pre-sized `tax_economics.worth_it_gate` with the headline
+     **`annual_client_savings`** (= reduction × ETR) and `min_annual_client_savings`. The rule:
+     **an appeal is worth pursuing only when the recurring tax savings to the client clear ~$1,000/yr**
+     (≈ a $300 firm fee at the 30% contingency). Compute it on the concluded ask:
+     `concluded reduction × ETR ≥ ~$1,000/yr`.
+     - **Do NOT model a fixed "cost to pursue."** There is no ~$1,500 loaded cost to recover — an automated
+       (Owlue) operation has a **~$0 marginal cost per appeal**, so the gate is purely the minimum-savings
+       floor, not a fee-vs-cost test. A genuine ~$73K reduction at 1.5% ETR is **$1,100/yr to the client** —
+       clearly worth filing; never reject it because a 30%-of-savings fee looks small.
+     - A high EMV does not by itself clear the gate: a modest equalization-only reduction on a high-value
+       parcel can still fall below $1,000/yr in savings. Below the floor, fall back to no-appeal even on a
+       genuine angle.
      - **Run the gate against the concluded ask from the GOVERNING approach** (the appeal-packet
        reconciliation), not against the largest or smallest available figure. If multiple candidate asks
        exist (e.g. a sales conclusion and a narrower equalization p80 floor), test the gate at each and
@@ -59,17 +60,13 @@ result.
        open-book concession may not hold into the following year). The hold assumption can flip the verdict
        (e.g. ~$216/yr fails on a 1-year hold but ~$647 clears stacked over 3 years), so it must be stated, not
        improvised.
-     - **Knife-edge band — when the gate is INDETERMINATE, do NOT record a binary PASS/FAIL.** When the
-       computed year-1 fee lands **within ~15% of the ~$450 floor** (≈ $380–$520), the gate is
-       **placeholder-sensitive** — the appeal/no-appeal call is being decided by the very numbers this prompt
-       calls illustrative (the ~$450 floor, the ~30% contingency, the ETR proxy, the 1-year hold). A worked
-       case: 1589 Fulham at $103,800 × 0.0147 ETR × 30% ≈ $458/yr **passes by ~$8**, and flips to fail at the
-       comp mean. In the knife-edge band you must (a) **state plainly the result is placeholder-sensitive**;
-       (b) **test sensitivity** across the plausible ranges (contingency 25–35%, the ETR proxy, the hold
-       period) and report whether the verdict flips; and (c) **route to a low-cost open-book conversation**
-       rather than recording a hard appeal / no-appeal. Carry the indeterminacy into the deliverable
-       (e.g. `gate: indeterminate (placeholder-sensitive) → open-book`) — a knife-edge is the wrong
-       abstraction for the highest-stakes call.
+     - **Knife-edge band — when the gate is INDETERMINATE, do NOT record a binary PASS/FAIL.** When
+       **`annual_client_savings` lands within ~15% of the ~$1,000 floor** (≈ $850–$1,000/yr — the gate emits
+       `borderline`), the call is **placeholder-sensitive**: the ETR proxy and the exact concluded reduction
+       can flip it. There you must (a) **state plainly the result is placeholder-sensitive**; (b) **test
+       sensitivity** across the plausible ETR / reduction range and report whether it flips; and (c) **route
+       to a low-cost open-book conversation** rather than a hard appeal / no-appeal. Carry the indeterminacy
+       into the deliverable (e.g. `gate: borderline (~$900/yr savings, placeholder-sensitive) → open-book`).
      - **The gate governs the verdict — at this (judgment) step, not in the script.** A `borderline` or
        `appeal_angle` verdict from [`triage-judgment.md`](triage-judgment.md) is **PROVISIONAL until this
        gate clears.** A **sub-floor** economic result **downgrades any borderline to `no_appeal` regardless
@@ -83,11 +80,23 @@ result.
    good-for-study flag**. That is a property of the *script*, not a dead end — an **agent** fills these
    gaps with the tools we already have. Do this whenever the argument depends on it; do **not** shortcut to
    "the county data doesn't have it."
-   - **Condition read (the structured Phase-2 step) — subject + the shortlist, not all 30.** Condition and
-     grade are the **one input the comp-set regression can't supply** (they aren't in the county API). This
-     is where the agent fills that gap. Run it whenever a condition/grade/cost-to-cure argument is in play,
-     **and always when triage set `sales_comparison_indicated.subject_condition_outlier`** (the subject's
-     condition sits outside the neighborhood — the bare median points the wrong way). Procedure:
+   - **Verification is the FIRST FILTER, and it can KILL the appeal.** Before trusting the script's
+     `appeal_angle`, verify the subject and the load-bearing comps on the listings (Zillow / Redfin /
+     Realtor / Beacon): **condition, construction quality, the above-grade/basement/garage split, AND the
+     own sale.** The script's verdict is a *candidate*, not a conclusion — the listing evidence routinely
+     overturns it. *Worked example (1 Island Rd):* triage flagged an appeal off a 2022 sale, but the
+     listing showed a lakefront estate with a **Zestimate ABOVE the EMV** and a prior higher sale — so the
+     honest call was **no appeal.** Verification earns its keep by stopping weak filings, not just
+     supporting strong ones. Always verify the **own sale** too (a nominal/quit-claim price like the
+     1589 Fulham "$11,000" is not a market sale).
+   - **Condition + quality read (the structured Phase-2 step) — subject + the shortlist, not all 30.**
+     Condition and grade are the **one input the comp-set regression can't supply** (they aren't in the
+     county API). This is where the agent fills that gap. Run it whenever a condition/grade/cost-to-cure
+     argument is in play, **and always when triage set `sales_comparison_indicated.subject_condition_outlier`**
+     (the subject's condition sits outside the neighborhood — the bare median points the wrong way). Grade
+     **both condition AND construction quality** (they are separate axes), and pull the **ABSF / finished-
+     basement / garage** split from Beacon (`analysis/beacon.py`) for the size and basement/garage lines.
+     Procedure:
      1. **Source the read** via the [listing-enrichment step](../collectors/listing_enrichment.md): the
         **owner's listing first**, then Zillow / Redfin / Realtor via the browser, or a Beacon/CAMA card.
         (We did exactly this on 884 Ashland — the Zillow lookup showed a renovated interior and changed the

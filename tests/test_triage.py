@@ -495,12 +495,15 @@ def test_worth_it_gate_is_informational_and_never_relabels_the_verdict():
     assert r["verdict"] == "appeal_angle"  # NOT 'appeal_angle_economics_marginal'
     assert r["verdict"] in ("appeal_angle", "borderline", "no_angle")
     gate = r["tax_economics"]["worth_it_gate"]
-    assert gate["flag"] in ("pass", "borderline", "fail", "not_yet_sized", "unknown")
-    # numbers are labelled assumptions, not asserted doctrine
-    assert "year1_fee_floor_assumed" in gate
+    assert gate["flag"] in ("pass", "borderline", "fail",
+                            "n/a — no supportable reduction", "not_yet_sized", "unknown")
+    # The test is the CLIENT SAVINGS clearing a minimum (~$1,000/yr), NOT a fee
+    # clearing a loaded cost-to-pursue — labelled assumptions, not asserted doctrine.
+    assert "annual_client_savings" in gate
+    assert "min_annual_client_savings" in gate
     assert "contingency_pct_assumed" in gate
     # no reason string quotes the placeholder floor as if it were a finding
-    assert not any("$450 floor" in reason for reason in r["reasons"])
+    assert not any("floor" in reason for reason in r["reasons"])
 
 
 def test_triage_emits_the_documented_top_level_keys():

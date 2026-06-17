@@ -47,6 +47,11 @@ SUBJECT_FIELDS = [
     "YearBuilt",
     "EffectiveYearBuilt",
     "LivingAreaSquareFeet",
+    "BasementYN",
+    "Stories",
+    "BedRoom",
+    "GarageSquareFeet",
+    "ExteriorWallDescription",
     "ParcelAcresDeed",
     "PlatName",
     "LandUseCode",
@@ -78,6 +83,11 @@ COMP_FIELDS = [
     "SiteAddress",
     "OwnerName1",
     "LivingAreaSquareFeet",
+    "BasementYN",
+    "Stories",
+    "BedRoom",
+    "GarageSquareFeet",
+    "ExteriorWallDescription",
     "YearBuilt",
     "EffectiveYearBuilt",
     "EMVLand",
@@ -275,7 +285,19 @@ def _subject_from_attrs(attrs: dict[str, Any]) -> dict[str, Any]:
         "lat": attrs.get("Latitude"),
         "lon": attrs.get("Longitude"),
         "year_built": attrs.get("YearBuilt"),
-        "living_area_sf": attrs.get("LivingAreaSquareFeet"),
+        # TOTAL FINISHED SF = above-grade (ABSF) + finished basement. Verified against
+        # Beacon CAMA cards: API LivingAreaSquareFeet == Beacon ABSF + Basement Area
+        # Finished (e.g. 1704 Eustis 1,195 = 1,020 ABSF + 175; subject 1,440 = 1,440 +
+        # 0). The API does NOT break out ABSF vs finished basement — that split (and
+        # garage/baths/attic detail) is Beacon-only; see collectors/beacon_scraper.md
+        # and analysis/beacon.py. basement_present is the API's yes/no flag.
+        "living_area_sf": attrs.get("LivingAreaSquareFeet"),  # total finished
+        "basement_present": attrs.get("BasementYN") == "Y",
+        "stories": attrs.get("Stories"),
+        "bedrooms": attrs.get("BedRoom"),
+        "garage_sf": attrs.get("GarageSquareFeet"),
+        "exterior_wall": attrs.get("ExteriorWallDescription"),
+        "home_style": attrs.get("HomeStyleDescription"),
         "land_use": attrs.get("LandUseCodeDescription") or attrs.get("LandUseCode"),
         # The assessor's condition/renovation-adjusted age — a renovated 1920
         # home carries a later effective year. The single in-API condition proxy
@@ -395,7 +417,12 @@ def _comp_from_attrs(attrs: dict[str, Any]) -> dict[str, Any]:
     return {
         "pid": _normalize_pid(attrs.get("ParcelID", "")),
         "address": attrs.get("SiteAddress"),
-        "sf": attrs.get("LivingAreaSquareFeet"),
+        "sf": attrs.get("LivingAreaSquareFeet"),  # TOTAL FINISHED (ABSF + fin bsmt); see subject note
+        "basement_present": attrs.get("BasementYN") == "Y",
+        "stories": attrs.get("Stories"),
+        "bedrooms": attrs.get("BedRoom"),
+        "garage_sf": attrs.get("GarageSquareFeet"),
+        "exterior_wall": attrs.get("ExteriorWallDescription"),
         "year_built": attrs.get("YearBuilt"),
         "effective_year_built": attrs.get("EffectiveYearBuilt"),
         "emv_total": attrs.get("EMVTotal"),
