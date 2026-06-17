@@ -53,7 +53,13 @@ def _linear_regression(xy: list[tuple[float, float]]) -> dict:
     sy = sum(y for _, y in xy)
     sxy = sum(x * y for x, y in xy)
     sxx = sum(x * x for x, _ in xy)
-    slope = (n * sxy - sx * sy) / (n * sxx - sx * sx)
+    denom = n * sxx - sx * sx
+    if denom == 0:
+        # No variance in x (e.g. every comp shares a lot size, common in a
+        # uniform plat) — slope is undefined. Fall back to a flat line at the
+        # mean, matching sales_regression._linear_regression's guard.
+        return {"slope": 0, "intercept": sy / n, "r2": 0, "n": n}
+    slope = (n * sxy - sx * sy) / denom
     intercept = (sy - slope * sx) / n
     mean_y = sy / n
     ss_tot = sum((y - mean_y) ** 2 for _, y in xy)
