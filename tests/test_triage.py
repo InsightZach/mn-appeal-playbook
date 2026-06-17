@@ -109,7 +109,12 @@ def test_single_model_convergence_is_labeled_and_inert():
     assert conv is not None
     assert conv["verdict"] == "single_model"
     assert "central_label" in conv
-    assert "convergence_gap_vs_emv" in conv
+    # The self-disclaimed dollar gap is renamed so its non-reconciled status is
+    # unmistakable; the dollar `convergence_gap_vs_emv` is suppressed for a
+    # single model, and only a directional gap + direction flag remain.
+    assert "convergence_gap_vs_emv" not in conv
+    assert "all_sizes_regression_gap_directional" in conv
+    assert conv["direction_vs_emv"] in ("below EMV", "above EMV")
     # a single model must not emit a "models converge ... EMV" reason
     assert not any("converge" in reason.lower() for reason in r["reasons"])
 
@@ -188,6 +193,27 @@ def test_supports_appeal_killer_comp_flips_verdict():
 # ---------------------------------------------------------------------------
 # Output shape
 # ---------------------------------------------------------------------------
+
+def test_worth_it_gate_is_informational_and_never_relabels_the_verdict():
+    """The worth-it gate must NOT modulate the verdict or invent a new verdict
+    value — the script never concludes the worth-it call (it belongs to the
+    judgment layer). A clear appeal angle stays `appeal_angle` regardless of the
+    gate flag, and the gate is surfaced as informational only."""
+    # Recent own sale 15% below EMV → unambiguous appeal_angle.
+    r = triage(_data(sales=[
+        {"pid": "SUBJ", "address": "1 Test St", "sale_price": 340_000,
+         "sale_date": "2025-06-01", "sf": None, "emv_total": None},
+    ]))
+    assert r["verdict"] == "appeal_angle"  # NOT 'appeal_angle_economics_marginal'
+    assert r["verdict"] in ("appeal_angle", "borderline", "no_angle")
+    gate = r["tax_economics"]["worth_it_gate"]
+    assert gate["flag"] in ("pass", "borderline", "fail", "not_yet_sized", "unknown")
+    # numbers are labelled assumptions, not asserted doctrine
+    assert "year1_fee_floor_assumed" in gate
+    assert "contingency_pct_assumed" in gate
+    # no reason string quotes the placeholder floor as if it were a finding
+    assert not any("$450 floor" in reason for reason in r["reasons"])
+
 
 def test_triage_emits_the_documented_top_level_keys():
     """docs/10-data-schema.md analysis.json contract."""

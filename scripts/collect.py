@@ -39,6 +39,22 @@ def collect(address: str, county: str = "ramsey", radius_comps_mi: float = 0.5,
     if not subject:
         raise RuntimeError(f"Could not resolve address: {address!r}")
 
+    # Geocode drift guard. The resolver can silently correct a street name or
+    # street type (e.g. "Ave" -> "St"), which can land on the wrong parcel. When
+    # the resolved address differs from the query, warn and surface the parcel's
+    # owner_name + plat so the analyst can confirm the right parcel was selected
+    # before proceeding (run-appeal-review.md Step 1).
+    resolved_addr = (subject.get("address") or "").strip()
+    if resolved_addr and resolved_addr.upper() != address.strip().upper():
+        print(
+            f"WARNING: resolved address '{resolved_addr}' differs from query "
+            f"'{address.strip()}' — confirm the right parcel.\n"
+            f"  owner_name: {subject.get('owner_name')}\n"
+            f"  plat: {subject.get('plat_name')}\n"
+            f"  pid: {subject.get('pid')}",
+            file=sys.stderr,
+        )
+
     pid = subject["pid"]
     sf = subject.get("living_area_sf") or 0
     year_built = subject.get("year_built") or 0

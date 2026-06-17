@@ -75,9 +75,19 @@ dollar adjustments. Additive across categories, applied once: `adjusted = sale �
 | Quality: superior grade → subject | −10% |
 | Quality: inferior grade → subject | +5% |
 | Lot: standard → double | +10% to +15% |
+| Age / effective age (within-band) | derive a $/SF-vs-year-built slope from the comp set itself |
 
 Drop comps of unknown condition from the math (list them for transparency). These are starting points —
 beat them with paired-sales-derived rates wherever a rate drives the conclusion.
+
+**Age / vintage adjustment (within the selection band).** Where the comp set spans vintage *within* the
+±20yr selection band, the raw $/SF median is pulled toward the older comps and understates a newer subject.
+Derive a **$/SF-vs-`year_built` slope from the comp set itself** (the data supports a regression) and apply
+it as an **age / effective-age adjustment** to the subject's vintage. **Where grade / condition is
+unpublished (e.g. Ramsey), `year_built` is the proxy for build quality / effective age** — use it. This
+turns the eyeball "these comps are older" judgment into a supportable, *Diamond Lake*-compliant adjustment
+rather than an unsupported eyeball. Example: a 1994 subject against comps spanning 1957–2011 (all in-band on
+size) shows a ~$100/SF vintage-driven spread the flat grid cannot resolve — the slope does.
 
 ## Equalization (independent basis in Minnesota)
 
@@ -98,15 +108,30 @@ override of the sales conclusion.
 **Which $/SF basis the inequity rests on.** The building-line assessed $/SF and the subject's total
 EMV/SF can tell different stories — a thin building-line gap can coexist with a rich total assessment, or
 the reverse. When they diverge, **prefer comparing the subject's total EMV/SF against the sold-comp total
-EMV/SF distribution**: it captures land and building together and ties to what properties actually sold
-for. **State explicitly which basis the equalized number rests on** (building-line $/SF, land-line $/SF,
-or total EMV/SF) so the request is auditable.
+EMV/SF distribution** — but **only when BOTH the land line and the building line sit at or above their
+peer percentile band.** The total-EMV/SF basis captures land and building together, so it is only an
+inequity basis when both lines are actually rich. **If the land line is at or below the peer median (the
+land is fairly assessed), the inequity rests on the building line only — do NOT use the total-EMV/SF basis
+to conclude lower.** A divergence where total EMV/SF reads low while the building line is rich usually
+reflects a *larger lot* (more land $ spread over the building SF), not inequity; equalizing on that basis
+claims a reduction the data does not support. Tie the basis choice to which line is genuinely rich, not to
+which produces the lower number. **State explicitly which basis the equalized number rests on**
+(building-line $/SF, land-line $/SF, or total EMV/SF) so the request is auditable.
 
 **The band-floor neutrality rule.** An equalization **reduction exists only when the subject's $/SF is
 ABOVE the percentile you equalize down to.** If the subject sits at or below the band floor (e.g. its
 building $/SF is at p75, so equalizing to p75 reproduces the EMV), **equalization is neutral** — there is
 no inequity to correct, and the **sales conclusion governs**. Do not present a "reduction" that
 equalizing to the band would not actually produce.
+
+**Rich-land / neutral-building pocket (between the two branches above).** When the **only** rich line is
+land AND the land $/SF percentile sits inside a **bimodal high-land pocket** (lake / view / corner premium)
+while the building line is **at or below** the band, equalization is **NEITHER neutral-by-band NOR an
+independent below-market basis** — the land premium is **presumptively legitimate**, so the **sales
+conclusion governs.** Do not claim a land reduction on that basis, and do not over-invest effort treating
+it as a lever. (This is the case the "land at/below median → building-only basis" and "both lines rich →
+total-EMV/SF basis" branches do not cover: a genuinely rich land line that reflects a real locational
+premium, not inequity.)
 
 ## Reconciliation
 

@@ -35,18 +35,40 @@ The script's verdict is a starting point. Pressure-test each signal:
    sale as **non-evidentiary for value** — note it exists, do **not** adjust off it, do **not** let it set
    the ask, and do **not** report its raw `delta_pct` vs current EMV as a finding (a 23-year-old sale's
    gap vs today's EMV is meaningless). Lead with current comp sales and equalization instead.
+   **Sale present without a price (explicit rule):** when a subject sale exists but carries no price
+   (`subject_own_sale.price_missing` is true), **attempt enrichment to recover the price** (eCRV / listing)
+   rather than dropping it. If the recovered sale **post-dates the January 2 effective date**, treat it as
+   **directional / corroborating only** for the current assessment year — **never** as the governing floor.
 2. **Killer / best comp — is it genuinely comparable, and what is its basis?** Check size (±~30%),
    vintage, location tier, and price tier. The script now surfaces the comp's **`comp_own_emv_ratio`**
    (sale ÷ the comp's *own* EMV) and **`implied_subject_value`** (comp sale $/SF × subject SF) — **state
-   the lead comp's sale-to-own-EMV ratio explicitly** in your reasoning. Discount the script's killer comp
-   when its sale is **within ~5% of its own EMV** (`comp_own_emv_ratio` ≈ 0.95–1.05 — the county assessed
-   *it* correctly, so its low sale just reflects a cheaper tier), when it sits in a different value tier,
-   or when it is far away. Look at the second- and third-best sales yourself before relying on the top one.
+   the lead comp's sale-to-own-EMV ratio explicitly** in your reasoning. **Discount the killer comp
+   whenever `comp_own_emv_ratio` ≥ ~0.95** — it sold at or above its own EMV, so the county assessed *it*
+   correctly and its low absolute sale just reflects a cheaper value tier. **This discount is one-sided:
+   there is no upper bound. A comp at 1.06× its own EMV is at least as cheaper-tier as one at 1.04×** — do
+   not let a ratio above 1.05 slip past the discount and fire an implied subject value. Also discount when
+   the comp sits in a different value tier or is far away. Look at the second- and third-best sales
+   yourself before relying on the top one.
+   **Low-ratio comp (sold BELOW its own EMV):** when `comp_own_emv_ratio` is well below 1.0 (e.g. < ~0.90),
+   the comp corroborates **area-wide** over-assessment, **not necessarily subject-specific** over-assessment.
+   Before treating the gap as a subject angle, confirm the **SUBJECT's own** assessed $/SF is actually rich
+   versus the **sold-comp $/SF distribution**; if the whole pocket is uniformly over-assessed and the county
+   is already correcting it, the angle is **equalization** (assessment-level inequity), not sales. Tie this to
+   the equalization-neutral check.
    **Fallback when you discount the killer comp (or its convergence signal):** do **not** rubber-stamp the
    script verdict. Independently reconcile the **best 5–8 comparable sales' $/SF** against the subject's SF
-   and compare the result to EMV before adopting any verdict. **A comp-median or regression value
-   materially below EMV is an angle even when the script says `no_angle`** — the script's no-angle path can
-   fire on a single trivially-"tight" model or on a convergence that points below EMV.
+   and compare the result to EMV before adopting any verdict. **Before reconciling, confirm those 5–8
+   sales fall within ±30% of the subject's SF (and, where lot is load-bearing, within a comparable lot
+   size).** If none do, the sales reconciliation is **unavailable** — do **not** apply small-home $/SF to a
+   large subject (or large-home $/SF to a small one); fall back to **equalization**. **Vintage band (parallel
+   to the SF and lot guards):** before reconciling the best 5–8 comps, confirm they fall within **~±20 years**
+   of the subject's `year_built`. If the size-matched set spans a wide vintage range, the raw $/SF median is
+   **unreliable** — older comps need an upward time/quality adjustment to the subject's vintage; restrict to
+   vintage-comparable sales or apply an explicit age/quality adjustment (see
+   [`methodology.md`](methodology.md) age/vintage line) before reconciling. A 1994 subject in a neighborhood
+   of 1960s–70s homes will otherwise show a **false below-EMV $/SF gap**. **A comp-median or
+   regression value materially below EMV is an angle even when the script says `no_angle`** — the script's
+   no-angle path can fire on a single trivially-"tight" model or on a convergence that points below EMV.
    **Borderline-default backstop (explicit rule):** a `borderline` verdict whose **sole** reason is "No
    single threshold tripped" is a **script default, not a finding.** Do not route it to an open-book
    conversation by default. Run the independent best 5–8 comp $/SF reconciliation: if it lands **at or
@@ -56,6 +78,12 @@ The script's verdict is a starting point. Pressure-test each signal:
 3. **Equalization percentiles.** Building $/SF at or above the ~80th percentile of comparable homes is a
    real angle. Before claiming a *land* inequity, check whether the neighborhood splits into value tiers
    (bimodal land $/SF) — a high percentile inside a genuinely higher-value pocket is not inequity.
+   **Rich-land / neutral-building pocket (mirror of [`methodology.md`](methodology.md) Equalization):** when
+   the **only** rich line is land AND the land $/SF percentile sits inside a **bimodal high-land pocket**
+   (lake / view / corner premium) while the building line is at/below the band, equalization is **neither**
+   neutral-by-band **nor** an independent below-market basis — the land premium is **presumptively
+   legitimate**, so the **sales conclusion governs.** Do not claim a land reduction and do not over-invest
+   effort treating it as a lever.
    **Building-side equalization check (parallel to the land bimodal check):** a high building $/SF
    percentile is an angle **only if the subject's grade/condition/quality is mid-pack** for the comp set —
    a genuinely superior build may correctly carry high $/SF. Verify with grade/condition or a sale. **When
@@ -69,9 +97,16 @@ The script's verdict is a starting point. Pressure-test each signal:
 
 ## Output
 
+A `borderline` or `appeal_angle` verdict here is **PROVISIONAL until the [`run-appeal-review.md`](run-appeal-review.md)
+Step 3 worth-it gate clears.** A **sub-floor** economic result **downgrades it to `no_appeal` regardless of
+the angle's merit** — the gate governs. Carry the gate result explicitly in the verdict (e.g.
+`appeal_angle, gate: pass` / `angle present but gate: fail → no_appeal`); do not state a bare `borderline →
+open-book` and only discover later that the gate kills it.
+
 Return a short structured judgment:
 
-- **Verdict:** `appeal_angle` / `borderline` / `no_angle`
+- **Verdict:** `appeal_angle` / `borderline` / `no_angle` — annotate it with the gate result
+  (`gate: pass` / `gate: fail → no_appeal` / `gate: borderline`).
 - **Reasoning:** 2–4 sentences in plain language, citing the specific evidence and your comparability
   judgment on the lead comp.
 - **Recommended ask** (if appealing): a value the evidence brackets — never below every adjusted comp.

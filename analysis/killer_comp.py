@@ -56,19 +56,71 @@ def identify_killer_comp(subject: dict, sales: list[dict]) -> dict | None:
           (a) the comp sold materially below its OWN EMV (ratio < ~0.93 — the
               county over-assessed the comp too), OR
           (b) the comp's sale $/SF applied to the subject's SF implies a value
-              materially (>~10%) below the subject's EMV.
-        A comp that sold below the SUBJECT's EMV while sitting near its OWN EMV
-        (comp_own_emv_ratio ~0.95-1.05 — the county assessed IT correctly) is a
-        cheaper-tier property, not an over-assessment signal — it is "discount"
-        (implied_subject_value is unreliable here and is suppressed/tagged), not
-        "supports_appeal".
+              materially (>~10%) below the subject's EMV — AND the comp itself
+              sold below its own EMV (ratio < ~0.93), so the implied figure is
+              not an extrapolation off a correctly-assessed cheaper-tier comp.
+      - "discount" for any cheaper-tier comp the county assessed correctly. The
+        cheaper-tier test is ONE-SIDED on the high side: any comp that sold at or
+        above ~0.95x its own EMV (comp_own_emv_ratio >= ~0.95, NO upper bound) is
+        cheaper-tier — implied_subject_value is suppressed and the verdict is
+        "discount", regardless of how far above 1.05 the ratio goes. A comp at
+        1.06x its own EMV sold ABOVE its own EMV (assessed correctly, if not
+        conservatively), so it is at least as cheaper-tier as one at 1.04x; the
+        prior symmetric 0.95-1.05 window leaked such comps into supports_appeal.
       - "neutral" otherwise.
     """
     if not sales:
         return None
 
+    # Hard SF (and, where lot is load-bearing, lot-acreage) size-band gate.
+    # SF is only 40% of a soft similarity score, so without a hard band the
+    # scorer can select a comp far outside the subject's value tier (e.g. a
+    # 2,050 SF comp for a 5,147 SF subject) and extrapolate its $/SF onto the
+    # subject — exactly the size/tier extrapolation methodology.md forbids.
+    # Drop comps outside ±30% of the subject's above-grade SF, and (when the
+    # comp set carries lot acreage) outside the ~10th-90th percentile of the
+    # comp lot distribution, BEFORE scoring. If nothing survives, do not select
+    # an out-of-band comp.
+    subj_band_sf = subject.get("absf") or subject.get("living_area_sf")
+    eligible = list(sales)
+    if subj_band_sf:
+        sf_banded = [
+            s for s in eligible
+            if (s.get("absf") or s.get("sf"))
+            and 0.70 * subj_band_sf <= (s.get("absf") or s.get("sf")) <= 1.30 * subj_band_sf
+        ]
+        # Only enforce the SF band when at least one comp carries SF; if none do
+        # (no SF data at all), fall through to scoring rather than dropping all.
+        if any((s.get("absf") or s.get("sf")) for s in eligible):
+            eligible = sf_banded
+
+    subj_lot = subject.get("lot_acres")
+    if subj_lot:
+        lot_vals = sorted(s["lot_acres"] for s in eligible if s.get("lot_acres"))
+        if len(lot_vals) >= 5:
+            def _q(vals, q):
+                idx = min(len(vals) - 1, max(0, int(round(q * (len(vals) - 1)))))
+                return vals[idx]
+            lo, hi = _q(lot_vals, 0.10), _q(lot_vals, 0.90)
+            lot_banded = [
+                s for s in eligible
+                if not s.get("lot_acres") or lo <= s["lot_acres"] <= hi
+            ]
+            if lot_banded:
+                eligible = lot_banded
+
+    if not eligible:
+        return {
+            "comp": None,
+            "score": 0.0,
+            "verdict": "no_size_matched_sale",
+            "implied_subject_value": None,
+            "note": "no arm's-length sale within ±30% of subject SF (and "
+                    "comparable lot size) — sales comparison unavailable",
+        }
+
     scored = []
-    for s in sales:
+    for s in eligible:
         score = _similarity_score(subject, s)
         scored.append({"comp": s, "score": score})
 
@@ -115,10 +167,12 @@ def identify_killer_comp(subject: dict, sales: list[dict]) -> dict | None:
             and implied_vs_subject_emv_pct is not None
             and implied_vs_subject_emv_pct >= -2
         )
-        # A cheaper-tier comp the county assessed correctly (own-EMV ratio near
-        # 1.0): its low sale reflects the tier, not subject over-assessment.
+        # A cheaper-tier comp the county assessed correctly (sold AT or ABOVE its
+        # own EMV): its low sale reflects the tier, not subject over-assessment.
+        # One-sided on the high side — no upper bound. A comp at 1.06x its own EMV
+        # is at least as cheaper-tier as one at 1.04x.
         cheaper_tier = (
-            comp_own_emv_ratio is not None and 0.95 <= comp_own_emv_ratio <= 1.05
+            comp_own_emv_ratio is not None and comp_own_emv_ratio >= 0.95
         )
         if abs(delta_pct) <= 5:
             verdict = "kills_appeal"
@@ -131,8 +185,14 @@ def identify_killer_comp(subject: dict, sales: list[dict]) -> dict | None:
             sold_below_own_emv = (
                 comp_own_emv_ratio is not None and comp_own_emv_ratio < 0.93
             )
+            # The implied-value path only carries over-assessment signal when the
+            # comp itself sold BELOW its own EMV — otherwise the implied figure is
+            # an extrapolation off a comp the county assessed correctly (or a
+            # cheaper-tier comp), which methodology.md forbids. Require
+            # sold_below_own_emv to gate it, not merely "not cheaper_tier."
             implies_subject_lower = (
-                implied_vs_subject_emv_pct is not None
+                sold_below_own_emv
+                and implied_vs_subject_emv_pct is not None
                 and implied_vs_subject_emv_pct < -10
             )
             if (sold_below_own_emv or implies_subject_lower) and not cheaper_tier:

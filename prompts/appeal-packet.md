@@ -36,6 +36,28 @@ a value the evidence brackets.
      indicated subject value (adjusted $/SF × subject SF). Reconcile to a supported $/SF (mean/median) and
      report the **supported value = reconciled $/SF × subject SF**. Bracket the subject; use same-type
      support for every adjustment; apply gross-adjustment thresholds.
+     - **No tier-matched sale.** If **no** arm's-length sale exists within the subject's **size band
+       (±30% SF)** and value tier, the sales-comparison approach yields **NO indicated value** — state the
+       *absence of tier-matched sales as a finding*. Do **not** extrapolate small-home $/SF onto a large
+       subject (a $/SF drawn from 2,000 SF sales projected onto a 5,000 SF subject is the size/tier
+       extrapolation methodology.md forbids). Conclude on **equalization + EMV history** alone, and say
+       that doing so is the correct response to the missing grid. *Worked example (high-value, no comp):*
+       a $1.8M subject with **no** sold comp above ~$1M in its plat — the sales approach indicates nothing;
+       the packet leads with the equalization distribution (subject's assessed $/SF vs. its peer band) and
+       the EMV history, and **states plainly that no tier-matched sales exist**, rather than building a
+       grid from out-of-tier sales.
+     - **Lot outlier.** When the subject's lot is materially larger or smaller than the comp set, the
+       `$/SF × subject SF` projection **silently strips lot value and is unreliable** — it values a
+       5-acre subject's lot at the same increment as a quarter-acre comp lot. Restrict the comp set to
+       **lot-comparable sales** and reconcile on **whole-property adjusted sale prices** (or add an
+       explicit land-adjustment line to the grid). State that the bare $/SF method **understates value for
+       a large-lot subject** (and overstates it for a small-lot subject), so the reader knows why the
+       reconciliation departs from a flat $/SF.
+     - **Lot-comparable but $/SF and whole-price diverge.** When the comps are **lot-comparable**
+       (`lot_outlier` is false) yet the **$/SF** and **whole-price** conclusions still diverge materially
+       (~10%+), **prefer the whole-price median for similarly-sized homes** (it carries land value intact) and
+       report the $/SF figure as a **cross-check**, noting that $/SF mechanically **understates** a
+       mid-pack-but-larger-lot subject even within a comparable-lot set.
    - **Equalization** — when the subject's assessed $/SF sits above its peer group (independent basis,
      *Federated Mutual*).
    - **Condition / CAMA-error correction** — where the county's grade, condition, SF, or basement finish
