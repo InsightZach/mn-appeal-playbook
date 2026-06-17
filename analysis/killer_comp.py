@@ -37,7 +37,8 @@ def identify_killer_comp(subject: dict, sales: list[dict]) -> dict | None:
         "comp": {...},
         "score": 87.3,
         "verdict": "kills_appeal" | "confirms_fair" | "supports_appeal"
-                   | "discount" | "neutral",
+                   | "discount" | "distressed_outlier" | "neutral"
+                   | "no_size_matched_sale",
         "delta_from_emv": -6700,           # comp sale vs SUBJECT emv
         "delta_pct": -0.86,                # comp sale vs SUBJECT emv, %
         "sale_vs_subject_emv_pct": -0.86,  # alias of delta_pct, explicit name
@@ -174,10 +175,26 @@ def identify_killer_comp(subject: dict, sales: list[dict]) -> dict | None:
         cheaper_tier = (
             comp_own_emv_ratio is not None and comp_own_emv_ratio >= 0.95
         )
+        # A deeply distressed sale (sold far below its OWN EMV — < ~0.75x) is not
+        # arm's-length market evidence; it is the same population the triage
+        # distressed screen (< 0.80x) flags. Such a comp must NOT drive
+        # supports_appeal — a lone foreclosure/relative sale does not show the
+        # subject is over-assessed. Label it distressed_outlier and suppress its
+        # implied value so it cannot extrapolate a low value onto the subject.
+        distressed_outlier = (
+            comp_own_emv_ratio is not None and comp_own_emv_ratio < 0.75
+        )
         if abs(delta_pct) <= 5:
             verdict = "kills_appeal"
         elif delta_pct > 5 and confirms_fair:
             verdict = "confirms_fair"
+        elif distressed_outlier:
+            verdict = "distressed_outlier"
+            top["implied_subject_value"] = None
+            top["distressed_note"] = (
+                "comp sold < 0.75x its own EMV — likely distressed/non-arm's-length, "
+                "not market evidence; verify good-for-study before any use"
+            )
         else:
             # supports_appeal requires real over-assessment signal, not just a
             # cheaper-tier sale: either the comp sold below its OWN EMV, or its

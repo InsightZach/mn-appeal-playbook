@@ -147,13 +147,17 @@ premium, not inequity.)
 
 ## Own-sale relevance horizon (single rule)
 
-The subject's own arm's-length sale is the strongest single indicator, but its weight decays with age:
+The subject's own arm's-length sale is the strongest single indicator, but its weight decays with age. The
+bands are **numeric and non-overlapping** so a sale exactly on a boundary has one unambiguous treatment
+(the triage script applies the same cutoffs):
 
-- **Within ~2 years** of the effective date: the **unadjusted** own sale is governing.
-- **~2–3 years** out: **time-trend** the sale to the effective date at the default time rate
-  (≈ +0.25%/month, ≈ 3%/yr — calibrate to local paired sales) and treat the trended figure as governing.
-- **Beyond ~3–4 years**: **corroborating only** — it supports the direction of the conclusion but does not
-  set it; lead with current comp sales and equalization instead.
+- **≤ 2.0 years** before the effective date: the **unadjusted** own sale is governing.
+- **2.0 – 3.5 years** (`2.0 < x ≤ 3.5`): **time-trend** the sale to the effective date at the default time
+  rate (≈ +0.25%/month, ≈ 3%/yr — calibrate to local paired sales) and treat the trended figure as governing.
+- **3.5 – 4.0 years** (`3.5 < x ≤ 4.0`): **corroborating only** — it supports the direction of the
+  conclusion but does not set it; lead with current comp sales and equalization instead.
+- **> 4.0 years**: **non-evidentiary for value** — note it exists, but the raw delta vs current EMV is
+  meaningless; do not report it as a finding.
 
 ## EMV cross-check (reconciliation aid)
 

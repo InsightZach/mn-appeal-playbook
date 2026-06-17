@@ -78,6 +78,26 @@ def test_confirms_fair_when_comp_brackets_subject_above_emv():
     assert r["verdict"] == "confirms_fair"
 
 
+def test_deeply_distressed_comp_is_outlier_not_supports_appeal():
+    """A comp that sold < 0.75x its own EMV (e.g. 0.61x) is distressed /
+    non-arm's-length, not market evidence — it must NOT drive supports_appeal."""
+    # ratio = 245k/400k = 0.6125 (< 0.75).
+    r = identify_killer_comp(_subject(emv_total=400_000, absf=2000),
+                             [_comp(245_000, 400_000, absf=2000)])
+    assert r["verdict"] == "distressed_outlier"
+    assert r["verdict"] != "supports_appeal"
+    assert r["implied_subject_value"] is None
+    assert "distressed_note" in r
+
+
+def test_below_own_emv_but_not_distressed_still_supports_appeal():
+    """A comp at 0.88x its own EMV (below 0.93, above the 0.75 distressed floor)
+    is genuine over-assessment signal → supports_appeal."""
+    r = identify_killer_comp(_subject(emv_total=400_000, absf=2000),
+                             [_comp(352_000, 400_000, absf=2000)])
+    assert r["verdict"] == "supports_appeal"
+
+
 def test_highest_similarity_comp_wins_selection():
     """Selection is by similarity score; the closest-matching comp is chosen."""
     subject = _subject(emv_total=400_000, absf=2000, year_built=1990,

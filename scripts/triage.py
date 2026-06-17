@@ -49,6 +49,20 @@ def _years_between(start_iso: str | None, end_iso: str | None) -> float | None:
     return round((e - s).days / 365.25, 1)
 
 
+# Size band for "comparable" — comps/sales within ±30% of the subject's SF.
+# Mirrors the killer-comp size gate and methodology.md's ±30% rule, so every
+# median/percentile that feeds a conclusion is taken over a like-sized peer set.
+SF_BAND = 0.30
+
+
+def _in_sf_band(value_sf: float | None, subject_sf: float | None) -> bool:
+    """True when value_sf is within ±SF_BAND of subject_sf (or SF is unknown —
+    an unknown-SF record is not excluded by the band, only by other screens)."""
+    if not subject_sf or not value_sf:
+        return False
+    return (1 - SF_BAND) * subject_sf <= value_sf <= (1 + SF_BAND) * subject_sf
+
+
 def _psf_points(sales: list[dict]) -> list[dict]:
     pts = []
     for s in sales:
@@ -56,6 +70,51 @@ def _psf_points(sales: list[dict]) -> list[dict]:
         if price and sf:
             pts.append({**s, "psf": price / sf, "date": s.get("sale_date")})
     return pts
+
+
+def _quarantine_corrupt_sales(
+    sales: list[dict], subject_pid: str | None
+) -> tuple[list[dict], list[dict]]:
+    """Drop records whose $/SF is absurd relative to the neighborhood median — a
+    corrupt/bulk-deed record (e.g. a $7.2M, $3,713/SF sale on a $301K-EMV parcel)
+    sitting inside the size band silently poisons every median and regression.
+
+    A sale is quarantined when its $/SF is > 4× or < 0.25× the median $/SF of the
+    other sales. The subject's own record is never quarantined (own-sale logic
+    owns that judgment). Only runs when there are enough sales (≥6) for a stable
+    median; otherwise the set is returned untouched. Disclosure, not deletion:
+    the quarantined records are returned for the judgment layer to see.
+    """
+    psf_pts = [
+        (s, s["sale_price"] / s["sf"])
+        for s in sales
+        if s.get("sale_price") and s.get("sf") and s.get("pid") != subject_pid
+    ]
+    if len(psf_pts) < 6:
+        return list(sales), []
+    psfs = sorted(p for _, p in psf_pts)
+    median_psf = psfs[len(psfs) // 2]
+    if median_psf <= 0:
+        return list(sales), []
+    hi, lo = 4.0 * median_psf, 0.25 * median_psf
+    corrupt_ids = set()
+    quarantined = []
+    for s, psf in psf_pts:
+        if psf > hi or psf < lo:
+            corrupt_ids.add(id(s))
+            quarantined.append({
+                "pid": s.get("pid"),
+                "address": s.get("address"),
+                "sale_price": s.get("sale_price"),
+                "sf": s.get("sf"),
+                "psf": round(psf),
+                "neighborhood_median_psf": round(median_psf),
+                "reason": "sale $/SF is >4× or <0.25× the neighborhood median — "
+                          "likely a corrupt/bulk-deed record, excluded from all "
+                          "medians and regressions",
+            })
+    clean = [s for s in sales if id(s) not in corrupt_ids]
+    return clean, quarantined
 
 
 def triage(data: dict, baseline_emv: float | None = None) -> dict:
@@ -69,6 +128,11 @@ def triage(data: dict, baseline_emv: float | None = None) -> dict:
     lot_sf = (subject.get("parcel_acres") or 0) * SQFT_PER_ACRE
     comps = data.get("neighborhood_comps", [])
     sales = data.get("recent_sales", [])
+
+    # Corrupt-record quarantine FIRST — a bulk-deed/corrupt $/SF record inside the
+    # size band poisons every downstream median, regression, and percentile. Drop
+    # it before any of them run; the subject's own record is never quarantined.
+    sales, quarantined_sales = _quarantine_corrupt_sales(sales, subject.get("pid"))
 
     # Arm's-length screen (docs/10). No good_for_state_study flag on Ramsey
     # records, so flag a sale priced < ~0.80x its own EMV as a likely-distressed
@@ -180,6 +244,22 @@ def triage(data: dict, baseline_emv: float | None = None) -> dict:
     ]
     killer = identify_killer_comp(kc_subject, kc_sales)
 
+    # Pocket corroboration. A lone comp that sold below its own EMV signals
+    # over-assessment of the SUBJECT only if the surrounding size-matched pocket
+    # is also assessed high; if the size-matched sales as a group sold at/above
+    # their own EMV (pocket median ratio ≥ ~0.95), one low comp is an idiosyncratic
+    # /distressed sale, not a subject angle. Compute the pocket's median
+    # sale-to-own-EMV ratio over arm's-length sales within ±30% SF.
+    pocket_ratios = sorted(
+        s["sale_price"] / s["emv_total"]
+        for s in kc_sales
+        if s.get("sale_price") and s.get("emv_total")
+        and _in_sf_band(s.get("sf"), sf)
+    )
+    pocket_median_own_emv_ratio = (
+        pocket_ratios[len(pocket_ratios) // 2] if len(pocket_ratios) >= 3 else None
+    )
+
     # Sales regression: subject plat / other plats / combined, IQR-cleaned.
     # Convergence measures agreement BETWEEN models — it is only meaningful with
     # >=2 DISTINCT models. When there are no same-plat sales, other_plats and
@@ -259,7 +339,21 @@ def triage(data: dict, baseline_emv: float | None = None) -> dict:
     bldg_trend = compute_building_psf_trend(bldg_pts)
     equalization = None
     if land_trend["n"] >= 5 and bldg_trend["n"] >= 5 and sf and lot_sf:
-        comp_bpsf = sorted(p["bldg"] / p["sf"] for p in bldg_pts if p.get("sf") and p.get("bldg"))
+        # Size-band the building $/SF peer set (±30% SF) so the percentile, median,
+        # and p80 reflect like-sized homes — an all-sizes building percentile can
+        # read 81st in the full set but mid-pack among size-matched peers. Fall
+        # back to the full set only when too few size-matched comps remain.
+        bpsf_banded = sorted(
+            p["bldg"] / p["sf"] for p in bldg_pts
+            if p.get("sf") and p.get("bldg") and _in_sf_band(p.get("sf"), sf)
+        )
+        bpsf_all = sorted(p["bldg"] / p["sf"] for p in bldg_pts if p.get("sf") and p.get("bldg"))
+        if len(bpsf_banded) >= 5:
+            comp_bpsf = bpsf_banded
+            building_percentile_basis = "size_matched_within_30pct"
+        else:
+            comp_bpsf = bpsf_all
+            building_percentile_basis = "all_sizes_fallback"
         comp_lpsf = sorted(p["land"] / p["lot_sf"] for p in land_pts if p.get("lot_sf") and p.get("land"))
         subj_bpsf = (current.get("emv_building") or 0) / sf
         subj_lpsf = (current.get("emv_land") or 0) / lot_sf
@@ -319,10 +413,15 @@ def triage(data: dict, baseline_emv: float | None = None) -> dict:
             "comp_median_building_psf": round(median_bpsf, 1),
             "comp_p80_building_psf": round(p80_bpsf, 1),
             "building_psf_percentile": bpsf_pctile,
+            "building_percentile_basis": building_percentile_basis,
             "subject_land_psf": round(subj_lpsf, 1),
             "comp_median_land_psf": round(median_lpsf, 1),
             "comp_p80_land_psf": round(p80_lpsf, 1),
             "land_psf_percentile": lpsf_pctile,
+            # On an outlier lot the land $/SF percentile is a SIZE artifact, not
+            # inequity — a big lot reads low $/SF, a small lot high — so it must
+            # not contribute to an equalization angle (kept here for transparency).
+            "land_psf_percentile_size_artifact": lot_outlier,
             "median_implied_total": median_implied,
             "median_gap_vs_emv": median_implied - current["emv_total"],
             # Realistic p75-p90-band equalization (the methodology reference
@@ -367,14 +466,20 @@ def triage(data: dict, baseline_emv: float | None = None) -> dict:
         # horizon" / triage-judgment.md). years_before_effective is already
         # computed above; use it so a stale sale can't headline as the #1 live
         # signal with a raw delta the horizon rule says is non-governing.
+        # Own-sale relevance horizon (methodology.md) — numeric, non-overlapping
+        # bands so a sale exactly on a boundary has one unambiguous treatment:
+        #   ≤ 2.0 yr → governing (unadjusted)
+        #   2.0 < x ≤ 3.5 yr → time-trend to the effective date, govern on trended
+        #   3.5 < x ≤ 4.0 yr → corroborating only
+        #   > 4.0 yr → non-evidentiary (raw delta already flagged meaningless above)
         yrs = own_sale_finding.get("years_before_effective")
         if yrs is None or yrs <= 2:
             # Within ~2yr: unadjusted own sale is governing.
             verdict = "appeal_angle"
             reasons.append(f"Subject itself sold {own_sale_finding['delta_pct']}% below current EMV "
                            f"(${own_sale_finding['sale_price']:,.0f} on {own_sale_finding['sale_date']})")
-        elif yrs <= 3:
-            # ~2-3yr: time-trend the sale to the effective date at the default
+        elif yrs <= 3.5:
+            # 2-3.5yr: time-trend the sale to the effective date at the default
             # +0.25%/month rate and govern on the trended figure, not the raw delta.
             trended = round(own_sale_finding["sale_price"] * (1 + 0.0025 * 12 * yrs))
             trended_delta_pct = round((trended - current["emv_total"]) / current["emv_total"] * 100, 1)
@@ -392,36 +497,46 @@ def triage(data: dict, baseline_emv: float | None = None) -> dict:
                            f"{own_sale_finding['sale_date']} ({yrs} yrs stale) — corroborating only, "
                            f"not governing")
     if equalization:
+        bldg_pct = equalization["building_psf_percentile"]
+        # On an outlier lot the land $/SF percentile is a size artifact, not
+        # inequity — exclude it from angle decisions (the raw value stays in the
+        # dict for transparency).
+        land_pct = (
+            0 if equalization.get("land_psf_percentile_size_artifact")
+            else equalization["land_psf_percentile"]
+        )
         gap = equalization.get("regression_gap_vs_emv")
         if gap is not None and gap < -30000:
             verdict = "appeal_angle"
             reasons.append(f"Equalization regression implies ${-gap:,.0f} below EMV")
-        elif equalization["building_psf_percentile"] >= 80 and equalization["land_psf_percentile"] >= 80:
+        elif bldg_pct >= 80 and land_pct >= 80:
             verdict = "appeal_angle"
             reasons.append(
-                f"Subject assessed above {min(equalization['building_psf_percentile'], equalization['land_psf_percentile'])}% "
+                f"Subject assessed above {min(bldg_pct, land_pct)}% "
                 f"of comps on BOTH building $/SF (${equalization['subject_building_psf']}/SF vs ${equalization['comp_p80_building_psf']} at p80) "
                 f"and land $/SF (${equalization['subject_land_psf']} vs ${equalization['comp_p80_land_psf']} at p80); "
                 f"equalizing to the p80 band implies ~${equalization['equalized_total_p80']:,.0f}")
-        elif equalization["building_psf_percentile"] >= 95 or equalization["land_psf_percentile"] >= 95:
+        elif bldg_pct >= 95 or land_pct >= 95:
             # An extreme single-axis percentile is a standalone equalization
             # angle (a 95th-percentile building $/SF is size-robust inequity);
             # it leads even when the other axis is unremarkable.
             verdict = "appeal_angle"
-            if equalization["building_psf_percentile"] >= equalization["land_psf_percentile"]:
+            if bldg_pct >= land_pct:
                 reasons.append(
-                    f"Subject building $/SF at {equalization['building_psf_percentile']}th percentile of comps "
+                    f"Subject building $/SF at {bldg_pct}th percentile of comps "
                     f"(${equalization['subject_building_psf']}/SF vs ${equalization['comp_p80_building_psf']} at p80) — standalone equalization angle")
             else:
                 reasons.append(
                     f"Subject land $/SF at {equalization['land_psf_percentile']}th percentile of comps "
                     f"(${equalization['subject_land_psf']} vs ${equalization['comp_p80_land_psf']} at p80) — standalone equalization angle")
-        elif equalization["building_psf_percentile"] >= 80 or equalization["land_psf_percentile"] >= 80:
+        elif bldg_pct >= 80 or land_pct >= 80:
             if verdict == "no_angle":
                 verdict = "borderline"
+            land_note = (" (land $/SF excluded — size artifact on an outlier lot)"
+                         if equalization.get("land_psf_percentile_size_artifact") else "")
             reasons.append(
-                f"Equalization: building $/SF at {equalization['building_psf_percentile']}th percentile, "
-                f"land $/SF at {equalization['land_psf_percentile']}th percentile of comps")
+                f"Equalization: building $/SF at {bldg_pct}th percentile, "
+                f"land $/SF at {equalization['land_psf_percentile']}th percentile of comps{land_note}")
         else:
             # No inequity threshold tripped. When BOTH implied totals land at or
             # above EMV, that is an explicit no-inequity confirmation (assessment
@@ -442,18 +557,35 @@ def triage(data: dict, baseline_emv: float | None = None) -> dict:
                     "Equalization shows no building/land inequity — median (and regression) "
                     "implied totals sit at or above EMV (assessment at or below peer level)")
     if killer and killer.get("verdict") == "supports_appeal":
-        verdict = "appeal_angle"
         ratio = killer.get("comp_own_emv_ratio")
         ratio_str = f"{ratio:.2f}x its own EMV" if ratio is not None else "below its own EMV"
-        implied = killer.get("implied_subject_value")
-        if implied is not None:
+        # A lone low comp (sold below its own EMV) needs the size-matched pocket to
+        # corroborate: if the pocket median sale/own-EMV ratio is ≥ ~0.95 (the
+        # county assessed the pocket correctly), the single low comp is
+        # idiosyncratic and must NOT alone flip the whole parcel to appeal_angle.
+        lone_low_comp = ratio is not None and ratio < 0.90
+        pocket_uncorroborated = (
+            pocket_median_own_emv_ratio is not None
+            and pocket_median_own_emv_ratio >= 0.95
+        )
+        if lone_low_comp and pocket_uncorroborated:
+            if verdict == "no_angle":
+                verdict = "borderline"
             reasons.append(
                 f"Best comp {killer['comp'].get('address', killer['comp'].get('pid', '?'))} sold ${killer['comp'].get('sale_price', 0):,.0f} "
-                f"= {ratio_str}; its $/SF implies ~${implied:,.0f} vs ${current['emv_total']:,.0f} EMV")
+                f"= {ratio_str}, but the size-matched pocket sold at ~{pocket_median_own_emv_ratio:.2f}x its own EMV "
+                f"— lone low comp not corroborated by the pocket; verify before relying on it")
         else:
-            reasons.append(
-                f"Best comp {killer['comp'].get('address', killer['comp'].get('pid', '?'))} sold ${killer['comp'].get('sale_price', 0):,.0f} "
-                f"= {ratio_str} ({killer['delta_pct']:.1f}% vs subject EMV)")
+            verdict = "appeal_angle"
+            implied = killer.get("implied_subject_value")
+            if implied is not None:
+                reasons.append(
+                    f"Best comp {killer['comp'].get('address', killer['comp'].get('pid', '?'))} sold ${killer['comp'].get('sale_price', 0):,.0f} "
+                    f"= {ratio_str}; its $/SF implies ~${implied:,.0f} vs ${current['emv_total']:,.0f} EMV")
+            else:
+                reasons.append(
+                    f"Best comp {killer['comp'].get('address', killer['comp'].get('pid', '?'))} sold ${killer['comp'].get('sale_price', 0):,.0f} "
+                    f"= {ratio_str} ({killer['delta_pct']:.1f}% vs subject EMV)")
 
     # Convergence below EMV is an appeal signal, not a no-angle one. Only treat
     # tight convergence as no-angle when it lands within ~±5% of EMV; a central
@@ -492,10 +624,16 @@ def triage(data: dict, baseline_emv: float | None = None) -> dict:
                     and equalization["regression_implied_total"] >= current["emv_total"])
             )
         )
-        # Comp-sales median $/SF × subject SF at-or-above EMV.
+        # Comp-sales median $/SF × subject SF at-or-above EMV. Restrict to
+        # size-matched sales (±30% SF) — an all-sizes median extrapolates
+        # small-home $/SF onto a large subject (or the reverse), the same error
+        # the killer-comp size gate blocks. Fall back to all sales only if too few
+        # size-matched remain to form a median.
         sales_confirms = False
         if sf and pts:
-            comp_median_psf = sorted(p["psf"] for p in pts)[len(pts) // 2]
+            banded_psf = sorted(p["psf"] for p in pts if _in_sf_band(p.get("sf"), sf))
+            psf_pool = banded_psf if len(banded_psf) >= 3 else sorted(p["psf"] for p in pts)
+            comp_median_psf = psf_pool[len(psf_pool) // 2]
             if comp_median_psf * sf >= current["emv_total"]:
                 sales_confirms = True
         if killer and killer.get("verdict") == "kills_appeal" and conv_at_emv:
@@ -669,6 +807,7 @@ def triage(data: dict, baseline_emv: float | None = None) -> dict:
         "killer_comp": killer,
         "sales_convergence": convergence,
         "distressed_sales": distressed_sales,
+        "quarantined_sales": quarantined_sales,
         "equalization": equalization,
         "tax_economics": tax_economics,
         "verdict": verdict,

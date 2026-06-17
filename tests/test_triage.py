@@ -194,6 +194,105 @@ def test_supports_appeal_killer_comp_flips_verdict():
 # Output shape
 # ---------------------------------------------------------------------------
 
+# ---------------------------------------------------------------------------
+# Round-3 data-hygiene cluster
+# ---------------------------------------------------------------------------
+
+def test_corrupt_record_is_quarantined_and_excluded():
+    """A bulk-deed/corrupt $/SF record inside the size band is quarantined and
+    kept out of the medians/regressions."""
+    # 6 clean sales ~$200/SF + one corrupt $3,700/SF record.
+    clean = [{
+        "pid": f"S{i}", "address": f"{i} Clean St", "plat_name": "OTHER",
+        "sale_price": 400_000 + i * 5_000, "sf": 2000,
+        "sale_date": f"2025-0{(i % 8) + 1}-15", "emv_total": 410_000,
+        "lat": 44.95, "lon": -93.15,
+    } for i in range(6)]
+    corrupt = {
+        "pid": "BULK", "address": "795 Aurora", "plat_name": "OTHER",
+        "sale_price": 7_210_867, "sf": 1942, "sale_date": "2025-03-01",
+        "emv_total": 301_400, "lat": 44.95, "lon": -93.15,
+    }
+    r = triage(_data(sales=clean + [corrupt]))
+    q = r["quarantined_sales"]
+    assert any(rec["pid"] == "BULK" for rec in q)
+    # the corrupt record must not have become the killer comp
+    if r["killer_comp"] and r["killer_comp"].get("comp"):
+        assert r["killer_comp"]["comp"].get("pid") != "BULK"
+
+
+def test_lone_low_comp_uncorroborated_by_pocket_does_not_flip_to_appeal():
+    """A single comp that sold below its own EMV, where the size-matched pocket
+    sold at/above its own EMV, must NOT alone flip the parcel to appeal_angle."""
+    # 5 pocket sales at ~1.0x their own EMV (slightly less similar to subject) +
+    # one lone comp at 0.85x that is the closest match (so it wins selection).
+    pocket = [{
+        "pid": f"P{i}", "address": f"{i} Pocket St", "plat_name": "OTHER",
+        "sale_price": 408_000, "sf": 1900, "year_built": 1980,
+        "sale_date": f"2025-0{i + 1}-10", "emv_total": 405_000,
+        "lat": 44.95, "lon": -93.15,
+    } for i in range(5)]
+    lone = {  # exact SF/year match to the subject → highest similarity score
+        "pid": "LOW", "address": "9 Lone St", "plat_name": "OTHER",
+        "sale_price": 345_000, "sf": 2000, "year_built": 1990,
+        "sale_date": "2025-04-01", "emv_total": 406_000,
+        "lat": 44.95, "lon": -93.15,  # 0.85x own EMV
+    }
+    r = triage(_data(sales=pocket + [lone]))
+    assert r["verdict"] != "appeal_angle"
+    assert any("not corroborated by the pocket" in reason for reason in r["reasons"])
+
+
+def test_equalization_reports_building_percentile_basis():
+    r = triage(_data(comps=_comps()))
+    eq = r["equalization"]
+    assert eq["building_percentile_basis"] in (
+        "size_matched_within_30pct", "all_sizes_fallback")
+
+
+def test_outlier_lot_land_percentile_is_size_artifact_and_no_land_angle():
+    """A high land $/SF percentile driven purely by a small lot (outlier) must be
+    flagged a size artifact and must NOT create an equalization angle on its own."""
+    # Comps all ~0.5-acre lots; subject a tiny 0.08-acre lot → high land $/SF
+    # percentile that is a pure size artifact. Building line mid-pack.
+    comps = []
+    for i in range(8):
+        comps.append({
+            "pid": f"C{i}", "address": f"{i} Comp St",
+            "sf": 1980 + i * 10, "emv_building": 250_000 + i * 3_000,
+            "lot_acres": 0.45 + i * 0.02, "emv_land": 150_000 + i * 3_000,
+            "lat": 44.95, "lon": -93.15,
+        })
+    r = triage(_data(
+        subject={"living_area_sf": 2000, "parcel_acres": 0.08},
+        comps=comps,
+    ))
+    eq = r["equalization"]
+    assert eq["lot_outlier"] is True
+    assert eq["land_psf_percentile_size_artifact"] is True
+    # No standalone land-driven equalization angle from the size artifact.
+    assert not any("land $/SF at" in reason and "standalone" in reason
+                   for reason in r["reasons"])
+
+
+def test_own_sale_horizon_boundaries_are_unambiguous():
+    """The own-sale bands are numeric and non-overlapping: ~3.2 yr time-trends,
+    ~3.8 yr is corroborating-only (neither crashes nor double-classifies)."""
+    # ~3.2 yrs before 2026-01-02 → time-trend band (≤3.5).
+    r1 = triage(_data(sales=[
+        {"pid": "SUBJ", "address": "1 Test St", "sale_price": 360_000,
+         "sale_date": "2022-10-15", "sf": None, "emv_total": None},
+    ]))
+    assert "trended_sale_price" in r1["subject_own_sale"]
+    # ~3.8 yrs → corroborating-only band (3.5 < x ≤ 4); not time-trended.
+    r2 = triage(_data(sales=[
+        {"pid": "SUBJ", "address": "1 Test St", "sale_price": 360_000,
+         "sale_date": "2022-03-20", "sf": None, "emv_total": None},
+    ]))
+    assert "trended_sale_price" not in r2["subject_own_sale"]
+    assert any("corroborating only" in reason for reason in r2["reasons"])
+
+
 def test_worth_it_gate_is_informational_and_never_relabels_the_verdict():
     """The worth-it gate must NOT modulate the verdict or invent a new verdict
     value — the script never concludes the worth-it call (it belongs to the

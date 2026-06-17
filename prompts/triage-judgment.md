@@ -55,6 +55,14 @@ The script's verdict is a starting point. Pressure-test each signal:
    versus the **sold-comp $/SF distribution**; if the whole pocket is uniformly over-assessed and the county
    is already correcting it, the angle is **equalization** (assessment-level inequity), not sales. Tie this to
    the equalization-neutral check.
+   **What the script now does for you (don't re-derive, but verify):** the triage already (a) **quarantines
+   corrupt records** — any sale whose $/SF is >4× or <0.25× the neighborhood median is in `quarantined_sales`
+   and kept out of every median/regression (skim it; a real comp wrongly dropped is rare but possible);
+   (b) emits **`distressed_outlier`** for a killer that sold **< ~0.75× its own EMV** (a foreclosure/relative
+   sale — *not* market evidence, never drives the verdict; verify good-for-study before any use); and (c)
+   **gates a lone sub-0.90× comp on the size-matched pocket** — if `pocket_median_own_emv_ratio` ≥ ~0.95 the
+   one low comp did **not** flip the parcel, and you should treat it as idiosyncratic unless you can
+   corroborate it.
    **Fallback when you discount the killer comp (or its convergence signal):** do **not** rubber-stamp the
    script verdict. Independently reconcile the **best 5–8 comparable sales' $/SF** against the subject's SF
    and compare the result to EMV before adopting any verdict. **Before reconciling, confirm those 5–8
