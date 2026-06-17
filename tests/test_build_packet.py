@@ -9,9 +9,20 @@ from pathlib import Path
 
 import pytest
 
-from scripts.build_packet import build_packet
+from scripts.build_packet import build_packet, _auto_time_pct
 from report.appeal_generator import generate_appeal_report
 from report.shared_components import extraction_comp_indication
+
+
+def test_auto_time_pct_from_sale_date():
+    # 17 months before the effective date at 0.25%/mo ≈ +4.2%.
+    assert _auto_time_pct("2024-08-20", "2026-01-02", 0.25) == 4.2
+    # 'Mon YYYY' format parses too.
+    assert _auto_time_pct("Aug 2024", "2026-01-02", 0.25) == 4.2
+    # A sale AFTER the effective date trends down (negative).
+    assert _auto_time_pct("2026-03-25", "2026-01-02", 0.25) == -0.5
+    # Unparseable → 0 (no spurious adjustment).
+    assert _auto_time_pct(None, "2026-01-02", 0.25) == 0.0
 
 FIXTURE = Path(__file__).parent.parent / "properties" / "fulham" / "judgment.json"
 
@@ -102,14 +113,21 @@ def test_subject_basement_garage_credited(judgment):
 
 
 def test_carroll_fixture_builds_if_present():
-    """The second worked example (a borderline St. Paul case) builds end-to-end and
-    derives, not types, its conclusion."""
-    fx = Path(__file__).parent.parent / "properties" / "carroll" / "judgment.json"
-    if not fx.exists():
+    """The second worked example (a borderline St. Paul case) builds end-to-end from
+    a THIN judgment (no hand-typed structure) + a parsed beacon.json, and derives, not
+    types, its conclusion. Proves the de-hand-typed chain: structure parsed by
+    parse_beacon, time auto-computed, conclusion = median of central comps."""
+    base = Path(__file__).parent.parent / "properties" / "carroll"
+    fx, bx = base / "judgment.json", base / "beacon.json"
+    if not (fx.exists() and bx.exists()):
         pytest.skip("carroll fixture not present")
-    data = build_packet(json.loads(fx.read_text()))
+    data = build_packet(json.loads(fx.read_text()), beacon=json.loads(bx.read_text()))
     n = data["_numbers"]
     assert n["concluded"] == 641000 and n["reduction"] == 80900
+    # Structure came from beacon.json, not the judgment: the subject's grid ABSF and
+    # the comps' ABSF are present even though judgment.json omits them.
+    assert data["extraction_grid"]["subject_absf"] == 2091
+    assert all(c["absf"] for c in data["extraction_grid"]["comps"])
     html = generate_appeal_report(data)
     assert "$0/SF" not in html and "county's own data" not in html.lower()
 

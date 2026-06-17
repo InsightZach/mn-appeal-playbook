@@ -107,16 +107,72 @@ Other Building & Yard Improvements
 """
 
 
+# Real subject card with a "Finished Bsmt Rec Area" but ZERO "Basement Area Finished"
+# — the case that must NOT be hand-typed: contributory basement (valuation) = 600 even
+# though the API-reconciliation finished_basement_sf = 0. (2162 Carroll Ave.)
+CARROLL_2162 = """Residential Structure Description
+Card
+1
+
+Yr. Built
+1911
+
+Story Height
+2
+
+Style
+TWO STORY
+
+Exterior Wall
+STUCCO
+
+Total Bedrooms
+5
+
+Full Baths
+2
+
+ABSF
+2,091
+
+Foundation Size
+1,071
+
+Basement Area Finished
+0
+
+Finished Bsmt Rec Area
+600
+
+Garage Type/Area (Sq Ft)
+Detached/572
+Other Building & Yard Improvements
+"""
+
+
 def test_parses_eustis_with_finished_basement_and_garage():
     b = parse_beacon_card(EUSTIS_1704)
     assert b["absf"] == 1020
     assert b["basement_finished_sf"] == 175
     assert b["finished_basement_sf"] == 175
     assert b["total_finished_sf"] == 1195      # 1020 + 175
+    assert b["contributory_basement_sf"] == 275  # 175 finished + 100 rec
     assert b["garage_sf"] == 240
     assert b["full_baths"] == 2
     assert b["style"] == "BUNGALOW"
     assert b["exterior_wall"] == "STUCCO"
+
+
+def test_rec_area_counts_for_valuation_but_not_reconciliation():
+    """The Carroll-subject pattern: 0 'Basement Area Finished', 600 rec area. The API
+    identity uses 0 (so it reconciles to ABSF), but the extraction grid must credit the
+    full 600 SF of finished basement value."""
+    b = parse_beacon_card(CARROLL_2162)
+    assert b["absf"] == 2091
+    assert b["finished_basement_sf"] == 0          # reconciliation basis
+    assert b["contributory_basement_sf"] == 600    # valuation basis (rec area)
+    assert b["garage_sf"] == 572
+    assert reconcile_absf(b, 2091)["reconciles"] is True
 
 
 def test_parses_subject_no_basement_no_garage():

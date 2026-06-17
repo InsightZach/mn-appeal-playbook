@@ -567,6 +567,22 @@ def triage(data: dict, baseline_emv: float | None = None) -> dict:
             "land_term_unreliable": lot_outlier,
             "land_trend": land_trend,
             "building_trend": bldg_trend,
+            # The building $/SF percentile is computed on EMV_building ÷ API SF, which
+            # does NOT normalize for finished basement or garage — the API carries no
+            # above-grade split (Beacon-only). A subject with an above-average finished
+            # basement and/or oversized garage will read HIGH on this percentile partly
+            # for that reason, not pure inequity (2162 Carroll: 94th pctile, but a 600 SF
+            # basement rec + 572 SF garage explained much of it). Treat a high building
+            # percentile as DIRECTIONAL until rechecked on the Beacon above-grade split
+            # (parse_beacon + the extraction grid, which credits the subject's own
+            # basement/garage). Do not headline the raw percentile as the reduction.
+            "building_psf_not_normalized_for_bsmt_garage": True,
+            "building_psf_recheck_note": (
+                "EMV_building ÷ API SF ignores finished-basement and garage differences "
+                "(API has no above-grade split). Recheck this percentile against the "
+                "Beacon ABSF split before relying on it; the sales extraction grid, "
+                "which credits the subject's own basement/garage, governs the conclusion."
+            ),
         }
         if land_trend["r2"] >= 0.3 and bldg_trend["r2"] >= 0.3:
             _, land_pred = apply_trend_to_subject(land_trend, lot_sf=lot_sf)
@@ -677,10 +693,15 @@ def triage(data: dict, baseline_emv: float | None = None) -> dict:
         else:
             basis_set, basis_label = [], "none"
 
-        # Condition-verify shortlist: the grid-driving comps the agent should
-        # actually read for condition (Phase 2) — the closest ~6 by effective-age
-        # proximity (Ramsey) then geographic distance. "Enough, not all": the
-        # house grid only needs to bracket the subject, so verify these, not 30.
+        # Comp shortlist: the grid-driving comps the agent should actually pull
+        # (Beacon for structure, listings for condition) and copy into judgment.json
+        # — the closest ~8 by effective-age proximity (Ramsey) then distance. "Enough,
+        # not all": the grid only needs to bracket the subject. Each row carries the
+        # PUBLIC sale facts (so they aren't re-typed by hand) plus the Beacon KeyValue
+        # (the bare-digit PID the Beacon URL takes) so the agent goes straight to the
+        # card. Structure (ABSF/basement/garage) comes from parse_beacon, NOT here —
+        # the API has no above-grade split. Field name kept as condition_verify_shortlist
+        # for back-compat (run-appeal-review.md reads it).
         assess_year_i = current.get("assess_year") or int(assess_date[:4])
 
         def _verify_key(s: dict) -> tuple:
@@ -691,7 +712,14 @@ def triage(data: dict, baseline_emv: float | None = None) -> dict:
         condition_verify_shortlist = [
             {
                 "pid": s.get("pid"),
+                "beacon_keyvalue": "".join(ch for ch in str(s.get("pid") or "") if ch.isdigit()),
                 "address": s.get("address"),
+                "sale_price": s.get("sale_price"),
+                "sale_date": s.get("sale_date"),
+                "api_sf_total_finished": s.get("sf"),
+                "emv_land": s.get("emv_land"),
+                "year_built": s.get("year_built"),
+                "distance_miles": s.get("distance_miles"),
                 "effective_age": _effective_age(s, assess_year_i),
                 "effective_age_gap": (
                     abs(_effective_age(s, assess_year_i) - subj_effage)
@@ -699,7 +727,7 @@ def triage(data: dict, baseline_emv: float | None = None) -> dict:
                     else None
                 ),
             }
-            for s in sorted(basis_set, key=_verify_key)[:6]
+            for s in sorted(basis_set, key=_verify_key)[:8]
         ]
 
         # Data-derived adjustment rates (TARE Ch. 21 statistical analysis) — a

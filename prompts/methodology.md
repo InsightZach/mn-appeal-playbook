@@ -183,6 +183,17 @@ reconciliation **may adopt below both the sales range and the subject's own sale
 assessment-level inequity is the **explicit, stated basis** (*Federated Mutual*), not as a silent
 override of the sales conclusion.
 
+**Normalize the building $/SF percentile for basement and garage before trusting it.** The triage building
+$/SF percentile is computed on `EMV_building ÷ API SF`, which does **not** normalize for finished basement
+or garage (the API carries no above-grade split). A subject with an above-average finished basement and/or
+an oversized garage will read HIGH on that percentile *partly for that reason, not pure inequity* — triage
+now flags this (`equalization.building_psf_not_normalized_for_bsmt_garage`). Treat a high raw percentile as
+**directional only** until you recheck it on the Beacon ABSF split: the sales **extraction grid credits the
+subject's own basement and garage** (`build_packet` adds them back), so it is the governing conclusion, and
+equalization is **support with the basement/garage caveat stated**. (2162 Carroll: a raw 94th-percentile
+building $/SF shrank to a modest ~15% above-peer gap once a 600 SF basement rec + 572 SF garage were
+credited — an ~11% reduction, not the ~20% the raw signal implied.)
+
 **Which $/SF basis the inequity rests on.** The building-line assessed $/SF and the subject's total
 EMV/SF can tell different stories — a thin building-line gap can coexist with a rich total assessment, or
 the reverse. When they diverge, **prefer comparing the subject's total EMV/SF against the sold-comp total

@@ -101,6 +101,18 @@ def parse_beacon_card(text: str) -> dict:
     absf = out.get("absf")
     fb = out.get("finished_basement_sf") or 0
     out["total_finished_sf"] = (absf + fb) if absf is not None else None
+
+    # Derived: CONTRIBUTORY finished basement for VALUATION = "Basement Area Finished"
+    # PLUS "Finished Bsmt Rec Area". These are distinct Beacon fields: the former is
+    # counted in the API total-finished SF (reconciliation), the latter is finished
+    # rec space the API does NOT count but which still carries contributory value. The
+    # extraction grid must credit BOTH (a subject with a 600 SF basement rec room that
+    # shows 0 "Basement Area Finished" still has 600 SF of finished-basement value).
+    # Use `contributory_basement_sf` for the $/SF grid; use `finished_basement_sf` for
+    # the API reconciliation identity. They differ exactly when rec area is present.
+    bf = out.get("basement_finished_sf") or 0
+    rec = out.get("basement_rec_sf") or 0
+    out["contributory_basement_sf"] = bf + rec
     return out
 
 

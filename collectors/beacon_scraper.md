@@ -2,6 +2,10 @@
 
 Beacon ("Property Value" page) has the only authoritative residential structure description in Ramsey County. Always pull this for the subject AND each top comp before final analysis.
 
+**Which comps?** `scripts.triage` emits `sales_comparison_indicated.condition_verify_shortlist` — the ~8 grid-driving comps with their PIDs (`beacon_keyvalue`) and public sale facts already filled in. Pull Beacon for the subject + those PIDs; you don't choose blind.
+
+**Never hand-type the structure.** Save each pulled page's `get_page_text` and run `scripts.parse_beacon` to produce `beacon.json`; `build_packet --beacon` joins ABSF / basement / garage into the packet by PID. Hand-transcribing ABSF/basement/garage into `judgment.json` is the error surface this avoids.
+
 ## URL pattern (Ramsey)
 
 ```
@@ -17,11 +21,19 @@ browser, not `requests`. Steps:
 
 1. `mcp__claude-in-chrome__navigate(url=above, tabId=...)`
 2. `mcp__claude-in-chrome__get_page_text(tabId=...)` — returns the full Property Value page text
-3. **Parse it with `analysis/beacon.parse_beacon_card(text)`** (deterministic) → `{absf, finished_basement_sf,
-   total_finished_sf, garage_sf, full_baths, half_baths, bedrooms, stories, style, exterior_wall, attic, ...}`.
-   Then call `analysis/beacon.reconcile_absf(parsed, api_living_area_sf)` to confirm
-   **ABSF + finished basement == API `LivingAreaSquareFeet`** (the built-in integrity check). The labeled
-   values, for reference:
+3. **Save the text** to `properties/<slug>/beacon_raw/<PID>.txt` (one file per parcel; or collect them into a
+   `{pid: text}` JSON map).
+4. **Batch-parse** all of them at once:
+   ```
+   uv run python -m scripts.parse_beacon properties/<slug>/beacon_raw \
+       --subject-pid <PID> --collected properties/<slug>/collected_data.json \
+       --output properties/<slug>/beacon.json
+   ```
+   This runs `analysis/beacon.parse_beacon_card` on each card → `{absf, finished_basement_sf,
+   contributory_basement_sf, total_finished_sf, garage_sf, full_baths, ...}` and reconciles
+   **ABSF + finished basement == API `LivingAreaSquareFeet`** (printing any mismatch to verify). Then
+   `build_packet --beacon properties/<slug>/beacon.json` fills the structure by PID. The labeled values, for
+   reference:
 
 | Field | What it is |
 |-------|-----------|
@@ -50,6 +62,20 @@ When building the report:
 - Use API `LivingAreaSquareFeet` for the building $/SF figure that matches the broader equalization dataset
 - Always label which figure is which to avoid confusion
 
+### Two basement figures — don't conflate them
+
+Beacon has **two** finished-basement fields, and they serve different purposes:
+
+- **`Basement Area Finished`** is the figure counted in the API `LivingAreaSquareFeet` total — use it for the
+  reconciliation identity (`finished_basement_sf` in the parser).
+- **`Finished Bsmt Rec Area`** is finished rec space the API does **not** count but which still carries
+  contributory value.
+
+For the **extraction grid** (valuation), the finished-basement contributory SF is the **sum of both** —
+`contributory_basement_sf` in the parser, which `build_packet` uses for `fin_bsmt_sf`. A subject that shows
+`Basement Area Finished = 0` but `Finished Bsmt Rec Area = 600` has **600 SF** of finished-basement value,
+not 0. (2162 Carroll Ave is exactly this case — crediting it shrank an apparent over-assessment by ~$30K.)
+
 ## Also pull from the same page:
 
 - **Land:** Frontage, depth, base rate, total land value
@@ -64,4 +90,7 @@ When building the report:
 
 ## Save format
 
-Save to `properties/{safe_address}/beacon_subject.json` and `properties/{safe_address}/beacon_comp_{addr}.json`.
+Raw page text → `properties/<slug>/beacon_raw/<PID>.txt` (or one `{pid: text}` JSON map). Parsed structure →
+`properties/<slug>/beacon.json` (`{subject: {...}, comps: {pid: {...}}}`), produced by `scripts.parse_beacon`
+and consumed by `build_packet --beacon`. `beacon.json` is sanitized public structure data and may be tracked
+as a worked-example fixture; the raw `beacon_raw/` text is gitignored.

@@ -181,12 +181,16 @@ produced deterministically by [`scripts/build_packet.py`](../scripts/build_packe
 framework dict and renders it through `report.appeal_generator`. Your job is to author one small
 **`judgment.json`** — the irreducible per-property judgment that no script can make for you:
 
-- **`comps`** — the comps you vetted, each with its Beacon structure (`absf`, `fin_bsmt_sf`, `garage_sf`,
-  `land`), its sale, and your **listing-verified** `quality_pct` / `condition_pct` grades and `descriptor`.
-  Tag each with a **`role`**: `central` (drives the concluded value), `ceiling` (a renovated/superior comp,
-  condition capped at −25%, carried as the upper bracket — never in the median), `context` (shown in the 4.1
-  sales table only, e.g. a sale outside the ±30% above-grade band), or `exclude`.
-- **`rates`** — the confirmed `bsmt_psf` / `gar_psf` / `econ_psf_per_sf` and the schedule labels.
+- **`comps`** — the comps you vetted (start from `analysis.json`'s `condition_verify_shortlist`, which hands
+  you the grid-driving comps with PIDs and sale facts). For each, supply only what is *judgment* or a public
+  fact: `pid`, the sale (`sale_price`, `sale_date`, `land`), your **listing-verified** `quality_pct` /
+  `condition_pct` grades, a `descriptor`, and a **`role`** — `central` (drives the concluded value), `ceiling`
+  (a renovated/superior comp, condition capped at −25%, upper bracket only — never in the median), `context`
+  (4.1 sales table only, e.g. a sale outside the ±30% above-grade band), or `exclude`. **Do NOT hand-type
+  structure.** ABSF / finished-basement / garage come from `beacon.json` (run `scripts.parse_beacon` on the
+  pulled cards) and are joined by PID; the **time adjustment is computed from `sale_date`** (override with an
+  explicit `time_pct` only if needed).
+- **`rates`** — the confirmed `bsmt_psf` / `gar_psf` / `econ_psf_per_sf`, `time_pct_per_month`, and labels.
 - **`equalization.peers`** + **`chart_peers`** — the neighborhood assessment set and the $/SF scatter.
 - **`narrative`** — the advocacy prose, written with `{concluded}`, `{reduction}`, `{eq_total}`, … placeholders.
 
@@ -200,10 +204,14 @@ uv run python -m scripts.build_packet properties/<slug>/judgment.json \
     --output properties/<slug>/packet.html
 ```
 
-See [`properties/fulham/judgment.json`](../properties/fulham/judgment.json) for the worked example and
-[`scripts/render_sample.py`](../scripts/render_sample.py) for the full framework data contract. Set
-`meta.brand` to the firm name. The per-comp extraction math is the single source of truth in
-`report.shared_components.extraction_comp_indication` (shared by the grid and the derived conclusion).
+Two worked examples: [`properties/fulham/judgment.json`](../properties/fulham/judgment.json) (self-contained;
+subject has no basement/garage) and [`properties/carroll/judgment.json`](../properties/carroll/judgment.json)
+(**thin** — structure joined from `beacon.json`, time auto-computed; subject HAS a finished basement + garage,
+which the grid credits). [`scripts/render_sample.py`](../scripts/render_sample.py) shows the full framework
+data contract. Set `meta.brand` to the firm name. The per-comp extraction math is the single source of truth
+in `report.shared_components.extraction_comp_indication` — it strips each comp's land/basement/garage to an
+above-grade $/SF and **adds the subject's own basement/garage back**, so a subject with either is not
+understated.
 
 **Use the DERIVED rates, not authored numbers.** Build the `adjustment_schedule` and `adjustment_grid` from
 the data, not by hand: pass the triage `sales_comparison_indicated.derived_adjustments` (the regression

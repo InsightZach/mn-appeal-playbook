@@ -50,6 +50,21 @@ Do **not** build an automated scraper against Zillow, Realtor.com, or an MLS —
 the markup is brittle, and republishing MLS photos has licensing limits. Enrichment is a sourced input,
 not a scraping job.
 
+### When a SOLD comp's photos are gone
+
+Zillow (and often Redfin) **drop the interior photos once a listing closes** — a sold comp frequently shows
+only a street-view or aerial tile. The subject (if recently listed) and active listings still have photos;
+*closed comps* often don't. When a comp's interior can't be seen, in order: try the **listing agent's /
+brokerage site**, the **Realtor.com sold archive**, or a **cached MLS sheet**; ask the **client** if they
+toured it; failing all that, fall back to the **Beacon grade/condition codes** and the **building-residual
+$/SF** as a coarse condition proxy (a far-below-pocket residual signals an inferior/as-is sale even unseen).
+
+**Do not invent a condition delta you cannot see.** If you can't verify a comp is updated, **do not adjust
+it down** for updates — keep its condition adjustment at 0 and **say so in the packet**. Unverified
+condition biases the conclusion *up* (smaller reduction), which is the honest, assessor-credible direction;
+an analyst who later sees the photos can push lower. (2162 Carroll: comp interiors weren't retained, so the
+condition lines were left conservative and the packet flagged it — a defensible, not an aggressive, ask.)
+
 ## From a read to a grid line — the condition tier + bracket
 
 Enrichment is the *source*; the [condition read in `run-appeal-review.md` step 3b](../prompts/run-appeal-review.md)

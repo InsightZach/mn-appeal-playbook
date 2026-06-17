@@ -48,6 +48,13 @@ result.
      - A high EMV does not by itself clear the gate: a modest equalization-only reduction on a high-value
        parcel can still fall below $1,000/yr in savings. Below the floor, fall back to no-appeal even on a
        genuine angle.
+     - **Confirm the ETR from the actual tax statement when the gate is near the floor.** When
+       `tax_economics.etr_proxy_source == "county_default"` (the Ramsey API carries no `total_tax`, so triage
+       used the ~1.15% placeholder), the real effective rate is **the deciding input** for a borderline case
+       and is often higher (St. Paul residential runs ~1.3–1.5%). Pull the parcel's actual tax (the tax
+       statement / county property-tax lookup), set `meta.tax_rate` in `judgment.json` to it, and re-read the
+       gate. Do not let a placeholder ETR decide a knife-edge worth-it call. (2162 Carroll: ~$930/yr at the
+       1.15% default vs ~$1,090 at 1.35% — the placeholder alone flips it.)
      - **Run the gate against the concluded ask from the GOVERNING approach** (the appeal-packet
        reconciliation), not against the largest or smallest available figure. If multiple candidate asks
        exist (e.g. a sales conclusion and a narrower equalization p80 floor), test the gate at each and

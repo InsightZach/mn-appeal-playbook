@@ -1,5 +1,5 @@
 {
-  "_doc": "Agent-authored judgment for 2162 Carroll Ave, St. Paul. Comps + structure from Beacon CAMA cards; subject condition verified on Zillow listing photos (original, well-maintained 1911 character home). Comp interior photos were not retained post-close, so condition adjustments are kept conservative and evidence-based. Render: uv run python -m scripts.build_packet properties/carroll/judgment.json --analysis properties/carroll/analysis.json --output properties/carroll/packet.html",
+  "_doc": "Agent-authored judgment for 2162 Carroll Ave, St. Paul. STRUCTURE IS NOT HAND-TYPED: ABSF / finished-basement (contributory) / garage are parsed from the Beacon cards (scripts/parse_beacon -> beacon.json) and joined by PID; the time adjustment is computed from the sale date. The agent supplies only PID + role + the listing-verified quality/condition grades + descriptors + the sale facts. Subject condition verified on Zillow (original, well-maintained 1911 character home); comp interior photos were not retained post-close, so condition adjustments are conservative. Pipeline: collect -> triage -> (browser) Beacon pulls saved to beacon_raw.json -> scripts.parse_beacon -> beacon.json -> THIS file -> scripts.build_packet. Render: uv run python -m scripts.build_packet properties/carroll/judgment.json --analysis properties/carroll/analysis.json --beacon properties/carroll/beacon.json --output properties/carroll/packet.html",
   "meta": {
     "assessment_year": 2026,
     "payable_year": 2027,
@@ -11,18 +11,15 @@
   },
   "subject": {
     "address": "2162 Carroll Ave, St. Paul, MN 55104",
-    "pid": "32-29-23-44-0057",
-    "year_built": 1911,
-    "absf": 2091,
+    "pid": "322923440057",
     "land": 131800,
-    "fin_bsmt_sf": 600,
-    "garage_sf": 572,
     "emv_total": 721900,
     "emv_building": 590100,
     "lot_acres": 0.207,
     "plat_name": "Merriam Park",
     "style": "1911 stucco two-story (American Foursquare) — original, well-maintained; 2,091 SF above grade, 600 SF finished basement rec, 572 SF detached garage",
-    "assessed_bpsf": 282
+    "assessed_bpsf": 282,
+    "_note": "absf / fin_bsmt_sf / garage_sf / year_built come from beacon.json (PID 322923440057)"
   },
   "assessments": [
     {"assess_year": 2024, "tax_year": 2025, "emv_land": 131800, "emv_building": 577100, "emv_total": 708900},
@@ -37,26 +34,22 @@
     "quality_label": "±2–5% per grade step (stucco/build vs. comps)",
     "condition_label": "0% comparable · +10–15% for an inferior/dated comp"
   },
+  "_comps_note": "Structure (absf/fin_bsmt_sf/garage_sf/year_built) is joined from beacon.json by PID; time_pct is computed from sale_date to the effective date. The agent supplies only pid, role, the listing-verified quality_pct/condition_pct, the descriptor, and the public sale facts (sale_price, sale_date, land).",
   "comps": [
-    {"address": "2010 Carroll Ave", "year_built": 1908, "sale_price": 499990, "sale_date": "Aug 2024",
-     "land": 91800, "absf": 1669, "fin_bsmt_sf": 500, "garage_sf": 528,
-     "time_pct": 4.2, "quality_pct": 2, "condition_pct": 0,
+    {"address": "2010 Carroll Ave", "pid": "332923330040", "sale_price": 499990, "sale_date": "2024-08-20",
+     "land": 91800, "quality_pct": 2, "condition_pct": 0,
      "descriptor": "same block, wood frame, 2½ baths", "role": "central"},
-    {"address": "2248 Goodrich Ave", "year_built": 1925, "sale_price": 700000, "sale_date": "Nov 2025",
-     "land": 209000, "absf": 2169, "fin_bsmt_sf": 350, "garage_sf": 399,
-     "time_pct": 0.5, "quality_pct": 0, "condition_pct": 0,
+    {"address": "2248 Goodrich Ave", "pid": "052823430012", "sale_price": 700000, "sale_date": "2025-11-03",
+     "land": 209000, "quality_pct": 0, "condition_pct": 0,
      "descriptor": "stucco two-story, premium block (high land value)", "role": "central"},
-    {"address": "2244 Dayton Ave", "year_built": 1915, "sale_price": 565000, "sale_date": "Jan 2026",
-     "land": 137800, "absf": 1691, "fin_bsmt_sf": 0, "garage_sf": 308,
-     "time_pct": 0.0, "quality_pct": 0, "condition_pct": 0,
+    {"address": "2244 Dayton Ave", "pid": "052823120106", "sale_price": 565000, "sale_date": "2026-01-26",
+     "land": 137800, "quality_pct": 0, "condition_pct": 0,
      "descriptor": "stucco bungalow, finished attic", "role": "central"},
-    {"address": "1809 Marshall Ave", "year_built": 1910, "sale_price": 550000, "sale_date": "Mar 2026",
-     "land": 52600, "absf": 1832, "fin_bsmt_sf": 300, "garage_sf": 400,
-     "time_pct": -0.6, "quality_pct": 0, "condition_pct": 0,
+    {"address": "1809 Marshall Ave", "pid": "332923430088", "sale_price": 550000, "sale_date": "2026-03-25",
+     "land": 52600, "quality_pct": 0, "condition_pct": 0,
      "descriptor": "vinyl-sided, busy-corner location", "role": "central"},
-    {"address": "2079 Iglehart Ave", "year_built": 1908, "sale_price": 435000, "sale_date": "Nov 2025",
-     "land": 131800, "absf": 2301, "fin_bsmt_sf": 500, "garage_sf": 400,
-     "time_pct": 0.3, "quality_pct": 0, "condition_pct": 12,
+    {"address": "2079 Iglehart Ave", "pid": "322923440091", "sale_price": 435000, "sale_date": "2025-11-14",
+     "land": 131800, "quality_pct": 0, "condition_pct": 12,
      "descriptor": "dated/inferior (as-is sale, no interior photos) — lowest residual; lower-bracket context", "role": "context"}
   ],
   "equalization": {

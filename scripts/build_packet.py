@@ -28,6 +28,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 from pathlib import Path
 
 from report.appeal_generator import generate_appeal_report
@@ -65,6 +66,52 @@ def _round_k(v: float) -> int:
     return int(round(v / 1000.0) * 1000)
 
 
+def _norm_pid(pid) -> str:
+    return re.sub(r"\D", "", str(pid or ""))
+
+
+def _beacon_fill(rec: dict, b: dict | None) -> None:
+    """Backfill a subject/comp dict's structure from its parsed Beacon card (in place).
+    Maps the Beacon keys to the grid keys and uses the CONTRIBUTORY basement (finished
+    + rec area) for fin_bsmt_sf — the valuation figure, not the API-reconciliation one.
+    judgment-supplied values are never overwritten."""
+    if not b:
+        return
+    mapping = (("absf", "absf"), ("contributory_basement_sf", "fin_bsmt_sf"),
+               ("garage_sf", "garage_sf"), ("year_built", "year_built"))
+    for src, dst in mapping:
+        if rec.get(dst) is None and b.get(src) is not None:
+            rec[dst] = b[src]
+
+
+_MONTHS = {m: i for i, m in enumerate(
+    ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"], 1)}
+
+
+def _parse_date(s: str | None) -> tuple[int, int] | None:
+    """Parse 'YYYY-MM-DD' or 'Mon YYYY' (e.g. 'Aug 2024') -> (year, month). None if unparseable."""
+    if not s:
+        return None
+    s = str(s).strip()
+    m = re.match(r"(\d{4})-(\d{2})", s)
+    if m:
+        return int(m.group(1)), int(m.group(2))
+    m = re.match(r"([A-Za-z]{3})[a-z]*\.?\s+(\d{4})", s)
+    if m and m.group(1).lower() in _MONTHS:
+        return int(m.group(2)), _MONTHS[m.group(1).lower()]
+    return None
+
+
+def _auto_time_pct(sale_date: str | None, effective_iso: str | None, rate_per_month: float) -> float:
+    """Months between sale and the effective date × monthly rate (% of value). A sale
+    BEFORE the effective date trends UP (positive); a sale after trends down."""
+    sd, ed = _parse_date(sale_date), _parse_date(effective_iso)
+    if not (sd and ed):
+        return 0.0
+    months = (ed[0] - sd[0]) * 12 + (ed[1] - sd[1])
+    return round(months * float(rate_per_month), 1)
+
+
 def _fmt_narrative(text: str, numbers: dict) -> str:
     """Template a narrative string against the derived numbers. Missing keys are
     left literal rather than raising, so a partial narrative still renders."""
@@ -97,6 +144,9 @@ def build_packet(judgment: dict, analysis: dict | None = None,
               "emv_building", "lot_acres", "style"):
         if subj_in.get(k) is None and a_subj.get(k) is not None:
             subj_in[k] = a_subj[k]
+    # Beacon structure for the subject — so ABSF / finished-basement / garage are
+    # parsed (scripts/parse_beacon), never hand-typed. judgment still wins if set.
+    _beacon_fill(subj_in, beacon.get("subject"))
 
     rates = dict(judgment.get("rates") or {})
     bsmt_psf = float(rates.get("bsmt_psf", 50.0))
@@ -109,17 +159,23 @@ def build_packet(judgment: dict, analysis: dict | None = None,
     subject_garage = float(subj_in.get("garage_sf") or 0)
     emv = float(subj_in.get("emv_total") or 0)
 
+    assess_year = meta_in.get("assessment_year") or (
+        a_subj.get("assess_year") if isinstance(a_subj, dict) else None)
+    effective_iso = (analysis.get("assess_date")
+                     or (f"{assess_year}-01-02" if assess_year else None))
+
     # --- comps: join beacon structure by pid where judgment omits it ---
     comps = []
     for c in judgment.get("comps") or []:
         c = dict(c)
         pid = c.get("pid")
-        b = (beacon.get("comps") or {}).get(pid) if pid else None
-        if b:
-            for src, dst in (("absf", "absf"), ("finished_basement_sf", "fin_bsmt_sf"),
-                             ("garage_sf", "garage_sf")):
-                if c.get(dst) is None and b.get(src) is not None:
-                    c[dst] = b[src]
+        _beacon_fill(c, (beacon.get("comps") or {}).get(_norm_pid(pid)) if pid else None)
+        # Auto time adjustment: comp may set time_pct explicitly; otherwise derive it
+        # from the sale date and the effective date at the confirmed monthly rate —
+        # a mechanical step the agent shouldn't hand-compute.
+        if c.get("time_pct") is None:
+            c["time_pct"] = _auto_time_pct(c.get("sale_date"), effective_iso,
+                                           rates.get("time_pct_per_month", 0.25))
         comps.append(c)
 
     # Roles: central (drives the median), ceiling (capped upper bracket — in the
