@@ -63,6 +63,53 @@ def _in_sf_band(value_sf: float | None, subject_sf: float | None) -> bool:
     return (1 - SF_BAND) * subject_sf <= value_sf <= (1 + SF_BAND) * subject_sf
 
 
+# Assessed building $/SF tier screen. The county's building $/SF (EMV_building ÷
+# SF) embeds quality + condition + grade in one number — and is UNIVERSAL (every
+# MN county publishes EMV-building + SF; Ramsey EMVBuilding, Hennepin BLDG_MV1).
+# A subject assessed at $200/SF and a comp at $500/SF are different tiers even at
+# the same size/vintage. Screening to a COARSE band around the subject's building
+# $/SF drops those clear tier-offs, which avoids the LEAST-supportable adjustment
+# (condition/quality — the hardest to defend under Diamond Lake). The band is
+# deliberately WIDE and symmetric: we GROUP peers by assessment, then VALUE them
+# by their SALES — we never conclude value off the assessment we are appealing
+# (the circularity guard). A narrow band would bake in the disputed assessment.
+TIER_PSF_LO = 0.60   # below this × subject building $/SF → clear lower tier (teardown)
+TIER_PSF_HI = 1.50   # above this × subject building $/SF → clear higher tier (mansion/renovated)
+TIER_MIN_KEEP = 3    # if the screen leaves fewer than this, fall back (don't over-narrow)
+
+
+def _assessed_bpsf(rec: dict, sf_key: str = "sf") -> float | None:
+    """Assessed building $/SF for a record (EMV_building ÷ SF), or None when
+    either input is missing/zero. Universal tier proxy, cross-county."""
+    rec_sf = rec.get(sf_key) or rec.get("living_area_sf")
+    eb = rec.get("emv_building")
+    if rec_sf and eb:
+        return eb / rec_sf
+    return None
+
+
+def _tier_screen(comps: list[dict], subject_bpsf: float | None) -> tuple[list[dict], int]:
+    """Drop comps whose assessed building $/SF is in a clearly different tier than
+    the subject (outside [TIER_PSF_LO, TIER_PSF_HI] × subject_bpsf). Comps with no
+    assessed $/SF are kept (screened only by other gates). Falls back to the
+    unscreened set when the screen would leave fewer than TIER_MIN_KEEP — tier is
+    the LAST dimension to relax (the expansion ladder), so a thin result keeps the
+    comps and signals that the screen could not be applied. Returns (kept, n_dropped)."""
+    if not subject_bpsf:
+        return comps, 0
+    lo, hi = TIER_PSF_LO * subject_bpsf, TIER_PSF_HI * subject_bpsf
+    kept, dropped = [], 0
+    for c in comps:
+        bpsf = _assessed_bpsf(c)
+        if bpsf is not None and not (lo <= bpsf <= hi):
+            dropped += 1
+        else:
+            kept.append(c)
+    if len(kept) < TIER_MIN_KEEP:
+        return comps, 0  # don't over-narrow — relax tier last
+    return kept, dropped
+
+
 def _psf_points(sales: list[dict]) -> list[dict]:
     pts = []
     for s in sales:
@@ -521,6 +568,15 @@ def triage(data: dict, baseline_emv: float | None = None) -> dict:
             and s.get("pid") != subject.get("pid")
             and s.get("pid") not in distressed_pids
         ]
+        # Assessed building $/SF tier screen FIRST (universal quality/condition
+        # proxy) — drops clear tier-offs ($200-subject vs $500-comp) so the median
+        # rests on same-tier peers and the least-supportable adjustment (condition/
+        # quality) is minimized. Groups by assessment; the median still VALUES off
+        # sales (circularity guard). Falls back if it would over-narrow.
+        subject_bpsf = _assessed_bpsf(subject, sf_key="living_area_sf") or (
+            (current.get("emv_building") or 0) / sf if sf else None
+        )
+        sc_pool, tier_dropped = _tier_screen(sc_pool, subject_bpsf)
         # Size-matched (±30% SF).
         size_matched = [s for s in sc_pool if _in_sf_band(s.get("sf"), sf)]
         # Size + vintage-matched (±20 yr) when the subject's year_built is known.
@@ -586,6 +642,17 @@ def triage(data: dict, baseline_emv: float | None = None) -> dict:
             sales_comparison_indicated = {
                 "basis": basis_label,
                 "n": len(basis_set),
+                # Assessed building $/SF tier screen (universal quality/condition
+                # proxy). subject_assessed_building_psf grounds the tier; comps
+                # outside [0.60, 1.50]× it were dropped as clear tier-offs so the
+                # median rests on same-tier peers (minimizes the least-supportable
+                # condition/quality adjustment). 0 dropped can also mean the screen
+                # fell back to avoid over-narrowing — see tier_screen_applied.
+                "subject_assessed_building_psf": (
+                    round(subject_bpsf, 1) if subject_bpsf else None
+                ),
+                "tier_screened_out": tier_dropped,
+                "tier_screen_applied": tier_dropped > 0,
                 "legal_basis": "market value (sale $/SF) — NOT Federated Mutual "
                                "equalization; do not fuse with equalization "
                                "median_implied_total",

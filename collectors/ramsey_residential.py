@@ -45,6 +45,7 @@ SUBJECT_FIELDS = [
     "SiteAddress",
     "OwnerName1",
     "YearBuilt",
+    "EffectiveYearBuilt",
     "LivingAreaSquareFeet",
     "ParcelAcresDeed",
     "PlatName",
@@ -78,6 +79,7 @@ COMP_FIELDS = [
     "OwnerName1",
     "LivingAreaSquareFeet",
     "YearBuilt",
+    "EffectiveYearBuilt",
     "EMVLand",
     "EMVBuilding",
     "EMVTotal",
@@ -275,6 +277,11 @@ def _subject_from_attrs(attrs: dict[str, Any]) -> dict[str, Any]:
         "year_built": attrs.get("YearBuilt"),
         "living_area_sf": attrs.get("LivingAreaSquareFeet"),
         "land_use": attrs.get("LandUseCodeDescription") or attrs.get("LandUseCode"),
+        # The assessor's condition/renovation-adjusted age — a renovated 1920
+        # home carries a later effective year. The single in-API condition proxy
+        # Ramsey publishes (no grade/CDU); used to rank comps by effective age and
+        # flag condition mismatches. Ramsey-only — Hennepin does not publish it.
+        "effective_year_built": attrs.get("EffectiveYearBuilt"),
         "parcel_acres": attrs.get("ParcelAcresDeed"),
         "plat_name": attrs.get("PlatName"),
         # Land EMV is the tell for a condominium / common-interest unit (a nominal
@@ -390,6 +397,7 @@ def _comp_from_attrs(attrs: dict[str, Any]) -> dict[str, Any]:
         "address": attrs.get("SiteAddress"),
         "sf": attrs.get("LivingAreaSquareFeet"),
         "year_built": attrs.get("YearBuilt"),
+        "effective_year_built": attrs.get("EffectiveYearBuilt"),
         "emv_total": attrs.get("EMVTotal"),
         "emv_land": attrs.get("EMVLand"),
         "emv_building": attrs.get("EMVBuilding"),

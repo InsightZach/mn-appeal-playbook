@@ -381,6 +381,29 @@ def test_sales_comparison_indicated_is_a_documented_top_level_key():
     assert "sales_comparison_indicated" in r
 
 
+def test_tier_screen_integrates_and_reports_diagnostics():
+    """A clear higher-tier comp (double the subject's assessed $/SF) is dropped
+    from the sales-comp pool, and the diagnostics surface the subject's tier."""
+    # subject building $/SF = 280k/2000 = 140 (from _data assessments).
+    same = [{
+        "pid": f"M{i}", "address": f"{i} Same St", "plat_name": "OTHER",
+        "sale_price": 360_000, "sf": 2000, "year_built": 1990, "lot_acres": 0.2,
+        "emv_total": 380_000, "emv_building": 280_000,  # $140/SF — same tier
+        "sale_date": f"2025-0{i + 1}-12", "lat": 44.95, "lon": -93.15,
+    } for i in range(6)]
+    tier_off = {
+        "pid": "MANSION", "address": "1 Mansion St", "plat_name": "OTHER",
+        "sale_price": 700_000, "sf": 2000, "year_built": 1990, "lot_acres": 0.2,
+        "emv_total": 600_000, "emv_building": 560_000,  # $280/SF = 2.0x → dropped
+        "sale_date": "2025-03-12", "lat": 44.95, "lon": -93.15,
+    }
+    r = triage(_data(sales=same + [tier_off]))
+    sci = r["sales_comparison_indicated"]
+    assert sci["subject_assessed_building_psf"] == 140.0
+    assert sci["tier_screened_out"] >= 1
+    assert sci["tier_screen_applied"] is True
+
+
 def test_worth_it_gate_is_informational_and_never_relabels_the_verdict():
     """The worth-it gate must NOT modulate the verdict or invent a new verdict
     value — the script never concludes the worth-it call (it belongs to the
