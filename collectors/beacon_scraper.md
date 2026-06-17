@@ -14,13 +14,17 @@ https://beacon.schneidercorp.com/Application.aspx?AppID=959&LayerID=18852&PageTy
 
 `{PID}` is the 12-digit ParcelID from the Ramsey API (no dashes).
 
-## Scraping (claude-in-chrome MCP — browser required)
+## Scraping (browser required)
 
-Beacon **blocks headless HTTP** (captcha / "you are unable to access"), so this must run through the
-browser, not `requests`. Steps:
+Beacon **blocks headless HTTP** (captcha / "you are unable to access"), so this must run through a real
+browser, not `requests`. The parser only needs the page's **text**, so any browser-automation capability
+works — the [`claude-in-chrome`](https://docs.claude.com) MCP, Playwright, or even a manual copy-paste of the
+Property Value page. Steps:
 
-1. `mcp__claude-in-chrome__navigate(url=above, tabId=...)`
-2. `mcp__claude-in-chrome__get_page_text(tabId=...)` — returns the full Property Value page text
+1. Navigate to the Beacon URL (above) for the parcel. *(claude-in-chrome:
+   `mcp__claude-in-chrome__navigate(url=..., tabId=...)`.)*
+2. Grab the full Property Value page **text**. *(claude-in-chrome:
+   `mcp__claude-in-chrome__get_page_text(tabId=...)`; or copy-paste it.)*
 3. **Save the text** to `properties/<slug>/beacon_raw/<PID>.txt` (one file per parcel; or collect them into a
    `{pid: text}` JSON map).
 4. **Batch-parse** all of them at once:

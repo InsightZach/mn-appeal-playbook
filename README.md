@@ -108,6 +108,9 @@ The end-to-end orchestration (automated steps + the human-judgment steps) is map
 
 ## Notes
 
+- **Running this with an AI agent?** See [`CLAUDE.md`](CLAUDE.md) (and [`AGENTS.md`](AGENTS.md)) for the
+  self-contained operating guide — the pipeline, what the agent needs, and the house rules. The repo has no
+  external database, service, or credential dependency; it runs anywhere Python + `uv` does.
 - Square-footage basis differs by county (Hennepin = above-grade; Ramsey = includes finished basement).
   Never mix counties in one comp set. See [Data Sources](docs/03-data-sources.md).
 - The exact appeal dates for any year print on the valuation notice. Build the operating calendar in
