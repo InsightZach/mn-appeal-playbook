@@ -74,24 +74,29 @@ Relax in this order when needed: style → year → size → neighborhood. Relax
   interpolated, not extrapolated.
 - **Same county only** — finished-SF basis differs across counties.
 
-### Percentage adjustment grid (example default for SFH)
+### Adjustment mechanics (illustrative — DERIVE every rate from the data)
 
-For comp sets spanning 2× or more in sale price, percentage-of-sale-price adjustments scale better than
-dollar adjustments. Additive across categories, applied once: `adjusted = sale × (1 + net%)`.
+This grid shows the **mechanics only** — percentage-of-sale-price, additive across categories, applied once
+(`adjusted = sale × (1 + net%)`), with the **direction** comp→subject. The magnitudes below are
+**illustrative placeholders to show the shape of an adjustment — they are NOT rates to apply.** Under
+*Diamond Lake v. Hennepin County*, **every rate that touches the conclusion must be derived from
+paired sales (or a regression) in *this* comp set and documented (show the pairs).** Importing a number
+from this table — or from any textbook/house default — is not support; the data is the support.
 
-| Adjustment | Example rate |
-|------------|-------------|
-| Time | +0.25%/month (≈3%/yr) |
-| Size | (subj SF − comp SF) / comp SF × 30% pass-through |
-| Condition: Average → Below Avg | −15% |
-| Condition: Above Avg → Below Avg | −20% |
-| Quality: superior grade → subject | −10% |
-| Quality: inferior grade → subject | +5% |
-| Lot: standard → double | +10% to +15% |
-| Age / effective age (within-band) | derive a $/SF-vs-year-built slope from the comp set itself |
+| Adjustment | Mechanic | How to DERIVE the rate from the data |
+|------------|----------|--------------------------------------|
+| Time | % per month, sale→effective date | repeat-sales / a $/SF-vs-sale-date regression on the comp set |
+| Size | (subj SF − comp SF) / comp SF × *pass-through%* | paired sales differing mainly in SF → solve the pass-through |
+| Condition | one or more grade steps (comp→subject) | paired sales differing mainly in condition (rare — see note) |
+| Quality (grade) | one construction-grade step | paired sales differing mainly in grade |
+| Lot | premium for the subject's larger lot | the equalization land $/SF trend (land target) |
+| Age / effective age | $/SF-vs-`year_built` (or effective year) slope | regress the comp set itself — the worked model below |
 
-Drop comps of unknown condition from the math (list them for transparency). These are starting points —
-beat them with paired-sales-derived rates wherever a rate drives the conclusion.
+The **age/effective-age slope** below is the template for *all* of these: pull the rate out of the comp
+set, don't import it. **Drop comps of unknown condition** from the math (list them for transparency) — and
+note: because condition/quality paired sales are the *scarcest and least-supportable*, the right move is to
+**select comps that don't need a condition/quality adjustment in the first place** (the assessed-$/SF tier
+screen + effective-age match in triage) rather than to manufacture an unsupported one.
 
 **Age / vintage adjustment (within the selection band).** Where the comp set spans vintage *within* the
 ±20yr selection band, the raw $/SF median is pulled toward the older comps and understates a newer subject.
