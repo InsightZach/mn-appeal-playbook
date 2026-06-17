@@ -72,31 +72,39 @@ sale-qualification code, or eCRV). Verify any load-bearing Ramsey comp before re
 
 The Ramsey OpenData API has no good-for-study flag (149 fields, only `SalePrice` / `LastSaleDate` for
 sales) — but the determination **is published**, so this is an **agent pull**, not a missing data point.
-Two sources, in priority order:
 
-1. **Ramsey Beacon** (the Schneider site we already use for structure) shows each sale's
-   **sale-qualification code** directly on the report page — e.g. `02-RELATIVE SALE OR RELATED BUSINESS`
-   (an exclusion). Codes other than the "qualified / good-for-study" code mean the sale was excluded from
-   the ratio study. This is the fastest source because we're already pulling Beacon for grade/condition.
-2. **eCRV** (MN DOR's authoritative Certificate of Real Estate Value) is the cross-check and the place to
-   read the **terms** (financing, personal property, related-party). Use it when Beacon's code is
-   ambiguous or the terms matter.
+**eCRV is the authoritative source (public, no login).** MN DOR's eCRV public search returns the state's
+own good-for-study determination on every completed sale:
 
-The triage script's `< 0.80× own-EMV` distressed screen is a cheap automated first pass; Beacon/eCRV are
-the real check on the comps that matter.
+- **Search:** `mndor.state.mn.us/ecrv_search` → **Parcel ID** tab → Search Type **Completed**, pick the
+  **County**, enter the parcel ID → Submit. The results list every eCRV (sale) for that parcel by date;
+  click the **eCRV ID** to open the detail.
+- **Read on the detail page** (under *County Data Information*):
+  - **County Recommendation for State Study → "Good for study"** — **this is the field that governs an
+    arm's-length comp** (it's the *state* sales-ratio study). If **No**, read the **Reject reason** code
+    (e.g. `09a – Estate Sale`, relative/related-party, foreclosure, atypical financing) and **do not use
+    the sale as a comp.**
+  - Note the **County Study** "Good for study" is a *separate* field and can say **Yes** while the State
+    Study says **No** — don't confuse them; the **State** study is the one for arm's-length comps.
+  - The page also gives **deed type** (e.g. *Probate Deed*), **sale net amount**, year built, and the
+    **county assessment at the time of sale** (land / building / total, assessment year) — useful for
+    judging the sale and for the comp's own-EMV ratio.
+  - *Worked example:* parcel `052823430032`, sale 2020-08-12, **$715,000**, *Probate Deed* — County Study
+    **Yes**, but **State Study No, reject 09a – Estate Sale**. So this is **not** a usable arm's-length
+    comp despite a clean-looking price.
 
-When a comp is **load-bearing** (it drives the conclusion) — and for the **subject's own sale** — an agent:
+**Ramsey Beacon** (the Schneider site we already pull for structure) shows the same exclusion as a
+**sale-qualification code** on its sales-history section — e.g. `02-RELATIVE SALE OR RELATED BUSINESS`.
+Grab it inline while pulling grade/condition for a quick first read; confirm anything load-bearing in eCRV.
 
-1. Looks the sale up in the **public eCRV search** by PID, address, or county + sale date.
-2. Confirms it is **good-for-state-study** (not excluded for foreclosure, related-party, atypical
-   financing, partial interest, etc.) and reads the stated terms.
-3. Uses it as a comp only if it clears that check; otherwise lists it for transparency and excludes it
-   from the math — and **discloses the screen applied** in the packet.
+The triage script's `< 0.80× own-EMV` distressed screen is only a cheap automated first pass.
 
-This is the same agent-enrichment principle as listing condition: the **script** gives county data, the
-**agent** verifies/enriches it from the authoritative source. A bulk eCRV *collector* is a possible future
-add; today eCRV is an agent verification step, run on the comps that carry weight. See the enrichment step
-in [`run-appeal-review.md`](../prompts/run-appeal-review.md).
+**When a comp is load-bearing (it drives the conclusion) — and for the subject's own sale —** verify the
+**State Study good-for-study** in eCRV, use the sale only if it clears, otherwise list it for transparency
+and exclude it from the math, and **disclose the screen applied** in the packet. Same agent-enrichment
+principle as listing condition: the **script** gives county data, the **agent** verifies it at the
+authoritative source. A bulk eCRV *collector* is a possible future add; today it's an agent step on the
+comps that carry weight. See the enrichment step in [`run-appeal-review.md`](../prompts/run-appeal-review.md).
 
 ## Practical collection order
 

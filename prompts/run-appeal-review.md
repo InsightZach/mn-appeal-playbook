@@ -44,12 +44,14 @@ result.
    - **Arm's-length / good-for-study verification** — the triage script's `< 0.80× own-EMV` screen is a
      cheap first pass, not the answer. For any **load-bearing comp** (the ones that drive the conclusion)
      and for the **subject's own sale**, verify good-for-study status (see
-     [Data Sources](../docs/03-data-sources.md#ecrv-verification)): for **Ramsey**, read the
-     sale-qualification code off **Ramsey Beacon** (same browser pull as structure — e.g. a
-     `02-RELATIVE SALE OR RELATED BUSINESS` code means excluded); cross-check or read terms in **eCRV**
-     (MN DOR's public Certificate of Real Estate Value). For **Hennepin**, the API `sale_code` already
-     carries it. Drop any comp shown as excluded, and **disclose the screen you applied** in the packet.
-     The good-for-study answer the Ramsey *API* lacks is one Beacon/eCRV lookup away.
+     [Data Sources](../docs/03-data-sources.md#ecrv-verification)). For **Ramsey**, the authoritative answer
+     is the **eCRV State-Study "Good for study"** field (`mndor.state.mn.us/ecrv_search` → Parcel ID →
+     Completed → open the eCRV): **No** plus a reject reason (e.g. `09a – Estate Sale`) means excluded — and
+     note the *County* Study field can read Yes while the *State* Study reads No; the **State** study is the
+     one that governs. For a quick inline read, the **Ramsey Beacon** sale-qualification code (same pull as
+     structure — e.g. `02-RELATIVE SALE OR RELATED BUSINESS`) flags the same exclusions. For **Hennepin**,
+     the API `sale_code` already carries it. Drop any comp shown as excluded, and **disclose the screen you
+     applied** in the packet.
 
 4. **Generate** — if the verdict is an angle, run [`appeal-packet.md`](appeal-packet.md); otherwise run
    [`no-appeal-findings.md`](no-appeal-findings.md). QA the output.

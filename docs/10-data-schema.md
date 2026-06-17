@@ -94,10 +94,11 @@ Same shape (comps are selected for SF/year similarity; sales are selected for re
 > **Arm's-length / good-for-state-study, by source (Ramsey).** `methodology.md` and
 > [docs/04](04-triage-decision.md) require comps to be good-for-state-study; an excluded sale discredits the
 > packet. The Ramsey OpenData API carries no such flag, so the **script** can't source it — but the agent
-> can, in priority order: (1) **Ramsey Beacon** sale-qualification code (same Beacon pull as structure);
-> (2) **eCRV** (authoritative, for terms detail); (3) the triage **`< ~0.80× own-EMV` distressed screen**
-> as a cheap automated fallback when neither has been pulled (e.g. 659 Edmund at 0.61× its own EMV is
-> dropped). **Disclose the screen you applied** in the packet (see
+> can: the **authoritative** answer is the **eCRV State-Study "Good for study"** field (`No` + a reject
+> reason like `09a – Estate Sale` = excluded; the *County* Study field is separate and may differ — the
+> *State* study governs). The **Ramsey Beacon** sale-qualification code is a quick inline read while pulling
+> structure; the triage **`< ~0.80× own-EMV` distressed screen** is only a cheap automated fallback (e.g.
+> 659 Edmund at 0.61× its own EMV is dropped). **Disclose the screen you applied** in the packet (see
 > [appeal-packet.md](../prompts/appeal-packet.md)). `scripts/triage.py` flags `recent_sales` whose
 > sale-to-own-EMV ratio is an outlier so a distressed sale cannot silently pull the conclusion down.
 
