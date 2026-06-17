@@ -59,6 +59,17 @@ result.
        open-book concession may not hold into the following year). The hold assumption can flip the verdict
        (e.g. ~$216/yr fails on a 1-year hold but ~$647 clears stacked over 3 years), so it must be stated, not
        improvised.
+     - **Knife-edge band — when the gate is INDETERMINATE, do NOT record a binary PASS/FAIL.** When the
+       computed year-1 fee lands **within ~15% of the ~$450 floor** (≈ $380–$520), the gate is
+       **placeholder-sensitive** — the appeal/no-appeal call is being decided by the very numbers this prompt
+       calls illustrative (the ~$450 floor, the ~30% contingency, the ETR proxy, the 1-year hold). A worked
+       case: 1589 Fulham at $103,800 × 0.0147 ETR × 30% ≈ $458/yr **passes by ~$8**, and flips to fail at the
+       comp mean. In the knife-edge band you must (a) **state plainly the result is placeholder-sensitive**;
+       (b) **test sensitivity** across the plausible ranges (contingency 25–35%, the ETR proxy, the hold
+       period) and report whether the verdict flips; and (c) **route to a low-cost open-book conversation**
+       rather than recording a hard appeal / no-appeal. Carry the indeterminacy into the deliverable
+       (e.g. `gate: indeterminate (placeholder-sensitive) → open-book`) — a knife-edge is the wrong
+       abstraction for the highest-stakes call.
      - **The gate governs the verdict — at this (judgment) step, not in the script.** A `borderline` or
        `appeal_angle` verdict from [`triage-judgment.md`](triage-judgment.md) is **PROVISIONAL until this
        gate clears.** A **sub-floor** economic result **downgrades any borderline to `no_appeal` regardless

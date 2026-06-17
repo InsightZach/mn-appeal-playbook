@@ -178,3 +178,11 @@ tier comps = 0; quantified comps from cost-to-cure). The grid rows include `size
 you render in `$/SF` mode (`adjustment_grid_subject_sf` set) size is resolved by the reconciled $/SF and the
 derived size coefficient stands as the cross-check on the flat-$/SF assumption. When
 `derived_adjustments` is null (too few comps to regress), fall back to a qualitative grid and **say so**.
+
+> **`derived_adjustments` are comp→subject DELTA rates only — never a standalone hedonic value.** Use each
+> coefficient to adjust a *comp's* price toward the subject (`adjusted = comp_price + Σ coef × (subject −
+> comp)`), then take the median/mean of the **adjusted comp prices**. Do **NOT** compute `intercept + Σ coef ×
+> subject_feature` to get a subject value directly — `year_built` enters the regression on its raw absolute
+> basis and the intercept is not standalone-interpretable, so that path yields nonsense (e.g. a negative
+> multi-million-dollar "value"). The coefficients are dimensionally safe only as deltas. For a model-predicted
+> subject value as a cross-check, use the **land-extraction indicated value** instead.

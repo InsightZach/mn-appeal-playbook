@@ -65,10 +65,25 @@ def test_cheaper_tier_comp_is_discount_not_supports_appeal():
 
 
 def test_kills_appeal_when_comp_at_subject_emv():
-    """Comp sold within ±5% of the subject's EMV → no angle."""
+    """Comp sold within ±5% of the subject's EMV AND below its OWN EMV → no angle.
+    kills_appeal is gated on the comp NOT being a cheaper tier: here the comp sold
+    405k against its own 440k EMV (ratio 0.92 — genuinely below its own assessment),
+    so its bracket at the subject's EMV is dispositive."""
     r = identify_killer_comp(_subject(emv_total=400_000),
-                             [_comp(405_000, 410_000)])
+                             [_comp(405_000, 440_000)])
     assert r["verdict"] == "kills_appeal"
+
+
+def test_cheaper_tier_comp_near_subject_emv_does_not_kill_appeal():
+    """REGRESSION GUARD. A comp that sold within ±5% of the SUBJECT's EMV but at/above
+    its OWN EMV (ratio ≥ 0.95) is a cheaper tier the county assessed correctly — it
+    must NOT fire kills_appeal off the raw subject-EMV delta; it downgrades to
+    'discount' so the sales_comparison_indicated angle can govern."""
+    # comp sold 405k vs subject 400k EMV (within ±5%) but at 1.04× its own 390k EMV.
+    r = identify_killer_comp(_subject(emv_total=400_000),
+                             [_comp(405_000, 390_000)])
+    assert r["verdict"] == "discount"
+    assert r["verdict"] != "kills_appeal"
 
 
 def test_confirms_fair_when_comp_brackets_subject_above_emv():

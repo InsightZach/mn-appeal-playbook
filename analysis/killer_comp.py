@@ -184,7 +184,12 @@ def identify_killer_comp(subject: dict, sales: list[dict]) -> dict | None:
         distressed_outlier = (
             comp_own_emv_ratio is not None and comp_own_emv_ratio < 0.75
         )
-        if abs(delta_pct) <= 5:
+        if abs(delta_pct) <= 5 and not cheaper_tier:
+            # Comp brackets the subject's EMV AND sold below its own EMV — a genuine
+            # at-market comp that kills the appeal. A comp that brackets subject EMV
+            # but sold AT/ABOVE its own EMV (cheaper_tier) is a correctly-assessed
+            # cheaper property, not evidence the subject is fair — it falls through
+            # to "discount", letting the sales_comparison_indicated angle govern.
             verdict = "kills_appeal"
         elif delta_pct > 5 and confirms_fair:
             verdict = "confirms_fair"

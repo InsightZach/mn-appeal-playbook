@@ -930,6 +930,20 @@ def triage(data: dict, baseline_emv: float | None = None) -> dict:
         reasons.append(f"{history[0]['assess_year']} EMV already declined "
                        f"${-history[0]['yoy_change']:,.0f} ({history[0]['yoy_pct']}%) from prior year "
                        f"— county already cut, weakens the case")
+    # Always time-trend a priced own sale in the 2.0-3.5yr band, DECOUPLED from the
+    # verdict-flip threshold below — run-appeal-review.md Step 3b tells the agent to
+    # read subject_own_sale.trended_delta_pct, so the field must exist whenever the
+    # sale is in the trend band, not only when the raw delta < -5%. (Trending only
+    # moves a below-EMV gap toward zero, so this never manufactures an angle; it just
+    # stops a missing-key read and surfaces a sale the agent is told to always address.)
+    if (own_sale_finding and own_sale_finding.get("sale_price")
+            and own_sale_finding.get("delta_pct") is not None):
+        _yrs_t = own_sale_finding.get("years_before_effective")
+        if _yrs_t is not None and 2.0 < _yrs_t <= 3.5:
+            _tr = round(own_sale_finding["sale_price"] * (1 + 0.0025 * 12 * _yrs_t))
+            own_sale_finding["trended_sale_price"] = _tr
+            own_sale_finding["trended_delta_pct"] = round(
+                (_tr - current["emv_total"]) / current["emv_total"] * 100, 1)
     if own_sale_finding and own_sale_finding.get("delta_pct") is not None and own_sale_finding["delta_pct"] < -5:
         # Gate the own-sale verdict on age (methodology.md "Own-sale relevance
         # horizon" / triage-judgment.md). years_before_effective is already
@@ -953,12 +967,10 @@ def triage(data: dict, baseline_emv: float | None = None) -> dict:
             reasons.append(f"Subject itself sold {own_sale_finding['delta_pct']}% below current EMV "
                            f"(${own_sale_finding['sale_price']:,.0f} on {own_sale_finding['sale_date']})")
         elif yrs <= 3.5:
-            # 2-3.5yr: time-trend the sale to the effective date at the default
-            # +0.25%/month rate and govern on the trended figure, not the raw delta.
-            trended = round(own_sale_finding["sale_price"] * (1 + 0.0025 * 12 * yrs))
-            trended_delta_pct = round((trended - current["emv_total"]) / current["emv_total"] * 100, 1)
-            own_sale_finding["trended_sale_price"] = trended
-            own_sale_finding["trended_delta_pct"] = trended_delta_pct
+            # 2-3.5yr: govern on the trended figure (pre-computed above), not the raw
+            # delta.
+            trended = own_sale_finding["trended_sale_price"]
+            trended_delta_pct = own_sale_finding["trended_delta_pct"]
             if trended_delta_pct < -5:
                 verdict = "appeal_angle"
             # "Stale" is doctrinally reserved for the >4yr non-evidentiary band
