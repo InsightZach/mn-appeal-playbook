@@ -13,3 +13,7 @@ __pycache__/
 # Working/raw artifacts
 examples/raw/
 *.cache
+
+# Internal working docs (never ship)
+HANDOFF.md
+.workflows/
