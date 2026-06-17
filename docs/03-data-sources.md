@@ -62,24 +62,41 @@ eCRV, and approximates the good-for-study standard with the data each county exp
 | County | Sale data available | Arm's-length filter |
 |--------|---------------------|---------------------|
 | **Hennepin** | sale price, date, and a **sale code** (`WARRANTY DEED`, `OTHER – SEE CRV`, `EXCLUDED FROM RATIO STUDIES`) | The triage keeps `WARRANTY DEED` and drops excluded / CRV sales — a solid proxy for good-for-study |
-| **Ramsey** | sale price and date only — **no good-for-study or sale-code flag** | None at the data layer; arm's-length status must be judged manually (or via eCRV) |
+| **Ramsey** | sale price and date in the **API**; the good-for-study sale-qualification code is on **Ramsey Beacon** (e.g. `02-RELATIVE SALE OR RELATED BUSINESS`), not the API | Pull the Beacon sale code (agent/browser, same Beacon as structure) or verify via eCRV |
 
-So Hennepin comps are filtered to a defensible arm's-length set automatically; **Ramsey comps are not**,
-and a reviewer should sanity-check any Ramsey comp against eCRV before relying on it.
+So Hennepin comps are filtered to a defensible arm's-length set automatically from the API; **Ramsey comps
+are not filtered by the script** — but the good-for-study answer is one agent pull away (Ramsey Beacon's
+sale-qualification code, or eCRV). Verify any load-bearing Ramsey comp before relying on it.
 
-**The eCRV upgrade (documented, not built).** eCRV is MN DOR's authoritative record of every qualifying
-sale, with the good-for-study determination attached. Pulling comps directly from eCRV — rather than
-inferring from county sale codes — is the way to put every comp on solid arm's-length footing, and it is
-the only way to get a good-for-study signal for **Ramsey** at all. To verify a sale via eCRV:
+### Arm's-length verification — Beacon + eCRV (agent-driven) {#ecrv-verification}
 
-1. Look up the sale in the public eCRV system by PID or address.
-2. Confirm it is **good-for-state-study** (not excluded), and read the stated terms (financing, personal
-   property, related-party indicators).
-3. Use it as a comp only if it clears that check; otherwise list it for transparency and exclude it from
-   the math.
+The Ramsey OpenData API has no good-for-study flag (149 fields, only `SalePrice` / `LastSaleDate` for
+sales) — but the determination **is published**, so this is an **agent pull**, not a missing data point.
+Two sources, in priority order:
 
-A dedicated eCRV collector is a natural next addition; the current toolkit treats county sale data +
-Hennepin sale codes as the working approximation and eCRV as the verification/upgrade path.
+1. **Ramsey Beacon** (the Schneider site we already use for structure) shows each sale's
+   **sale-qualification code** directly on the report page — e.g. `02-RELATIVE SALE OR RELATED BUSINESS`
+   (an exclusion). Codes other than the "qualified / good-for-study" code mean the sale was excluded from
+   the ratio study. This is the fastest source because we're already pulling Beacon for grade/condition.
+2. **eCRV** (MN DOR's authoritative Certificate of Real Estate Value) is the cross-check and the place to
+   read the **terms** (financing, personal property, related-party). Use it when Beacon's code is
+   ambiguous or the terms matter.
+
+The triage script's `< 0.80× own-EMV` distressed screen is a cheap automated first pass; Beacon/eCRV are
+the real check on the comps that matter.
+
+When a comp is **load-bearing** (it drives the conclusion) — and for the **subject's own sale** — an agent:
+
+1. Looks the sale up in the **public eCRV search** by PID, address, or county + sale date.
+2. Confirms it is **good-for-state-study** (not excluded for foreclosure, related-party, atypical
+   financing, partial interest, etc.) and reads the stated terms.
+3. Uses it as a comp only if it clears that check; otherwise lists it for transparency and excludes it
+   from the math — and **discloses the screen applied** in the packet.
+
+This is the same agent-enrichment principle as listing condition: the **script** gives county data, the
+**agent** verifies/enriches it from the authoritative source. A bulk eCRV *collector* is a possible future
+add; today eCRV is an agent verification step, run on the comps that carry weight. See the enrichment step
+in [`run-appeal-review.md`](../prompts/run-appeal-review.md).
 
 ## Practical collection order
 

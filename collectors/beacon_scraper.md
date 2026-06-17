@@ -49,6 +49,11 @@ When building the report:
 - **Additions:** Each addition line (size, type) — useful for unfinished basement portions
 - **Other Buildings & Yard Improvements:** Garage details (year built, grade, condition)
 - **Valuation history:** 6 years of EMV (improvement + land + total)
+- **Sales history → sale-qualification code (good-for-study):** the report's sales section shows each
+  sale's qualification code, e.g. `02-RELATIVE SALE OR RELATED BUSINESS` (excluded). This is the
+  good-for-study determination the Ramsey OpenData API does **not** carry — pull it while you're on the
+  page. Any code other than the "qualified" one means the sale was excluded from the ratio study and must
+  not be used as an arm's-length comp. (See [Data Sources](../docs/03-data-sources.md#ecrv-verification).)
 
 ## Save format
 

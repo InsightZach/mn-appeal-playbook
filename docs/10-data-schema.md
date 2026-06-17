@@ -37,12 +37,15 @@ field — so the data is usable without reading the collector code.
 | `last_sale_price` | int/null | Last recorded sale price | County API |
 | `structure` | obj/null | Hennepin/Mpls structure detail (stories, exterior, baths) when available | Mpls open data |
 
-> **Ramsey provides no grade / condition / CAMA / structure detail.** The Ramsey collector emits **no**
-> `sf_basis` field, `structure` is **null**, and comps/sales carry **no `sale_code` and no condition**. So
-> for Ramsey, the methodology's **CAMA-error-correction** and **cost-to-cure** approaches (which need
-> grade, condition, or basement-finish detail) **require a manual Beacon / CAMA pull** — they are **not**
-> available from `collected_data.json` alone. Do not attempt a condition/CAMA argument for a Ramsey
-> property without that manual pull. Hennepin/Mpls supply `structure` and `sf_basis`.
+> **Ramsey provides no grade / condition / CAMA / structure detail** in its API — `structure` is null and
+> comps/sales carry no `sale_code` and no condition. That is a limit of the **county data**, not of the
+> workflow: the **CAMA-error-correction** and **cost-to-cure** approaches (which need grade, condition, or
+> basement-finish detail) get that detail from the **agent-driven enrichment step**, not from
+> `collected_data.json`. When a condition/CAMA argument is in play, run the
+> [listing-enrichment step](../collectors/listing_enrichment.md) (owner listing → Zillow/Redfin/Realtor via
+> the browser → Beacon card) and, for sale validity, the
+> [eCRV verification step](03-data-sources.md#ecrv-verification). Don't assert condition from nothing — and
+> don't stop at "the county data doesn't have it." Hennepin/Mpls supply `structure` and `sf_basis` directly.
 
 ### `assessments[]` (newest first)
 
@@ -82,15 +85,19 @@ Same shape (comps are selected for SF/year similarity; sales are selected for re
 > **SF basis:** Ramsey `sf`/`living_area_sf` **includes finished basement**; Hennepin/Minneapolis is
 > **above-grade only**. Consistent within a county; never compare across counties.
 >
-> **Arm's-length:** Hennepin carries `sale_code` (the triage drops excluded / CRV sales); Ramsey has no
-> such flag — verify Ramsey sales via eCRV. See [Data Sources](03-data-sources.md).
+> **Arm's-length:** Hennepin carries `sale_code` in its API (the triage drops excluded / CRV sales). Ramsey
+> does **not** expose it in the OpenData API — but the good-for-study determination **is** published on
+> **Ramsey Beacon** (the Schneider site we already use for structure) as a sale-qualification code, e.g.
+> `02-RELATIVE SALE OR RELATED BUSINESS` (an exclusion). So for Ramsey, the answer is an **agent pull**, not
+> a missing data point — see the [arm's-length sources](03-data-sources.md#ecrv-verification).
 >
-> **Arm's-length / good-for-state-study screen (Ramsey proxy).** `methodology.md` and
-> [docs/04](04-triage-decision.md) require comps to be good-for-state-study; an excluded sale discredits
-> the packet. Ramsey records carry **no `good_for_state_study` / `sale_type` flag**, so the collector
-> cannot source one. **Sanctioned proxy until the flag exists:** drop sales priced **< ~0.80× their own
-> EMV** as likely-distressed (e.g. 659 Edmund at 0.61× its own EMV is excluded), and **disclose the
-> arm's-length screen you applied** in the packet (see
+> **Arm's-length / good-for-state-study, by source (Ramsey).** `methodology.md` and
+> [docs/04](04-triage-decision.md) require comps to be good-for-state-study; an excluded sale discredits the
+> packet. The Ramsey OpenData API carries no such flag, so the **script** can't source it — but the agent
+> can, in priority order: (1) **Ramsey Beacon** sale-qualification code (same Beacon pull as structure);
+> (2) **eCRV** (authoritative, for terms detail); (3) the triage **`< ~0.80× own-EMV` distressed screen**
+> as a cheap automated fallback when neither has been pulled (e.g. 659 Edmund at 0.61× its own EMV is
+> dropped). **Disclose the screen you applied** in the packet (see
 > [appeal-packet.md](../prompts/appeal-packet.md)). `scripts/triage.py` flags `recent_sales` whose
 > sale-to-own-EMV ratio is an outlier so a distressed sale cannot silently pull the conclusion down.
 

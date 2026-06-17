@@ -31,6 +31,26 @@ result.
      / [`docs/09-reduction-math.md`](../docs/09-reduction-math.md): `likely reduction × ETR × contingency %`
      (× years held). If it does not clear the fully-loaded cost to pursue, fall back to no-appeal even on a
      genuine angle.
+3b. **Enrich (agent-driven) — close the county-data gaps with the internet.** The collectors pull
+   **county API data only**, which (especially for Ramsey) carries **no condition/grade and no
+   good-for-study flag**. That is a property of the *script*, not a dead end — an **agent** fills these
+   gaps with the tools we already have. Do this whenever the argument depends on it; do **not** shortcut to
+   "the county data doesn't have it."
+   - **Condition / CAMA detail** — when a condition, grade, or cost-to-cure argument is in play, run the
+     [listing-enrichment step](../collectors/listing_enrichment.md): pull condition, photos, and structure
+     from the **owner's listing first**, then Zillow / Redfin / Realtor via the browser, or a Beacon/CAMA
+     card. (We did exactly this on 884 Ashland — the Zillow lookup showed a renovated interior and changed
+     the conclusion.) A condition argument **requires** this evidence; never assert condition from nothing.
+   - **Arm's-length / good-for-study verification** — the triage script's `< 0.80× own-EMV` screen is a
+     cheap first pass, not the answer. For any **load-bearing comp** (the ones that drive the conclusion)
+     and for the **subject's own sale**, verify good-for-study status (see
+     [Data Sources](../docs/03-data-sources.md#ecrv-verification)): for **Ramsey**, read the
+     sale-qualification code off **Ramsey Beacon** (same browser pull as structure — e.g. a
+     `02-RELATIVE SALE OR RELATED BUSINESS` code means excluded); cross-check or read terms in **eCRV**
+     (MN DOR's public Certificate of Real Estate Value). For **Hennepin**, the API `sale_code` already
+     carries it. Drop any comp shown as excluded, and **disclose the screen you applied** in the packet.
+     The good-for-study answer the Ramsey *API* lacks is one Beacon/eCRV lookup away.
+
 4. **Generate** — if the verdict is an angle, run [`appeal-packet.md`](appeal-packet.md); otherwise run
    [`no-appeal-findings.md`](no-appeal-findings.md). QA the output.
 
