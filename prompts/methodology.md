@@ -121,6 +121,23 @@ turns the eyeball "these comps are older" judgment into a market-derived, suppor
 statistical analysis — the slope is read off this comp set) rather than an unsupported eyeball. Example: a 1994 subject against comps spanning 1957–2011 (all in-band on
 size) shows a ~$100/SF vintage-driven spread the flat grid cannot resolve — the slope does.
 
+**Lot / land handling — extraction, not flat $/SF (TARE Ch. 19).** The flat `$/SF × subject SF` projection
+has **no term for the lot** — it implicitly assumes every property sits on a comparable lot, so it strips
+land value whenever the subject's lot differs in **size** (a 5-acre subject vs quarter-acre comps) or
+**value** (a lakefront/corner premium the comps lack). Handle this with the **extraction (allocation)
+technique**: subtract each comp's **county-assessed land** from its sale price to isolate the **building
+residual**, take the building `$/SF`, and rebuild the subject as **building `$/SF` × subject SF + the
+subject's own assessed land**. Because land is netted out of every comp before the `$/SF`, extraction is
+robust for any lot — it is the **governing sales indicator** (the triage emits
+`sales_comparison_indicated.extraction_indicated_value`); the flat `$/SF` is reported as a cross-check, and
+the two **converge when lots are homogeneous** (a built-in sanity check). Extraction leans on the county's
+own land number — generally accurate, and hard for the assessor to disown. **Caveat:** extraction trusts
+that land figure, so when the **subject's land line is itself the inequity** (assessed land $/SF above its
+peer band — `extraction_land_caveat`), the add-back re-imports the contested value and extraction
+overstates; there the lever is **land equalization** (*Federated Mutual*, below), not the sales approach.
+The lot adjustment in the grid uses the county land `$/SF` (or the regression's lot coefficient) — one
+ordinary adjustment line, not a special case.
+
 ## Equalization (independent basis in Minnesota)
 
 Under *Federated Mutual v. Dakota County*, a property assessed above the level of comparable properties

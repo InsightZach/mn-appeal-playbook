@@ -747,6 +747,53 @@ def triage(data: dict, baseline_emv: float | None = None) -> dict:
                 or (len(sv_lot_matched) == 0)
                 or (len(basis_set) and len(sv_lot_matched) / len(basis_set) < 0.34)
             )
+            # --- Land extraction (TARE Ch. 19) — the universal lot-size handler ---
+            # Subtracting each comp's COUNTY-ASSESSED land from its sale price isolates
+            # the building's market contribution; building $/SF is then free of
+            # lot-size noise. Reconciled building $/SF × subject SF + the subject's OWN
+            # assessed land rebuilds the indicated total. Because every property's land
+            # is netted out before the $/SF, this is quotable for ANY lot — outlier or
+            # not — so it REPLACES the flat-$/SF figure on a lot-outlier subject instead
+            # of leaving nothing quotable. Same size+vintage(+effective-age)-matched
+            # basis_set as the $/SF median; drops comps whose assessed land ≥ sale
+            # price (a broken county allocation).
+            ext_bpsf_vals = [
+                (s["sale_price"] - s["emv_land"]) / s["sf"]
+                for s in basis_set
+                if s.get("emv_land") and s.get("sf")
+                and (s["sale_price"] - s["emv_land"]) > 0
+            ]
+            ext_bpsf_median = _median(ext_bpsf_vals) if ext_bpsf_vals else None
+            subject_land = current.get("emv_land")
+            extraction_indicated_value = (
+                round(ext_bpsf_median * sf + subject_land)
+                if (ext_bpsf_median is not None and subject_land) else None
+            )
+            extraction_gap = (
+                extraction_indicated_value - current["emv_total"]
+                if extraction_indicated_value is not None else None
+            )
+            # The land-dispute caveat: extraction TRUSTS the assessor's land figure
+            # (subtracted from comps, added back for the subject). That is right when
+            # the BUILDING is the dispute. When the subject's LAND line is itself the
+            # inequity (assessed land $/SF at/above its peer band — equalization's
+            # land-percentile signal, and not a small-lot size artifact), the add-back
+            # re-imports the contested land value, so extraction OVERSTATES the value
+            # (conservative for the taxpayer): use the equalization land argument /
+            # a peer-level land value instead of extraction's add-back.
+            _eq = equalization or {}
+            extraction_land_caveat = bool(
+                not _eq.get("land_psf_percentile_size_artifact")
+                and (_eq.get("land_psf_percentile") or 0) >= 80
+            )
+            # Extraction-based angle: a building-residual indication materially below
+            # EMV (> ~2%). Suppressed when the land line is the inequity (caveat) —
+            # there the add-back is unreliable and equalization is the right lever.
+            extraction_angle = bool(
+                extraction_gap is not None
+                and not extraction_land_caveat
+                and extraction_gap < -0.02 * current["emv_total"]
+            )
             sales_comparison_indicated = {
                 "basis": basis_label,
                 "n": len(basis_set),
@@ -792,6 +839,30 @@ def triage(data: dict, baseline_emv: float | None = None) -> dict:
                 "indicated_value_median": indicated_median,
                 "indicated_value_mean": indicated_mean,
                 "indicated_gap_vs_emv": indicated_gap,
+                # Land extraction (TARE Ch.19) — building-residual $/SF, the
+                # lot-size-robust sales indicator. On a lot-outlier subject this is
+                # the QUOTABLE sales conclusion the flat $/SF cannot give (it nets
+                # land out of every comp, then adds the subject's own land back).
+                # extraction_indicated_value is null when the subject's assessed land
+                # is absent (Hennepin GIS carries none — source it from PINS / the
+                # county card to complete the add-back; extraction_building_psf_median
+                # is still reported as the lot-clean $/SF). When extraction_land_caveat
+                # is True the subject's LAND line is itself rich — prefer the
+                # equalization land argument over extraction's add-back.
+                "extraction_building_psf_median": (
+                    round(ext_bpsf_median, 1) if ext_bpsf_median is not None else None
+                ),
+                "extraction_n": len(ext_bpsf_vals),
+                "extraction_subject_land": subject_land,
+                "extraction_indicated_value": extraction_indicated_value,
+                "extraction_gap_vs_emv": extraction_gap,
+                "extraction_angle": extraction_angle,
+                "extraction_land_caveat": extraction_land_caveat,
+                "extraction_basis": (
+                    "sale − county assessed land = building residual; building $/SF × "
+                    "subject SF + subject assessed land (TARE Ch.19 extraction). "
+                    "Lot-size-robust — replaces the flat $/SF on a lot-outlier subject."
+                ),
                 "sales_angle": sales_angle,
                 "sales_angle_note": (
                     "indicated median is BELOW EMV — sales-based angle present"
@@ -803,7 +874,8 @@ def triage(data: dict, baseline_emv: float | None = None) -> dict:
                 "lot_match_weak": lot_match_weak,
                 "indicated_value_reliability": (
                     "directional_screen_only_do_not_quote — lot-unmatched/outlier "
-                    "$/SF strips land value; reconcile on lot-comparable whole prices"
+                    "$/SF strips land value; use extraction_indicated_value "
+                    "(building-residual $/SF + subject land), not the flat $/SF"
                     if lot_match_weak else "lot-matched — quotable"
                 ),
                 "sold_comp_median_own_emv_ratio": (
@@ -1084,23 +1156,40 @@ def triage(data: dict, baseline_emv: float | None = None) -> dict:
     # the failure triage-judgment.md warns about. A quotable, lot-matched indication
     # below EMV escalates to appeal_angle regardless of the killer/convergence path;
     # only the downstream worth-it gate (run-appeal-review.md Step 3) can downgrade it.
-    sci_angle_live = bool(
-        sales_comparison_indicated
-        and sales_comparison_indicated.get("sales_angle")
-        and sales_comparison_indicated.get("indicated_value_reliability")
-        != "directional_screen_only_do_not_quote"
-        and sales_comparison_indicated.get("lot_match_weak") is not True
-    )
+    # The GOVERNING sales signal is land extraction (TARE Ch.19) whenever the
+    # subject's assessed land is available — it nets land out of every comp, so it is
+    # robust to lot-size AND lot-value (lakefront/corner) differences the flat $/SF
+    # silently mishandles (4350 W Lake Harriet: flat $/SF −$215K vs extraction +$39K
+    # — the comps aren't lakefront, so the flat figure is a false angle). The flat
+    # $/SF is reported as a cross-check only. extraction_land_caveat suppresses the
+    # extraction angle — there the LAND line is the inequity and equalization, not
+    # sales, is the lever. When extraction is unavailable (no subject assessed land,
+    # e.g. a Hennepin parcel), fall back to the flat $/SF, but only when lot-matched
+    # (a lot-outlier without extraction has no quotable sales figure). Either signal,
+    # materially below EMV, escalates no_angle -> appeal_angle; only the downstream
+    # worth-it gate (run-appeal-review.md Step 3) can downgrade it.
+    _sci = sales_comparison_indicated
+    if _sci and _sci.get("extraction_indicated_value") is not None:
+        sci_angle_live = bool(_sci.get("extraction_angle"))
+        sci_gap = _sci.get("extraction_gap_vs_emv")
+        sci_med = _sci.get("extraction_indicated_value")
+        basis_txt = "Land-extraction sales indicator (building-residual $/SF + subject land)"
+    else:
+        sci_angle_live = bool(
+            _sci and _sci.get("sales_angle")
+            and _sci.get("indicated_value_reliability") != "directional_screen_only_do_not_quote"
+            and _sci.get("lot_match_weak") is not True
+        )
+        sci_gap = _sci.get("indicated_gap_vs_emv") if _sci else None
+        sci_med = _sci.get("indicated_value_median") if _sci else None
+        basis_txt = "Size+vintage+lot-matched sales"
     if sci_angle_live:
-        sci_gap = sales_comparison_indicated.get("indicated_gap_vs_emv")
-        sci_med = sales_comparison_indicated.get("indicated_value_median")
         if verdict == "no_angle":
             verdict = "appeal_angle"
         reasons.append(
-            f"Size+vintage+lot-matched sales indicate ~${sci_med:,.0f} "
-            f"(${-sci_gap:,.0f} below EMV) — quotable sales angle"
+            f"{basis_txt} indicate ~${sci_med:,.0f} (${-sci_gap:,.0f} below EMV) — quotable sales angle"
             if sci_med is not None and sci_gap is not None
-            else "Size+vintage+lot-matched sales indicate a value below EMV — quotable sales angle")
+            else f"{basis_txt} indicate a value below EMV — quotable sales angle")
 
     if verdict == "no_angle":
         conv_at_emv = (
@@ -1252,11 +1341,25 @@ def triage(data: dict, baseline_emv: float | None = None) -> dict:
     if conv_gap is not None and conv_gap < 0 and -conv_gap > illustrative_reduction:
         illustrative_reduction = -conv_gap
         illustrative_reduction_source = "sales_convergence_gap_vs_emv"
-    if sales_comparison_indicated and \
-            sales_comparison_indicated.get("indicated_gap_vs_emv") is not None and \
-            -sales_comparison_indicated["indicated_gap_vs_emv"] > illustrative_reduction:
-        illustrative_reduction = -sales_comparison_indicated["indicated_gap_vs_emv"]
-        illustrative_reduction_source = "sales_comparison_indicated_gap_vs_emv"
+    # Size the illustrative reduction off the GOVERNING sales gap — extraction when
+    # available (lot-robust), else the flat $/SF gap only when lot-matched. This keeps
+    # the worth-it gate off a land-contaminated flat gap (1 Island Rd: flat −$575K vs
+    # extraction +$40K) and off the suppressed extraction gap when land is the issue.
+    if sales_comparison_indicated:
+        if sales_comparison_indicated.get("extraction_indicated_value") is not None:
+            _sci_red_gap = (
+                sales_comparison_indicated.get("extraction_gap_vs_emv")
+                if sales_comparison_indicated.get("extraction_angle") else None
+            )
+            _sci_red_src = "extraction_gap_vs_emv"
+        elif not sales_comparison_indicated.get("lot_match_weak"):
+            _sci_red_gap = sales_comparison_indicated.get("indicated_gap_vs_emv")
+            _sci_red_src = "sales_comparison_indicated_gap_vs_emv"
+        else:
+            _sci_red_gap = None
+        if _sci_red_gap is not None and -_sci_red_gap > illustrative_reduction:
+            illustrative_reduction = -_sci_red_gap
+            illustrative_reduction_source = _sci_red_src
     tax_economics = {
         "etr": round(etr, 4),
         "etr_proxy_source": etr_source,

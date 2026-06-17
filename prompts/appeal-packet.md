@@ -57,18 +57,26 @@ the evidence brackets.
        landless unit (it overstates the condo). Route to **own-sale + EMV history** and state the absence
        of condo comps as a finding (see [`methodology.md`](methodology.md) Property type / ownership form
        gate). Treat the rest of this bullet as applying only to fee-simple SFH subjects.
-     - **Lot outlier (fee-simple SFH subjects).** When a house subject's lot is materially larger or
-       smaller than the comp set, the `$/SF × subject SF` projection **silently strips lot value and is
-       unreliable** — it values a 5-acre subject's lot at the same increment as a quarter-acre comp lot.
-       Restrict the comp set to **lot-comparable sales** and reconcile on **whole-property adjusted sale
-       prices** (or add an explicit land-adjustment line to the grid). State that the bare $/SF method
-       **understates value for a large-lot subject** (and overstates it for a small-lot subject), so the
-       reader knows why the reconciliation departs from a flat $/SF.
-     - **Lot-comparable but $/SF and whole-price diverge.** When the comps are **lot-comparable**
-       (`lot_outlier` is false) yet the **$/SF** and **whole-price** conclusions still diverge materially
-       (~10%+), **prefer the whole-price median for similarly-sized homes** (it carries land value intact) and
-       report the $/SF figure as a **cross-check**, noting that $/SF mechanically **understates** a
-       mid-pack-but-larger-lot subject even within a comparable-lot set.
+     - **Lot outlier / lot-value difference → use LAND EXTRACTION, not flat $/SF.** When the subject's lot
+       differs from the comp set in **size** (a 5-acre subject vs quarter-acre comps) **or value** (a
+       lakefront/corner premium the comps lack), the `$/SF × subject SF` projection **silently strips land
+       value and is unreliable** — it credits the subject's land at the comps' increment. The fix is the
+       **extraction method** (TARE Ch. 19), which the triage computes for you: subtract each comp's
+       **county-assessed land** from its sale price to isolate the **building residual**, take the building
+       `$/SF`, and rebuild the subject value as **building $/SF × subject SF + the subject's own assessed
+       land**. This nets land out of every comp, so it is robust for any lot. Quote
+       **`sales_comparison_indicated.extraction_indicated_value`** (with `extraction_n` and the building
+       `$/SF` median) as the governing sales figure; report the flat $/SF as a cross-check and note it
+       under/overstates a large/small-lot subject. The method leans on the **county's own land number**,
+       which the assessor cannot easily disown.
+       - **Land-line caveat (when extraction does NOT apply).** Extraction trusts the assessor's land
+         figure. When the subject's **land line is itself the dispute** (`extraction_land_caveat` is true —
+         assessed land $/SF at/above its peer band, not a small-lot artifact), the add-back re-imports the
+         contested land value and extraction **overstates**. There the lever is **equalization on the land
+         line** (*Federated Mutual*), not the sales approach — do not quote `extraction_indicated_value`.
+       - **No subject assessed land (some Hennepin parcels):** `extraction_indicated_value` is null; the
+         building `$/SF` median is still reported. Source the subject's land from PINS / the county card to
+         complete the add-back, or fall back to lot-comparable sales.
    - **Equalization** — when the subject's assessed $/SF sits above its peer group (independent basis,
      *Federated Mutual*).
    - **Condition / CAMA-error correction** — where the county's grade, condition, SF, or basement finish
