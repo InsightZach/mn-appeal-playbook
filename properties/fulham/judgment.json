@@ -1,0 +1,101 @@
+{
+  "_doc": "Agent-authored judgment for 1589 Fulham St — the irreducible per-property inputs (vetted comps with listing-verified condition/quality grades, confirmed rates, narrative beats). build_packet.py derives the concluded value, grids, trend, and economics from this. Render: uv run python -m scripts.build_packet properties/fulham/judgment.json --output /tmp/review_fulham/packet.html",
+  "meta": {
+    "assessment_year": 2026,
+    "payable_year": 2027,
+    "brand": "Residential Property Tax Appeal",
+    "report_title": "Assessment Appeal — 1589 Fulham St, Lauderdale",
+    "assessment_date": "January 2, 2026",
+    "tax_rate": 0.0147,
+    "banner": "LIVE REVIEW — Ramsey assessment + sale data; structure from county cards (Beacon); condition + quality verified on listing photos. Not a filed appeal."
+  },
+  "subject": {
+    "address": "1589 Fulham St, Lauderdale, MN 55108",
+    "pid": "20-29-23-21-0081",
+    "year_built": 1923,
+    "absf": 1440,
+    "land": 182600,
+    "emv_total": 533800,
+    "emv_building": 351200,
+    "lot_acres": 0.35,
+    "plat_name": "Lauderdale",
+    "style": "1923 stucco two-story — original; 1,440 SF above grade, unfinished basement, no garage",
+    "assessed_bpsf": 244
+  },
+  "assessments": [
+    {"assess_year": 2024, "tax_year": 2025, "emv_land": 182600, "emv_building": 334900, "emv_total": 517500},
+    {"assess_year": 2025, "tax_year": 2026, "emv_land": 182600, "emv_building": 329900, "emv_total": 512500},
+    {"assess_year": 2026, "tax_year": 2027, "emv_land": 182600, "emv_building": 351200, "emv_total": 533800}
+  ],
+  "rates": {
+    "bsmt_psf": 50.0,
+    "gar_psf": 30.0,
+    "econ_psf_per_sf": 0.06,
+    "time_label": "+0.25% / month to 1/2/2026",
+    "quality_label": "±5–8% per grade step",
+    "condition_label": "0% original · −10% updated · −25% renovated (cap)"
+  },
+  "comps": [
+    {"address": "1704 Eustis St", "year_built": 1914, "sale_price": 247000, "sale_date": "Mar 2025",
+     "land": 57500, "absf": 1020, "fin_bsmt_sf": 275, "garage_sf": 240,
+     "time_pct": 2.5, "quality_pct": 8, "condition_pct": 0, "descriptor": "Original bungalow", "role": "central"},
+    {"address": "1953 Carl St", "year_built": 1939, "sale_price": 400000, "sale_date": "Sep 2025",
+     "land": 118300, "absf": 1520, "fin_bsmt_sf": 600, "garage_sf": 480,
+     "time_pct": 1.0, "quality_pct": 8, "condition_pct": 0, "descriptor": "Original rambler, finished rec", "role": "central"},
+    {"address": "2307 Ione St", "year_built": 1915, "sale_price": 315000, "sale_date": "Jan 2025",
+     "land": 56900, "absf": 1330, "fin_bsmt_sf": 0, "garage_sf": 216,
+     "time_pct": 3.0, "quality_pct": 5, "condition_pct": -10, "descriptor": "Updated interior", "role": "central"},
+    {"address": "1369 Brompton St", "year_built": 1926, "sale_price": 560000, "sale_date": "Sep 2025",
+     "land": 129800, "absf": 1210, "fin_bsmt_sf": 0, "garage_sf": 484,
+     "time_pct": 1.0, "quality_pct": -8, "condition_pct": -25,
+     "descriptor": "Renovated + addition (condition capped at −25%; upper bracket)", "role": "ceiling"},
+    {"address": "1829 Fulham St", "year_built": 1938, "sale_price": 265000, "sale_date": "Oct 2025",
+     "land": 67000, "absf": 690, "fin_bsmt_sf": 450, "garage_sf": 576,
+     "time_pct": 0.75, "quality_pct": 8, "condition_pct": 0,
+     "descriptor": "Original, large finished basement — only 690 SF above grade, set aside (context)", "role": "context"}
+  ],
+  "equalization": {
+    "intro": "Twelve size-matched neighborhood homes at their assessed values. The subject's building is assessed near the top of the range despite being original and lacking a finished basement or garage.",
+    "subject_assessed_bpsf": 244,
+    "peers": [
+      {"address": "1546 Branston St", "year_built": 1941, "lot_acres": 0.22, "emv_land": 138600, "emv_building": 206000, "sf": 1536},
+      {"address": "1577 Fulham St", "year_built": 1923, "lot_acres": 0.15, "emv_land": 150400, "emv_building": 183700, "sf": 1188},
+      {"address": "2111 Dudley Ave", "year_built": 1931, "lot_acres": 0.26, "emv_land": 164700, "emv_building": 321700, "sf": 1871},
+      {"address": "1403 Chelmsford St", "year_built": 1915, "lot_acres": 0.17, "emv_land": 133600, "emv_building": 263100, "sf": 1430},
+      {"address": "2339 Valentine Ave", "year_built": 1913, "lot_acres": 0.34, "emv_land": 227100, "emv_building": 287100, "sf": 1472},
+      {"address": "1528 Branston St", "year_built": 1921, "lot_acres": 0.26, "emv_land": 160800, "emv_building": 337500, "sf": 1664},
+      {"address": "1736 Malvern St", "year_built": 1926, "lot_acres": 0.19, "emv_land": 82000, "emv_building": 264900, "sf": 1211},
+      {"address": "1517 Chelmsford St", "year_built": 1928, "lot_acres": 0.17, "emv_land": 129800, "emv_building": 409700, "sf": 1748},
+      {"address": "2371 Chilcombe Ave", "year_built": 1911, "lot_acres": 0.17, "emv_land": 129800, "emv_building": 469800, "sf": 1845},
+      {"address": "2377 Valentine Ave", "year_built": 1919, "lot_acres": 0.17, "emv_land": 129800, "emv_building": 328500, "sf": 1128}
+    ],
+    "chart_peers": [
+      {"sf": 1389, "bpsf": 148, "label": "1389 Grantham"},
+      {"sf": 1140, "bpsf": 169, "label": "1829 Fulham"},
+      {"sf": 1271, "bpsf": 170, "label": "1464 Chelmsford"},
+      {"sf": 1356, "bpsf": 176, "label": "2395 Chilcombe"},
+      {"sf": 1410, "bpsf": 178, "label": "1712 Carl"},
+      {"sf": 1430, "bpsf": 188, "label": "1812 Carl"},
+      {"sf": 1702, "bpsf": 193, "label": "2338 Como"},
+      {"sf": 1110, "bpsf": 198, "label": "1772 Eustis"},
+      {"sf": 1019, "bpsf": 208, "label": "1707 Eustis"},
+      {"sf": 1584, "bpsf": 232, "label": "2222 Hendon"},
+      {"sf": 1594, "bpsf": 256, "label": "1425 Grantham (reno)"},
+      {"sf": 1339, "bpsf": 304, "label": "1369 Brompton (reno)"}
+    ],
+    "chart_caption": "Assessed building $/SF vs. finished SF — subject (highlighted, $244) vs. size-matched neighborhood homes, with the neighborhood trend line. The subject sits ABOVE the trend; only renovated homes are higher.",
+    "land_observation": "The subject's land is assessed in the lower third of its peers — fairly assessed. No land adjustment is sought; the entire issue is the building line.",
+    "building_observation": "The subject's building is assessed at <strong>$244/SF of above-grade area — the top quartile of comparable homes</strong> (neighborhood median ≈ ${peer_median_bpsf}/SF), despite being original and lacking a finished basement or garage. Equalization corroborates the sales conclusion; the request rests on the sales evidence.",
+    "indicated_note": "Building pulled to the neighborhood trend (${eq_psf}/SF at {subject_absf:,} SF, vs the assessed $244) = ${eq_psf} × {subject_absf:,} building + $182,600 land. Corroboration, not the requested value — the sales approach governs."
+  },
+  "narrative": {
+    "sales_subtitle": "Primary method. Five arm's-length sales of similar-age homes within ~1 mile, each reduced to its above-grade value and adjusted to the subject as of January 2, 2026.",
+    "sales_intro": "The subject has no finished basement and no garage, so each comp's basement and garage are removed before comparison. Structure is from the county's record cards; condition and construction quality were verified on listing photos.",
+    "subject_finding_title": "An original home, assessed like an updated one with a finished basement and garage",
+    "subject_finding_body": "1589 Fulham is an <strong>original 1923 home</strong> — period kitchen and baths, original windows and woodwork — with <strong>1,440 SF above grade, an unfinished basement, and no garage</strong>. The 2026 building assessment rose to $351,200 ($244/SF of above-grade area), the rate of homes that are updated and/or carry finished basements and garages this one does not have.",
+    "sales_finding_title": "Comparable sales indicate about ${concluded:,}",
+    "sales_finding_body": "Recent arm's-length sales of similar-age homes nearby — reduced to their above-grade value and adjusted to the subject — bracket it and indicate a median of <strong>${concluded:,}</strong> (mean ~${concluded_mean:,}), about <strong>{reduction_pct}% below</strong> the $533,800 assessment. The equalization analysis below shows the building assessed above the neighborhood, corroborating the same conclusion.",
+    "sales_reconciliation": "The adjusted comps <strong>bracket the subject</strong>. The three size-matched, fully-adjustable homes indicate a median of <strong>${concluded:,}</strong> (mean ~${concluded_mean:,}). The renovated 1369 Brompton, its condition capped at the credible −25% and carried at reduced weight, sets the upper bracket at ~${ceiling_value:,}, confirming the subject sits below renovated homes. We adopt the median, <strong>${concluded:,}</strong>. (1829 Fulham is set aside — only 690 SF above grade, barely half the subject — shown in 4.1 for context.)",
+    "conclusion": "1589 Fulham is a well-kept but original 1923 home with 1,440 SF above grade, an unfinished basement, and no garage. For 2026 the county raised its building assessment to $351,200 ($244/SF of above-grade area) — the rate of updated homes that also carry finished basements and garages this one does not. Three size-matched sales, reduced to their above-grade value and adjusted to the subject, indicate a median of <strong>${concluded:,}</strong> (mean ~${concluded_mean:,}); the renovated-plus-addition 1369 Brompton ($560,000), even with condition capped, ceilings near ${ceiling_value:,}, and 1829 Fulham is set aside (only 690 SF above grade). Equalizing the building line to the neighborhood trend independently indicates about ${eq_total:,}. We respectfully request the 2026 estimated market value be reduced from $533,800 to <strong>${concluded:,}</strong> — a reduction of ${reduction:,} ({reduction_pct}%), entirely on the over-stated building line (~${annual_savings:,}/year in tax at the current rate)."
+  }
+}

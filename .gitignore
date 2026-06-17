@@ -14,6 +14,12 @@ __pycache__/
 examples/raw/
 *.cache
 
+# Per-property working data — raw scrapes / generated output may carry owner PII.
+# The sanitized judgment.json worked example IS tracked (it's the demonstration).
+properties/**/collected_data.json
+properties/**/beacon.json
+properties/**/packet.html
+
 # Internal working docs (never ship)
 HANDOFF.md
 .workflows/

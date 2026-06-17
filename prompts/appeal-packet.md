@@ -174,15 +174,36 @@ Produce the packet narrative in this order:
 Write plainly and factually, in the register of one appraiser talking to another. No filler, no
 overstatement, no citing automated-estimate sources as evidence. Flag every assumption.
 
-## Rendering — use the framework, don't hand-build HTML
+## Rendering — write a `judgment.json`, run `build_packet`; never a per-property script
 
-The branded HTML packet is produced by the report framework in [`report/`](../report/) —
-`generate_appeal_report(data)` renders every section from one data dict. The `$/SF` adjustment grid and
-supported-value math live in `report/shared_components.render_adjustment_grid` (pass
-`adjustment_grid_subject_sf` to switch it into $/SF mode). The equalization chart is a native scatter
-(`building_emv_chart`). See [`scripts/render_sample.py`](../scripts/render_sample.py) for the complete data
-contract worked end-to-end — it generates `examples/sample-appeal-packet.html`. Assemble the dict from your
-analysis and call the generator; set `meta.brand` to the firm name. Do not re-implement the HTML by hand.
+**Do not hand-build the data dict, and do not write a `render_<property>.py`.** The branded HTML packet is
+produced deterministically by [`scripts/build_packet.py`](../scripts/build_packet.py), which assembles the
+framework dict and renders it through `report.appeal_generator`. Your job is to author one small
+**`judgment.json`** — the irreducible per-property judgment that no script can make for you:
+
+- **`comps`** — the comps you vetted, each with its Beacon structure (`absf`, `fin_bsmt_sf`, `garage_sf`,
+  `land`), its sale, and your **listing-verified** `quality_pct` / `condition_pct` grades and `descriptor`.
+  Tag each with a **`role`**: `central` (drives the concluded value), `ceiling` (a renovated/superior comp,
+  condition capped at −25%, carried as the upper bracket — never in the median), `context` (shown in the 4.1
+  sales table only, e.g. a sale outside the ±30% above-grade band), or `exclude`.
+- **`rates`** — the confirmed `bsmt_psf` / `gar_psf` / `econ_psf_per_sf` and the schedule labels.
+- **`equalization.peers`** + **`chart_peers`** — the neighborhood assessment set and the $/SF scatter.
+- **`narrative`** — the advocacy prose, written with `{concluded}`, `{reduction}`, `{eq_total}`, … placeholders.
+
+`build_packet` then **derives** the conclusion (the median of the `central` comps' indicated values — you
+never type the number), the reduction, the savings, the equalization trend, and every grid, and templates
+your narrative against those figures so the prose can't contradict the arithmetic. Run it:
+
+```
+uv run python -m scripts.build_packet properties/<slug>/judgment.json \
+    [--analysis properties/<slug>/analysis.json] [--beacon properties/<slug>/beacon.json] \
+    --output properties/<slug>/packet.html
+```
+
+See [`properties/fulham/judgment.json`](../properties/fulham/judgment.json) for the worked example and
+[`scripts/render_sample.py`](../scripts/render_sample.py) for the full framework data contract. Set
+`meta.brand` to the firm name. The per-comp extraction math is the single source of truth in
+`report.shared_components.extraction_comp_indication` (shared by the grid and the derived conclusion).
 
 **Use the DERIVED rates, not authored numbers.** Build the `adjustment_schedule` and `adjustment_grid` from
 the data, not by hand: pass the triage `sales_comparison_indicated.derived_adjustments` (the regression

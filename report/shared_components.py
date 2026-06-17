@@ -1402,6 +1402,36 @@ def render_adjustment_grid(comps: list[dict], excluded_note: str = "", subject_s
 # -- 15b. Extraction adjustment grid (above-grade basis) -----------------
 
 
+def extraction_comp_indication(comp: dict, subject_absf: float, subject_land: float,
+                               bsmt_psf: float = 50.0, gar_psf: float = 30.0,
+                               econ_psf_per_sf: float = 0.06) -> dict | None:
+    """One comp's above-grade extraction math — the SINGLE source of truth shared by
+    `render_extraction_grid` (display) and `scripts/build_packet.py` (the derived
+    conclusion). Returns the intermediate terms and the indicated subject value, or
+    None when the comp lacks a sale price or above-grade SF.
+
+    comp keys: {sale_price, land, absf, fin_bsmt_sf, garage_sf, time_pct,
+                quality_pct, condition_pct}.
+    """
+    sale = float(comp.get("sale_price") or 0)
+    land = float(comp.get("land") or 0)
+    absf = float(comp.get("absf") or 0)
+    if not (sale and absf):
+        return None
+    fin = float(comp.get("fin_bsmt_sf") or 0)
+    gar = float(comp.get("garage_sf") or 0)
+    t = float(comp.get("time_pct") or 0)
+    q = float(comp.get("quality_pct") or 0)
+    cd = float(comp.get("condition_pct") or 0)
+    agval = sale - land - fin * bsmt_psf - gar * gar_psf
+    agpsf = agval / absf
+    size = econ_psf_per_sf * (absf - subject_absf)   # smaller comp → higher $/SF → adjust toward subject
+    adj = (agpsf + size) * (1 + t / 100 + q / 100 + cd / 100)
+    ind = round(adj * subject_absf + subject_land)
+    return {"above_grade_value": agval, "above_grade_psf": agpsf, "size_adj_psf": size,
+            "adjusted_psf": adj, "indicated_value": ind}
+
+
 def render_extraction_grid(comps: list[dict], subject_absf: float, subject_land: float,
                            bsmt_psf: float = 50.0, gar_psf: float = 30.0,
                            econ_psf_per_sf: float = 0.06, note: str = "") -> str:
@@ -1422,19 +1452,18 @@ def render_extraction_grid(comps: list[dict], subject_absf: float, subject_land:
     cell = f'style="padding:4pt 6pt;border-bottom:1px solid {BORDER};"'
     body, inds = [], []
     for c in comps:
+        m = extraction_comp_indication(c, subject_absf, subject_land, bsmt_psf, gar_psf, econ_psf_per_sf)
+        if m is None:
+            continue
         sale = float(c.get("sale_price") or 0)
         land = float(c.get("land") or 0)
         absf = float(c.get("absf") or 0)
         fin = float(c.get("fin_bsmt_sf") or 0)
         gar = float(c.get("garage_sf") or 0)
-        if not (sale and absf):
-            continue
         t, q, cd = float(c.get("time_pct") or 0), float(c.get("quality_pct") or 0), float(c.get("condition_pct") or 0)
-        agval = sale - land - fin * bsmt_psf - gar * gar_psf
-        agpsf = agval / absf
-        size = econ_psf_per_sf * (absf - subject_absf)   # smaller comp → higher $/SF → adjust toward subject
-        adj = (agpsf + size) * (1 + t / 100 + q / 100 + cd / 100)
-        ind = round(adj * subject_absf + subject_land)
+        agval, agpsf, size, adj, ind = (
+            m["above_grade_value"], m["above_grade_psf"], m["size_adj_psf"],
+            m["adjusted_psf"], m["indicated_value"])
         inds.append(ind)
         desc = _esc(c.get("descriptor") or "")
         addr_cell = (f'<td {cell}>{_esc(c.get("address"))}'
