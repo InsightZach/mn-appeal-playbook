@@ -82,6 +82,14 @@ Relax in this order when needed: style → year → size → neighborhood. Relax
     precise number — bracket the subject as inferior/superior/similar.
 - **Gross-adjustment thresholds:** < 50% reliable; 50–75% reduced weight; 75–100% minimal weight;
   > 100% do not use the comp.
+- **Condition adjustment has a credible cap (~one to two grade steps, ≤ ~25%).** A single condition step
+  is ~10–15%; "superior/renovated → subject" tops out around −25%. A comp that would need MORE than that —
+  a **fully renovated home, especially one with an addition** — is a different product, not a condition
+  variant: **exclude it from the grid** (it exceeds the gross-adjustment threshold) and cite it only as a
+  **ceiling** for context. Do not manufacture a −40%+ condition adjustment to force it into range — that is
+  the tell that it isn't comparable. (This reconciles with "bracket the subject": keep a superior comp for
+  the upper bracket only when its total adjustment is within the credible range; an updated comp at −10% is
+  a fine bracket, a renovated-plus-addition comp is not.)
 - **Bracket the subject on FEATURES, not price** (TARE Ch. 21: *"it is improper to select comparable
   properties based solely on price"*) — at least one comp adjusting up and one down, so the indicated value
   is interpolated, not extrapolated.
