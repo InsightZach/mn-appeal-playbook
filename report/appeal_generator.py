@@ -222,10 +222,11 @@ def _build_sales_comparison_section(data: dict) -> str:
     recent_sales = data.get("recent_sales")
     adjustment_schedule = data.get("adjustment_schedule")
     adjustment_grid = data.get("adjustment_grid")
+    extraction_grid = data.get("extraction_grid")
     sales_recon = data.get("sales_reconciliation")
     sales_indicated = data.get("sales_indicated_value")
 
-    has_any = any([recent_sales, adjustment_schedule, adjustment_grid])
+    has_any = any([recent_sales, adjustment_schedule, adjustment_grid, extraction_grid])
     if not has_any:
         return ""
 
@@ -262,6 +263,20 @@ def _build_sales_comparison_section(data: dict) -> str:
         grid_subject_sf = data.get("adjustment_grid_subject_sf")
         parts.append(sc.render_adjustment_grid(
             adjustment_grid, excluded_note=excluded, subject_sf=grid_subject_sf))
+
+    if extraction_grid:
+        # Above-grade extraction grid — for a subject whose lot/basement/garage differ
+        # from the comps (a flat %-of-sale grid would blow up the lot line).
+        parts.append("<h3>4.3 &nbsp; Adjustment Grid (above-grade basis)</h3>")
+        parts.append(sc.render_extraction_grid(
+            extraction_grid.get("comps") or [],
+            extraction_grid.get("subject_absf"),
+            extraction_grid.get("subject_land"),
+            bsmt_psf=extraction_grid.get("bsmt_psf", 50.0),
+            gar_psf=extraction_grid.get("gar_psf", 30.0),
+            econ_psf_per_sf=extraction_grid.get("econ_psf_per_sf", 0.06),
+            note=extraction_grid.get("note", ""),
+        ))
 
     if sales_recon:
         parts.append("<h3>4.4 &nbsp; Reconciliation</h3>")

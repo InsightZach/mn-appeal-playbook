@@ -1399,6 +1399,85 @@ def render_adjustment_grid(comps: list[dict], excluded_note: str = "", subject_s
     )
 
 
+# -- 15b. Extraction adjustment grid (above-grade basis) -----------------
+
+
+def render_extraction_grid(comps: list[dict], subject_absf: float, subject_land: float,
+                           bsmt_psf: float = 50.0, gar_psf: float = 30.0,
+                           econ_psf_per_sf: float = 0.06, note: str = "") -> str:
+    """Above-grade adjustment grid for a subject whose lot / basement / garage differ
+    materially from the comps (where a flat percentage-of-sale grid would blow up the
+    lot line). Each comp's sale is reduced to its ABOVE-GRADE building value — remove
+    land at the county's own value, plus the finished basement (× bsmt_psf) and garage
+    (× gar_psf) the subject lacks — divided by the comp's ABSF, then adjusted to the
+    subject for size (economy of scale), quality, condition, and time. Indicated value
+    = adjusted $/SF × the subject's ABSF + the subject's own land.
+
+    Each comp: {address, year, sale_price, land, absf, fin_bsmt_sf, garage_sf,
+                time_pct, quality_pct, condition_pct, descriptor}. Returns the grid +
+    the bracketed range and median indicated value (the supported value).
+    """
+    if not comps:
+        return ""
+    cell = f'style="padding:4pt 6pt;border-bottom:1px solid {BORDER};"'
+    body, inds = [], []
+    for c in comps:
+        sale = float(c.get("sale_price") or 0)
+        land = float(c.get("land") or 0)
+        absf = float(c.get("absf") or 0)
+        fin = float(c.get("fin_bsmt_sf") or 0)
+        gar = float(c.get("garage_sf") or 0)
+        if not (sale and absf):
+            continue
+        t, q, cd = float(c.get("time_pct") or 0), float(c.get("quality_pct") or 0), float(c.get("condition_pct") or 0)
+        agval = sale - land - fin * bsmt_psf - gar * gar_psf
+        agpsf = agval / absf
+        size = econ_psf_per_sf * (absf - subject_absf)   # smaller comp → higher $/SF → adjust toward subject
+        adj = (agpsf + size) * (1 + t / 100 + q / 100 + cd / 100)
+        ind = round(adj * subject_absf + subject_land)
+        inds.append(ind)
+        desc = _esc(c.get("descriptor") or "")
+        addr_cell = (f'<td {cell}>{_esc(c.get("address"))}'
+                     + (f'<br><span style="font-size:0.82em;color:#666;">{desc}</span>' if desc else "") + "</td>")
+        body.append(
+            f"<tr>{addr_cell}"
+            f"<td {cell}>{_money(sale)}</td><td {cell}>&minus;{_money(land)}</td>"
+            f"<td {cell}>&minus;{_money(fin * bsmt_psf)}</td><td {cell}>&minus;{_money(gar * gar_psf)}</td>"
+            f"<td {cell}>{_money(agval)}</td><td {cell}>{absf:,.0f}</td><td {cell}>${agpsf:,.0f}</td>"
+            f"<td {cell}>{size:+.0f}</td><td {cell}>{q:+.0f}% / {cd:+.0f}%</td><td {cell}>+{t:g}%</td>"
+            f"<td {cell}>${adj:,.0f}</td><td {cell}><strong>{_money(ind)}</strong></td></tr>"
+        )
+    if not inds:
+        return ""
+    srt = sorted(inds)
+    med = srt[len(srt) // 2] if len(srt) % 2 else (srt[len(srt) // 2 - 1] + srt[len(srt) // 2]) / 2
+    heads = ["Comparable", "Sale", "&minus; Land*", "&minus; Fin. bsmt†", "&minus; Garage†",
+             "= Above-grade", "ABSF", "$/SF", "Size‡", "Qual / Cond", "Time", "Adj $/SF", "Indicated"]
+    head = "".join(f'<th style="padding:5pt 6pt;text-align:left;">{h}</th>' for h in heads)
+    footnote = note or (
+        f"*Land at the county's own assessed value. †The subject's finished-basement and garage "
+        f"(${bsmt_psf:,.0f}/SF, ${gar_psf:,.0f}/SF) are removed from each comp so above-grade is compared to "
+        f"above-grade. ‡Economy of scale (~${econ_psf_per_sf*100:.0f}/SF per 100 SF)."
+    )
+    stat = (
+        f'<div class="stats" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));'
+        f'gap:0.6rem;margin:0.6rem 0;">'
+        + "".join(
+            f'<div class="stat" style="background:{LIGHT};border-radius:6px;padding:0.6rem;text-align:center;">'
+            f'<div class="value" style="font-size:1.2rem;font-weight:700;color:{NAVY};">{v}</div>'
+            f'<div class="label" style="font-size:0.78rem;color:#666;">{l}</div></div>'
+            for v, l in [(f"{_money(min(inds))}–{_money(max(inds))}", f"Adjusted range ({len(inds)} comps, brackets subject)"),
+                         (_money(med), "Median indicated — supported value")])
+        + "</div>"
+    )
+    return (
+        f'<table style="width:100%;border-collapse:collapse;font-size:0.74rem;margin:0.5rem 0;">'
+        f'<thead><tr style="background:{NAVY};color:{WHITE};font-size:0.72rem;">{head}</tr></thead>'
+        f'<tbody>{"".join(body)}</tbody></table>'
+        f'<p style="font-size:0.74rem;color:#666;margin:0.2rem 0;">{footnote}</p>{stat}'
+    )
+
+
 # -- 16. Cost-to-cure itemized (single values, no ranges) ----------------
 
 
