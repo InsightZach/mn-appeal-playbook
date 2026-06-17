@@ -1444,7 +1444,8 @@ def render_extraction_grid(comps: list[dict], subject_absf: float, subject_land:
             f"<td {cell}>{_money(sale)}</td><td {cell}>&minus;{_money(land)}</td>"
             f"<td {cell}>&minus;{_money(fin * bsmt_psf)}</td><td {cell}>&minus;{_money(gar * gar_psf)}</td>"
             f"<td {cell}>{_money(agval)}</td><td {cell}>{absf:,.0f}</td><td {cell}>${agpsf:,.0f}</td>"
-            f"<td {cell}>{size:+.0f}</td><td {cell}>{q:+.0f}% / {cd:+.0f}%</td><td {cell}>+{t:g}%</td>"
+            f"<td {cell}>{'&minus;$' if size < 0 else '+$'}{abs(size):,.0f}</td>"
+            f"<td {cell}>{q:+.0f}% / {cd:+.0f}%</td><td {cell}>+{t:g}%</td>"
             f"<td {cell}>${adj:,.0f}</td><td {cell}><strong>{_money(ind)}</strong></td></tr>"
         )
     if not inds:
@@ -1452,12 +1453,14 @@ def render_extraction_grid(comps: list[dict], subject_absf: float, subject_land:
     srt = sorted(inds)
     med = srt[len(srt) // 2] if len(srt) % 2 else (srt[len(srt) // 2 - 1] + srt[len(srt) // 2]) / 2
     heads = ["Comparable", "Sale", "&minus; Land*", "&minus; Fin. bsmt†", "&minus; Garage†",
-             "= Above-grade", "ABSF", "$/SF", "Size‡", "Qual / Cond", "Time", "Adj $/SF", "Indicated"]
+             "= Above-grade", "ABSF", "$/SF", "Size ($/SF)‡", "Qual / Cond (%)", "Time (%)", "Adj $/SF", "Indicated"]
     head = "".join(f'<th style="padding:5pt 6pt;text-align:left;">{h}</th>' for h in heads)
     footnote = note or (
         f"*Land at the county's assessed value. †The subject's finished-basement and garage "
         f"(${bsmt_psf:,.0f}/SF, ${gar_psf:,.0f}/SF) are removed from each comp so above-grade is compared to "
-        f"above-grade. ‡Economy of scale (~${econ_psf_per_sf*100:.0f}/SF per 100 SF)."
+        f"above-grade. ‡Size is a <strong>$/SF</strong> adjustment to the building rate (economy of scale, "
+        f"~${econ_psf_per_sf*100:.0f}/SF per 100 SF of above-grade); quality, condition, and time are "
+        f"percentages of the building value. Adjusted $/SF = ($/SF + Size) × (1 + Qual + Cond + Time)."
     )
     stat = (
         f'<div class="stats" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));'

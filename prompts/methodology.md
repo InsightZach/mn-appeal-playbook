@@ -53,7 +53,11 @@ equalization** (and note that any equalization land percentile is meaningless fo
 Tighter is better, but over-filtering leaves you no comps. Rough hierarchy:
 
 1. **Same neighborhood / plat** — a plat-mate beats a comp two neighborhoods over.
-2. **±30% finished square footage** — same size band.
+2. **±30% finished square footage — measured on ABOVE-GRADE (ABSF), not total finished.** A comp can pass
+   the ±30% band on total finished SF yet be far off above-grade if it carries a big finished basement
+   (e.g. a 1,140 SF "match" that is only 690 SF above grade + 450 finished basement is a −52% above-grade
+   mismatch — not a size comp). Match on ABSF (from Beacon); the finished basement is a separate adjustment
+   line, not size.
 3. **±20 years built** — same construction era.
 4. **Same style** — bungalow to bungalow, not to a split-level.
 5. **Recent, arm's-length sales** — within ~2 years of the effective date; older sales need a time
