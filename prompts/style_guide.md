@@ -15,6 +15,11 @@ to be sold to. This guide governs the copy in every packet and no-appeal finding
 - "essentially identical" / "essentially matching" → state the actual gap ("$200 off", "$5K off")
 - "no defensible angle" → "no clear angle"
 - "the strongest evidence the county would use" → "if we filed, the county would lead with"
+- **"the county's own data confirms / shows / proves..."** (and "the county can't argue with its own
+  numbers", "by the county's own figures", "the county's own data") → drop the gotcha framing and **state
+  the finding plainly**: "the assessment records show the building at $244/SF, above the $198 neighborhood
+  median." Naming the *source* once is fine ("at the county's assessed land value"); the rhetorical "their
+  OWN data" device is not — it reads as preachy and annoys the assessor.
 - **Never** use the word "comprehensive."
 
 ## Write as ADVOCACY, not a methodology essay (the cardinal rule)

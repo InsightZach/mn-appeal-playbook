@@ -1455,7 +1455,7 @@ def render_extraction_grid(comps: list[dict], subject_absf: float, subject_land:
              "= Above-grade", "ABSF", "$/SF", "Size‡", "Qual / Cond", "Time", "Adj $/SF", "Indicated"]
     head = "".join(f'<th style="padding:5pt 6pt;text-align:left;">{h}</th>' for h in heads)
     footnote = note or (
-        f"*Land at the county's own assessed value. †The subject's finished-basement and garage "
+        f"*Land at the county's assessed value. †The subject's finished-basement and garage "
         f"(${bsmt_psf:,.0f}/SF, ${gar_psf:,.0f}/SF) are removed from each comp so above-grade is compared to "
         f"above-grade. ‡Economy of scale (~${econ_psf_per_sf*100:.0f}/SF per 100 SF)."
     )
@@ -1532,7 +1532,7 @@ def render_equalization_table(comps: list[dict], subject: dict) -> str:
     note = (
         f'<p style="margin:0.4rem 0;font-size:0.9rem;">Peer median assessed building value: '
         f'<strong>${med:,.0f}/SF</strong>. The subject is assessed at <strong>${subj_bpsf:,.0f}/SF</strong> '
-        f'— {"above" if subj_bpsf > med else "at/below"} the peer median on the county’s own figures.</p>'
+        f'— {"above" if subj_bpsf > med else "at/below"} the peer median.</p>'
     )
     return (
         f'<table style="width:100%;border-collapse:collapse;font-size:0.8rem;margin:0.5rem 0;">'
