@@ -294,6 +294,7 @@ def _build_equalization_section(data: dict) -> str:
     """Section 5: Equalization Support (cross-check against county data)."""
     neighbor = data.get("neighbor")
     equalization_table = data.get("equalization_table")
+    equalization_grid = data.get("equalization_grid")
     equalization = data.get("equalization")
     building_emv_chart = data.get("building_emv_chart")
     land_observation = data.get("land_value_observation")
@@ -304,6 +305,7 @@ def _build_equalization_section(data: dict) -> str:
     has_any = any([
         neighbor,
         equalization_table,
+        equalization_grid,
         equalization,
         building_emv_chart,
         land_observation,
@@ -321,6 +323,19 @@ def _build_equalization_section(data: dict) -> str:
     parts.append(sc.render_section_subtitle(subtitle))
 
     section_num = 1
+    if equalization_grid:
+        # Assessed land + building $/SF grid: the subject vs its neighborhood peers
+        # on the county's own values (the Federated Mutual basis).
+        parts.append(
+            f"<h3>5.{section_num} &nbsp; Equalization Table &mdash; "
+            f"Subject vs. Neighborhood Comparables (assessed $/SF)</h3>"
+        )
+        eq_grid_intro = data.get("equalization_grid_intro")
+        if eq_grid_intro:
+            parts.append(f'<p style="margin:0.3rem 0;">{_esc(eq_grid_intro)}</p>')
+        parts.append(sc.render_equalization_table(equalization_grid, subject))
+        section_num += 1
+
     if equalization_table:
         parts.append(
             f"<h3>5.{section_num} &nbsp; Equalization Table &mdash; "

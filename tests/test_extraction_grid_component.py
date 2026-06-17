@@ -6,7 +6,7 @@ that renders it as section 4.3. Pins: the build-down math (sale − land − bas
 and that an `extraction_grid` data field actually triggers the Sales Comparison
 section (the bug that silently dropped the whole grid).
 """
-from report.shared_components import render_extraction_grid
+from report.shared_components import render_extraction_grid, render_equalization_table
 from report.appeal_generator import generate_appeal_report
 
 COMPS = [
@@ -51,3 +51,38 @@ def test_extraction_grid_field_triggers_sales_section():
     html = generate_appeal_report(data)
     assert "Sales Comparison Approach" in html
     assert "Adjustment Grid" in html
+
+
+# --- Equalization grid component ---
+
+EQ_PEERS = [
+    dict(address="1546 Branston St", year_built=1941, lot_acres=0.22, emv_land=138_600, emv_building=206_000, sf=1536),
+    dict(address="1573 Fulham St", year_built=1924, lot_acres=0.15, emv_land=150_400, emv_building=428_100, sf=1735),
+    dict(address="2333 Chilcombe Ave", year_built=1909, lot_acres=0.15, emv_land=134_400, emv_building=385_700, sf=1220),
+]
+EQ_SUBJECT = {"address": "1589 Fulham St, Lauderdale", "year_built": 1923,
+              "lot_acres": 0.35, "emv_land": 182_600, "emv_building": 351_200, "sf": 1440}
+
+
+def test_equalization_table_shows_peers_and_subject_with_psf():
+    html = render_equalization_table(EQ_PEERS, EQ_SUBJECT)
+    assert "<table" in html
+    assert "1573 Fulham St" in html and "1546 Branston St" in html   # peers in the grid
+    assert "(subject)" in html                                        # subject row labelled
+    assert "$244" in html                                             # subject bldg $/SF 351,200/1440
+    assert "Peer median assessed building" in html
+
+
+def test_equalization_grid_field_triggers_section():
+    data = {
+        "meta": {"assessment_year": 2026, "payable_year": 2027},
+        "subject": EQ_SUBJECT,
+        "equalization_grid": EQ_PEERS,
+    }
+    html = generate_appeal_report(data)
+    assert "Equalization Support" in html
+    assert "Equalization Table" in html
+
+
+def test_equalization_table_empty_is_safe():
+    assert render_equalization_table([], EQ_SUBJECT) == ""

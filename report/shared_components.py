@@ -1478,6 +1478,65 @@ def render_extraction_grid(comps: list[dict], subject_absf: float, subject_land:
     )
 
 
+# -- 15c. Equalization table (assessed land + building $/SF vs peers) ----
+
+
+def render_equalization_table(comps: list[dict], subject: dict) -> str:
+    """Equalization grid: the subject and its neighborhood peers shown on the
+    COUNTY'S OWN assessed values — land $/SF and building $/SF — so the assessment
+    can be compared to comparable properties (the independent Federated Mutual
+    basis). Each row: {address, year_built, lot_acres, emv_land, emv_building, sf}.
+    The subject row is highlighted; rows are sorted by assessed building $/SF and
+    the peer median is shown so the reader can see where the subject sits.
+    """
+    if not comps:
+        return ""
+
+    def _bpsf(r):
+        sf = r.get("sf") or 0
+        return (r.get("emv_building") or 0) / sf if sf else 0
+
+    def _lpsf(r):
+        lot_sf = (r.get("lot_acres") or 0) * 43560
+        return (r.get("emv_land") or 0) / lot_sf if lot_sf else 0
+
+    subj = {**subject, "address": (subject.get("address") or "Subject").split(",")[0] + " (subject)"}
+    peers_sorted = sorted(comps, key=_bpsf)
+    peer_bpsfs = [_bpsf(c) for c in comps if _bpsf(c)]
+    med = _median(peer_bpsfs) if peer_bpsfs else 0
+    rows_data = sorted([subj] + list(comps), key=_bpsf)
+
+    cell = f'style="padding:4pt 8pt;border-bottom:1px solid {BORDER};"'
+    body = []
+    for r in rows_data:
+        is_subj = r is subj
+        tr_style = f' style="background:{LIGHT};font-weight:600;"' if is_subj else ""
+        body.append(
+            f"<tr{tr_style}>"
+            f"<td {cell}>{_esc(r.get('address'))}</td>"
+            f"<td {cell}>{_esc(r.get('year_built'))}</td>"
+            f"<td {cell}>{_ac(r.get('lot_acres'))}</td>"
+            f"<td {cell}>{_money(r.get('emv_land'))}</td>"
+            f"<td {cell}>${_lpsf(r):,.0f}</td>"
+            f"<td {cell}>{_sf(r.get('sf'))}</td>"
+            f"<td {cell}>{_money(r.get('emv_building'))}</td>"
+            f"<td {cell}><strong>${_bpsf(r):,.0f}</strong></td></tr>"
+        )
+    heads = ["Property", "Year", "Lot", "Land EMV", "Land $/SF", "SF", "Bldg EMV", "Bldg $/SF"]
+    head = "".join(f'<th style="padding:6pt 8pt;text-align:left;">{h}</th>' for h in heads)
+    subj_bpsf = _bpsf(subject)
+    note = (
+        f'<p style="margin:0.4rem 0;font-size:0.9rem;">Peer median assessed building value: '
+        f'<strong>${med:,.0f}/SF</strong>. The subject is assessed at <strong>${subj_bpsf:,.0f}/SF</strong> '
+        f'— {"above" if subj_bpsf > med else "at/below"} the peer median on the county’s own figures.</p>'
+    )
+    return (
+        f'<table style="width:100%;border-collapse:collapse;font-size:0.8rem;margin:0.5rem 0;">'
+        f'<thead><tr style="background:{NAVY};color:{WHITE};">{head}</tr></thead>'
+        f'<tbody>{"".join(body)}</tbody></table>{note}'
+    )
+
+
 # -- 16. Cost-to-cure itemized (single values, no ranges) ----------------
 
 
