@@ -72,11 +72,35 @@ result.
    good-for-study flag**. That is a property of the *script*, not a dead end — an **agent** fills these
    gaps with the tools we already have. Do this whenever the argument depends on it; do **not** shortcut to
    "the county data doesn't have it."
-   - **Condition / CAMA detail** — when a condition, grade, or cost-to-cure argument is in play, run the
-     [listing-enrichment step](../collectors/listing_enrichment.md): pull condition, photos, and structure
-     from the **owner's listing first**, then Zillow / Redfin / Realtor via the browser, or a Beacon/CAMA
-     card. (We did exactly this on 884 Ashland — the Zillow lookup showed a renovated interior and changed
-     the conclusion.) A condition argument **requires** this evidence; never assert condition from nothing.
+   - **Condition read (the structured Phase-2 step) — subject + the shortlist, not all 30.** Condition and
+     grade are the **one input the comp-set regression can't supply** (they aren't in the county API). This
+     is where the agent fills that gap. Run it whenever a condition/grade/cost-to-cure argument is in play,
+     **and always when triage set `sales_comparison_indicated.subject_condition_outlier`** (the subject's
+     condition sits outside the neighborhood — the bare median points the wrong way). Procedure:
+     1. **Source the read** via the [listing-enrichment step](../collectors/listing_enrichment.md): the
+        **owner's listing first**, then Zillow / Redfin / Realtor via the browser, or a Beacon/CAMA card.
+        (We did exactly this on 884 Ashland — the Zillow lookup showed a renovated interior and changed the
+        conclusion.) A condition argument **requires** this evidence; never assert condition from nothing.
+     2. **Read the subject + the grid-drivers, "enough not all."** Read the **subject** (hard, when it is the
+        flagged outlier) and each comp in **`sales_comparison_indicated.condition_verify_shortlist`** (the ~6
+        comps triage already ranks as the grid-drivers by effective-age proximity then distance). That is the
+        bounded ~5–7 reads — not the whole pool.
+     3. **Assign tiers on the house scales** in [`methodology.md`](methodology.md): Condition
+        (Poor / Fair / Average / Good / Excellent) and Grade (D / C / B / A).
+     4. **Bracket each comp against the subject** with `analysis/condition.py`
+        (`condition_bracket(comp_condition, subject_condition)` / `quality_bracket(...)`):
+        - **`similar`** → the supportable condition adjustment is **ZERO** (this is the *goal* — the
+          assessed-$/SF tier screen + effective-age match were selected to land here). Most shortlist comps
+          should come back `similar`. Set `condition_pct = 0` and move on; do not manufacture a number.
+        - **`unknown`** (condition not establishable) → **drop the comp**; do not guess it.
+        - **`comp_inferior` / `comp_superior`** → quantify only for a **load-bearing** comp, and **derive**
+          the magnitude — **cost-to-cure / depreciated cost** (`compute_condition_deductions` →
+          `condition_adjustment_pct(cure_dollars, comp_sale_price)`, signed: + when the comp is inferior, − when
+          superior) or a **qualitative bracket** held to inferior/superior/similar when the data won't support
+          a precise number. **Never an imported table %** (see `[[feedback-adjustments-derived-from-data]]`).
+     5. **Feed the read into the grid.** Collect the per-comp results as `condition_by_pid` and pass them to
+        `analysis.adjustment_grid.build_adjustment_inputs(...)` (Build 2 below) so the rendered grid's
+        `condition_pct` column reflects the verified read, with the rest of the rates derived by regression.
    - **Arm's-length / good-for-study verification** — the triage script's `< 0.80× own-EMV` screen is a
      cheap first pass, not the answer. For any **load-bearing comp** (the ones that drive the conclusion)
      and for the **subject's own sale**, verify good-for-study status (see

@@ -10,8 +10,10 @@ to a working assessor, not just persuasive to a layperson.
 
 You are a Minnesota residential property tax analyst preparing an assessment appeal for the current
 assessment year, effective January 2. Follow [`methodology.md`](methodology.md) exactly and write per [`style_guide.md`](style_guide.md). Lead with the
-county's own data; every adjustment must have same-type comparable support (*Diamond Lake*); reconcile to
-a value the evidence brackets.
+county's own data; **every adjustment must reflect the reactions of market participants** and be derived
+from *this* comp set with the technique the data supports (*The Appraisal of Real Estate*, 15th ed., Ch. 21
+— regression first; see [`methodology.md`](methodology.md) "Adjustment discipline"); reconcile to a value
+the evidence brackets.
 
 ## Inputs
 
@@ -157,3 +159,14 @@ supported-value math live in `report/shared_components.render_adjustment_grid` (
 (`building_emv_chart`). See [`scripts/render_sample.py`](../scripts/render_sample.py) for the complete data
 contract worked end-to-end — it generates `examples/sample-appeal-packet.html`. Assemble the dict from your
 analysis and call the generator; set `meta.brand` to the firm name. Do not re-implement the HTML by hand.
+
+**Use the DERIVED rates, not authored numbers.** Build the `adjustment_schedule` and `adjustment_grid` from
+the data, not by hand: pass the triage `sales_comparison_indicated.derived_adjustments` (the regression
+coefficients) and the comp set to `analysis.adjustment_grid.build_adjustment_inputs(comps, subject, derived,
+assess_date, condition_by_pid=...)`. It returns `adjustment_schedule` rows carrying each rate's n / R² /
+t-stat / reliability and per-comp `adjustment_grid` percentages — so the packet shows a *supportable* time /
+size / age / lot rate, and the `condition_pct` column carries the agent condition read from step 3b (same-
+tier comps = 0; quantified comps from cost-to-cure). The grid rows include `size_pct` (total-value mode); when
+you render in `$/SF` mode (`adjustment_grid_subject_sf` set) size is resolved by the reconciled $/SF and the
+derived size coefficient stands as the cross-check on the flat-$/SF assumption. When
+`derived_adjustments` is null (too few comps to regress), fall back to a qualitative grid and **say so**.

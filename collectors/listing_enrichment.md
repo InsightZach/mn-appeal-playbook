@@ -50,6 +50,20 @@ Do **not** build an automated scraper against Zillow, Realtor.com, or an MLS —
 the markup is brittle, and republishing MLS photos has licensing limits. Enrichment is a sourced input,
 not a scraping job.
 
+## From a read to a grid line — the condition tier + bracket
+
+Enrichment is the *source*; the [condition read in `run-appeal-review.md` step 3b](../prompts/run-appeal-review.md)
+is the *procedure* that turns it into a supportable adjustment. The bridge is two assignments and a bracket:
+
+1. **Assign tiers on the house scales** in [`../prompts/methodology.md`](../prompts/methodology.md) —
+   Condition (Poor / Fair / Average / Good / Excellent) and, where the county publishes it, Grade (D / C / B / A).
+2. **Bracket each grid-driver comp against the subject** with `analysis/condition.py`
+   (`condition_bracket`, `quality_bracket`): a **`similar`** result means **no condition adjustment** (the
+   supportable outcome the tier screen is built to produce); **`unknown`** means **drop the comp**; only an
+   `inferior` / `superior` *load-bearing* comp gets a quantified line, **derived** via cost-to-cure
+   (`compute_condition_deductions` → `condition_adjustment_pct`) — never an imported table %.
+3. Read **only the subject + `sales_comparison_indicated.condition_verify_shortlist`** (~5–7), not all comps.
+
 ## How it feeds the work
 
 - **Triage / judgment** ([`../prompts/triage-judgment.md`](../prompts/triage-judgment.md)) — use it to
