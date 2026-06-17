@@ -49,3 +49,25 @@ year-built + distance and $/SF analyses are skipped. Say so in any report.
 - `sf` everywhere in Hennepin records is **above-grade** SF. Ramsey's
   `LivingAreaSquareFeet` includes finished basement. Never mix counties in
   one comp set.
+
+## Structure → packet (no Beacon needed)
+
+Because Hennepin's `sf` is already above-grade (= Ramsey's Beacon `ABSF`),
+**Hennepin needs no browser structure pull.** `build_packet` / `build_finding`
+get the subject's and comps' ABSF straight from `collected_data.json` via the
+county-routed resolver (`analysis/structure.py`) — pass `--collected` (not
+`--beacon`):
+
+```
+uv run python -m scripts.build_packet properties/<slug>/judgment.json \
+    --analysis properties/<slug>/analysis.json --collected properties/<slug>/collected_data.json \
+    --output properties/<slug>/packet.html
+```
+
+So a Hennepin `judgment.json`, like a Ramsey one, carries **no hand-typed ABSF**.
+Caveat: per-comp finished-basement and garage aren't published, so the Hennepin
+grid runs a **flat above-grade comparison** (both sides 0 basement/garage —
+symmetric, conservative). Suburban Hennepin (Minnetonka etc.) with `sf: null`
+can't run the grid at all; lean on equalization + the own sale there. To add
+precision later (per-comp basement, etc.), wire a new source into
+`analysis/structure.py` — the output shape is the contract.

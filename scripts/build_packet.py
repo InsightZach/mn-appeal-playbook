@@ -31,6 +31,7 @@ import json
 import re
 from pathlib import Path
 
+from analysis.structure import resolve_structure
 from report.appeal_generator import generate_appeal_report
 from report.shared_components import extraction_comp_indication
 
@@ -133,7 +134,9 @@ def build_packet(judgment: dict, analysis: dict | None = None,
     enrichment — judgment may carry everything self-contained, or reference data
     that the spine fills. Returns the dict ready for ``generate_appeal_report``."""
     analysis = analysis or {}
-    beacon = beacon or {}
+    # County-routed structure: Beacon (Ramsey browser pull) and/or the Hennepin API's
+    # above-grade SF already in collected_data — merged into one {subject, comps} map.
+    structure = resolve_structure(beacon, collected)
 
     meta_in = dict(judgment.get("meta") or {})
     subj_in = dict(judgment.get("subject") or {})
@@ -144,9 +147,9 @@ def build_packet(judgment: dict, analysis: dict | None = None,
               "emv_building", "lot_acres", "style"):
         if subj_in.get(k) is None and a_subj.get(k) is not None:
             subj_in[k] = a_subj[k]
-    # Beacon structure for the subject — so ABSF / finished-basement / garage are
-    # parsed (scripts/parse_beacon), never hand-typed. judgment still wins if set.
-    _beacon_fill(subj_in, beacon.get("subject"))
+    # Subject structure (ABSF / finished-basement / garage) from the resolver — parsed
+    # or county-API-derived, never hand-typed. judgment still wins if set.
+    _beacon_fill(subj_in, structure.get("subject"))
 
     rates = dict(judgment.get("rates") or {})
     bsmt_psf = float(rates.get("bsmt_psf", 50.0))
@@ -169,7 +172,7 @@ def build_packet(judgment: dict, analysis: dict | None = None,
     for c in judgment.get("comps") or []:
         c = dict(c)
         pid = c.get("pid")
-        _beacon_fill(c, (beacon.get("comps") or {}).get(_norm_pid(pid)) if pid else None)
+        _beacon_fill(c, (structure.get("comps") or {}).get(_norm_pid(pid)) if pid else None)
         # Auto time adjustment: comp may set time_pct explicitly; otherwise derive it
         # from the sale date and the effective date at the confirmed monthly rate —
         # a mechanical step the agent shouldn't hand-compute.
@@ -400,7 +403,9 @@ def main():
     p.add_argument("judgment", help="Path to the agent-authored judgment.json")
     p.add_argument("--analysis", default=None, help="Triage analysis.json (spine backfill)")
     p.add_argument("--beacon", default=None, help="beacon.json (comp structure by pid)")
-    p.add_argument("--collected", default=None, help="collected_data.json (optional)")
+    p.add_argument("--collected", default=None,
+                   help="collected_data.json — the structure source for Hennepin (above-grade SF); "
+                        "Ramsey uses --beacon instead")
     p.add_argument("--output", default=None, help="Output HTML path")
     args = p.parse_args()
 

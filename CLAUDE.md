@@ -28,8 +28,10 @@ collect → triage → (browser) Beacon parse → judgment.json → build_packet
 
 1. `scripts/collect.py` — pull county data for an address → `collected_data.json`.
 2. `scripts/triage.py` — score over-assessment signals → `analysis.json` (verdict + a comp shortlist).
-3. Pull Beacon cards (browser) for the subject + shortlisted comps, then `scripts/parse_beacon.py` →
-   `beacon.json` (the ABSF / finished-basement / garage split the API lacks).
+3. Get the above-grade structure (ABSF / finished-basement / garage). **Ramsey:** pull Beacon cards
+   (browser) → `scripts/parse_beacon.py` → `beacon.json` (the split the Ramsey API lacks). **Hennepin:** no
+   browser needed — its API already returns above-grade SF; just pass `--collected` (the county-routed
+   resolver in `analysis/structure.py` handles both).
 4. **You** author a small `properties/<slug>/judgment.json` — the irreducible judgment: per comp, a PID +
    `role` + listing-verified quality/condition grades + the sale facts. **This is the only by-hand step.**
 5. `scripts/build_packet.py` — assembles the report dict and renders the HTML packet. (For a property that

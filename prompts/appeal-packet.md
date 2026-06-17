@@ -187,8 +187,11 @@ framework dict and renders it through `report.appeal_generator`. Your job is to 
   `condition_pct` grades, a `descriptor`, and a **`role`** — `central` (drives the concluded value), `ceiling`
   (a renovated/superior comp, condition capped at −25%, upper bracket only — never in the median), `context`
   (4.1 sales table only, e.g. a sale outside the ±30% above-grade band), or `exclude`. **Do NOT hand-type
-  structure.** ABSF / finished-basement / garage come from `beacon.json` (run `scripts.parse_beacon` on the
-  pulled cards) and are joined by PID; the **time adjustment is computed from `sale_date`** (override with an
+  structure.** ABSF / finished-basement / garage are joined by PID by a county-routed resolver
+  (`analysis/structure.py`): **Ramsey** from `beacon.json` (run `scripts.parse_beacon` on the pulled cards,
+  pass `--beacon`); **Hennepin/Minneapolis** straight from the API's above-grade SF already in
+  `collected_data.json` (pass `--collected` — no browser pull; the grid runs flat above-grade since per-comp
+  basement/garage aren't published). The **time adjustment is computed from `sale_date`** (override with an
   explicit `time_pct` only if needed).
 - **`rates`** — the confirmed `bsmt_psf` / `gar_psf` / `econ_psf_per_sf`, `time_pct_per_month`, and labels.
 - **`equalization.peers`** + **`chart_peers`** — the neighborhood assessment set and the $/SF scatter.

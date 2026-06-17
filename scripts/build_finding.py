@@ -30,6 +30,7 @@ import argparse
 import json
 from pathlib import Path
 
+from analysis.structure import resolve_structure
 from report.no_appeal_generator import generate_no_appeal_report
 from report.shared_components import extraction_comp_indication
 from scripts.build_packet import (
@@ -44,13 +45,13 @@ NEUTRAL_BAND = 0.02   # an indicated value within ±2% of EMV is "fairly assesse
 
 
 def build_finding(judgment: dict, analysis: dict | None = None,
-                  beacon: dict | None = None) -> dict:
+                  beacon: dict | None = None, collected: dict | None = None) -> dict:
     """Assemble the no-appeal findings data dict. Classifies the scenario from the
     derived figures and raises if the property actually clears the worth-it floor
     (it would be an appeal, not a finding). Returns the dict for
     ``generate_no_appeal_report``."""
     analysis = analysis or {}
-    beacon = beacon or {}
+    structure = resolve_structure(beacon, collected)
 
     meta_in = dict(judgment.get("meta") or {})
     subj_in = dict(judgment.get("subject") or {})
@@ -59,7 +60,7 @@ def build_finding(judgment: dict, analysis: dict | None = None,
               "emv_building", "lot_acres", "plat_name", "living_area_sf"):
         if subj_in.get(k) is None and a_subj.get(k) is not None:
             subj_in[k] = a_subj[k]
-    _beacon_fill(subj_in, beacon.get("subject"))
+    _beacon_fill(subj_in, structure.get("subject"))
 
     emv = float(subj_in.get("emv_total") or 0)
     if emv <= 0:
@@ -71,8 +72,8 @@ def build_finding(judgment: dict, analysis: dict | None = None,
                 or meta_in.get("tax_rate") or DEFAULT_ETR)
 
     # --- derive the sales indication (if the agent supplied extraction comps) ---
-    # Same machinery as build_packet: join Beacon structure, auto-time, extraction.
-    indicated = _derive_indication(judgment, analysis, beacon, subj_in, meta_in)
+    # Same machinery as build_packet: join structure, auto-time, extraction.
+    indicated = _derive_indication(judgment, analysis, structure, subj_in, meta_in)
 
     # --- classify the scenario deterministically ---
     reduction = int(round(emv - indicated)) if indicated is not None else 0
@@ -167,10 +168,10 @@ def build_finding(judgment: dict, analysis: dict | None = None,
     return data
 
 
-def _derive_indication(judgment, analysis, beacon, subj_in, meta_in) -> float | None:
+def _derive_indication(judgment, analysis, structure, subj_in, meta_in) -> float | None:
     """The indicated value used to classify the scenario. If the agent supplied
     extraction comps (role 'central'), derive the median indicated value the same
-    way build_packet does (Beacon-joined, auto-time, basement/garage credited).
+    way build_packet does (structure-joined, auto-time, basement/garage credited).
     Otherwise fall back to triage's extraction indication when it flags a sales
     angle. Returns None when there is no below-EMV indication to weigh (the common
     fairly-assessed case)."""
@@ -190,7 +191,7 @@ def _derive_indication(judgment, analysis, beacon, subj_in, meta_in) -> float | 
         inds = []
         for c in central:
             c = dict(c)
-            _beacon_fill(c, (beacon.get("comps") or {}).get(_norm_pid(c.get("pid"))) if c.get("pid") else None)
+            _beacon_fill(c, (structure.get("comps") or {}).get(_norm_pid(c.get("pid"))) if c.get("pid") else None)
             if c.get("time_pct") is None:
                 c["time_pct"] = _auto_time_pct(c.get("sale_date"), eff_iso, rates.get("time_pct_per_month", 0.25))
             m = extraction_comp_indication(c, s_absf, s_land, bsmt_psf, gar_psf, econ, s_bsmt, s_gar)
@@ -211,12 +212,14 @@ def main():
     p = argparse.ArgumentParser(description="Assemble a no-appeal findings report from a judgment.json")
     p.add_argument("judgment", help="Path to the agent-authored judgment.json (with a `finding` block)")
     p.add_argument("--analysis", default=None, help="Triage analysis.json (spine + ETR backfill)")
-    p.add_argument("--beacon", default=None, help="beacon.json (comp structure by pid, if comps given)")
+    p.add_argument("--beacon", default=None, help="beacon.json (Ramsey comp structure by pid)")
+    p.add_argument("--collected", default=None, help="collected_data.json (Hennepin structure source)")
     p.add_argument("--output", default=None, help="Output HTML path")
     args = p.parse_args()
 
     judgment = json.loads(Path(args.judgment).read_text())
-    data = build_finding(judgment, _maybe_load(args.analysis), _maybe_load(args.beacon))
+    data = build_finding(judgment, _maybe_load(args.analysis), _maybe_load(args.beacon),
+                         _maybe_load(args.collected))
     html = generate_no_appeal_report(data)
 
     banner = (judgment.get("meta") or {}).get("banner")
