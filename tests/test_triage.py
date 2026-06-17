@@ -381,6 +381,84 @@ def test_sales_comparison_indicated_is_a_documented_top_level_key():
     assert "sales_comparison_indicated" in r
 
 
+def test_thin_matched_set_recommends_expansion_with_ladder():
+    """Fewer than EXPANSION_FLOOR matched comps → an expansion recommendation
+    with the supportability-ordered ladder (time → radius → vintage → SF → tier)."""
+    r = triage(_data(sales=_matched_sales(n=3)))
+    sci = r["sales_comparison_indicated"]
+    exp = sci["expansion"]
+    assert exp is not None and exp["recommended"] is True
+    assert exp["matched_n"] == 3
+    # ladder is ordered easiest-adjustment-first, tier held last
+    assert "sales-months" in exp["ladder"][0]
+    assert "tier screen is HELD" in exp["ladder"][4]
+
+
+def test_healthy_matched_set_has_no_expansion():
+    r = triage(_data(sales=_matched_sales(n=6)))
+    assert r["sales_comparison_indicated"]["expansion"] is None
+
+
+def _eff_sale(i, effyb, sf=2000, year=1988, emv_b=280_000, lot=0.2, price=360_000):
+    return {
+        "pid": f"E{i}", "address": f"{i} Eff St", "plat_name": "OTHER",
+        "sale_price": price, "sf": sf, "year_built": year, "lot_acres": lot,
+        "effective_year_built": effyb, "emv_total": 380_000, "emv_building": emv_b,
+        "sale_date": f"2025-0{(i % 8) + 1}-12", "lat": 44.95, "lon": -93.15,
+    }
+
+
+def test_effective_age_narrows_to_condition_comparable_peers():
+    """With effective years known, the median narrows to comps within ±20
+    effective-years of the subject (drops the renovated outliers)."""
+    # subject effage = 2026 - 1968 = 58.
+    close = [_eff_sale(i, effyb=1967) for i in range(5)]   # effage ~59, gap ~1
+    far = [_eff_sale(10 + i, effyb=2008) for i in range(2)]  # effage 18, gap 40
+    r = triage(_data(
+        subject={"living_area_sf": 2000, "parcel_acres": 0.2,
+                 "year_built": 1990, "effective_year_built": 1968},
+        sales=close + far,
+    ))
+    sci = r["sales_comparison_indicated"]
+    assert sci["basis"] == "size+vintage+effective_age_matched"
+    assert sci["n"] == 5  # the 2 renovated outliers excluded
+    assert sci["subject_condition_outlier"] is False
+    assert sci["subject_effective_age"] == 58
+
+
+def test_subject_condition_outlier_is_detected_with_direction():
+    """A renovated subject (low effective age) among original comps → outlier;
+    the median understates it, and the direction note says so."""
+    # subject effage = 2026 - 2017 = 9; comps effage ~50 (gap ~41 > 20).
+    comps = [_eff_sale(i, effyb=1976) for i in range(6)]
+    r = triage(_data(
+        subject={"living_area_sf": 2000, "parcel_acres": 0.2,
+                 "year_built": 1990, "effective_year_built": 2017},
+        sales=comps,
+    ))
+    sci = r["sales_comparison_indicated"]
+    assert sci["subject_condition_outlier"] is True
+    assert "UNDERSTATES" in sci["condition_direction"]
+    assert sci["basis"] == "size+vintage_matched"  # fell back, did not over-narrow
+
+
+def test_condition_signal_unavailable_without_effective_year():
+    """Hennepin/Mpls comps carry no effective year → signal is 'unavailable' and
+    the median uses plain size+vintage (no effective-age narrowing)."""
+    sales = [{
+        "pid": f"H{i}", "address": f"{i} Henn St", "plat_name": "OTHER",
+        "sale_price": 360_000, "sf": 2000, "year_built": 1990, "lot_acres": 0.2,
+        "emv_total": 380_000, "emv_building": 280_000,
+        "sale_date": f"2025-0{i + 1}-12", "lat": 44.95, "lon": -93.15,
+    } for i in range(6)]
+    r = triage(_data(subject={"living_area_sf": 2000, "parcel_acres": 0.2,
+                              "year_built": 1990}, sales=sales))
+    sci = r["sales_comparison_indicated"]
+    assert "unavailable" in sci["condition_signal"]
+    assert sci["basis"] == "size+vintage_matched"
+    assert sci["condition_verify_shortlist"]  # still lists comps to read
+
+
 def test_tier_screen_integrates_and_reports_diagnostics():
     """A clear higher-tier comp (double the subject's assessed $/SF) is dropped
     from the sales-comp pool, and the diagnostics surface the subject's tier."""

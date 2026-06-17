@@ -110,6 +110,33 @@ def _tier_screen(comps: list[dict], subject_bpsf: float | None) -> tuple[list[di
     return kept, dropped
 
 
+# Effective-age condition refinement (Ramsey only — EffectiveYearBuilt is not
+# published by Hennepin/Minneapolis). Effective age = assessment year − effective
+# year built; it is the assessor's condition/renovation-adjusted age. Within the
+# tier + size + vintage match, prefer comps whose effective age is close to the
+# subject's so the median rests on condition-comparable peers — but RANK/narrow,
+# never hard-cut: when the subject is itself a condition outlier (renovated home
+# in an original neighborhood, or vice versa), narrowing leaves nothing, so we
+# fall back and FLAG the outlier instead — that case is the headline finding, not
+# noise to suppress. The ±20yr band ≈ one condition grade-step (calibrated to the
+# observed effective-age-gap distribution).
+EFF_AGE_BAND = 20      # ± effective-years considered condition-comparable
+EFF_AGE_MIN_KEEP = 3   # below this after narrowing → fall back + flag outlier
+
+# Below this many matched comps the sales-comparison median is thin and the agent
+# should expand the search (the expansion ladder) before relying on it.
+EXPANSION_FLOOR = 5
+
+
+def _effective_age(rec: dict, assess_year: int) -> float | None:
+    """Assessor's condition-adjusted age (assess_year − effective_year_built),
+    or None when the effective year is absent (e.g. all Hennepin comps)."""
+    eyb = rec.get("effective_year_built")
+    if eyb and assess_year:
+        return assess_year - eyb
+    return None
+
+
 def _psf_points(sales: list[dict]) -> list[dict]:
     pts = []
     for s in sales:
@@ -175,6 +202,7 @@ def triage(data: dict, baseline_emv: float | None = None) -> dict:
     lot_sf = (subject.get("parcel_acres") or 0) * SQFT_PER_ACRE
     comps = data.get("neighborhood_comps", [])
     sales = data.get("recent_sales", [])
+    params = data.get("params") or {}
 
     # Corrupt-record quarantine FIRST — a bulk-deed/corrupt $/SF record inside the
     # size band poisons every downstream median, regression, and percentile. Drop
@@ -593,18 +621,85 @@ def triage(data: dict, baseline_emv: float | None = None) -> dict:
             and _in_sf_band((s["lot_acres"] or 0) * SQFT_PER_ACRE, lot_sf)
         ] if lot_sf else []
 
+        # Effective-age condition refinement (Ramsey). Prefer comps within
+        # ±EFF_AGE_BAND effective-years of the subject so the median rests on
+        # condition-comparable peers. RANK/narrow, never hard-cut: if narrowing
+        # leaves too few, the subject is a condition outlier — fall back and flag.
+        subj_effage = _effective_age(subject, current.get("assess_year") or
+                                     int(assess_date[:4]))
+        comp_effages = [
+            _effective_age(s, current.get("assess_year") or int(assess_date[:4]))
+            for s in sv_matched
+        ]
+        have_effage = subj_effage is not None and any(e is not None for e in comp_effages)
+        sve_matched = [
+            s for s, e in zip(sv_matched, comp_effages)
+            if e is not None and abs(e - subj_effage) <= EFF_AGE_BAND
+        ] if have_effage else []
+        # Subject is a condition outlier when effective ages exist and narrowing
+        # collapses an otherwise-healthy set (its effective age sits outside the
+        # neighborhood's), e.g. a renovated subject (low effective age) among
+        # originals — the median is then built from materially different-condition
+        # comps and points the wrong way unless corrected.
+        subject_condition_outlier = bool(
+            have_effage and len(sv_matched) >= 5
+            and len(sve_matched) < EFF_AGE_MIN_KEEP
+        )
+        condition_direction = None
+        if subject_condition_outlier:
+            known = [e for e in comp_effages if e is not None]
+            comp_eff_median = sorted(known)[len(known) // 2] if known else None
+            if comp_eff_median is not None:
+                condition_direction = (
+                    "subject NEWER effective age than peers (assessed as updated/"
+                    "renovated) — peer $/SF median UNDERSTATES the subject"
+                    if subj_effage < comp_eff_median else
+                    "subject OLDER effective age than peers (assessed as more "
+                    "original) — peer $/SF median OVERSTATES the subject"
+                )
+        use_effage = have_effage and len(sve_matched) >= EFF_AGE_MIN_KEEP
+
         def _median(vals: list[float]) -> float | None:
             v = sorted(vals)
             return v[len(v) // 2] if v else None
 
-        # Prefer the tightest available matched set (vintage-matched), but report
-        # which basis was used and the n so the agent can judge reliability.
-        if sv_matched:
+        # Prefer the tightest available matched set, but report which basis was
+        # used and the n so the agent can judge reliability. Effective-age-matched
+        # (Ramsey condition refinement) is preferred over plain size+vintage when
+        # available and not collapsed by a subject-condition outlier.
+        if use_effage:
+            basis_set, basis_label = sve_matched, "size+vintage+effective_age_matched"
+        elif sv_matched:
             basis_set, basis_label = sv_matched, "size+vintage_matched"
         elif size_matched:
             basis_set, basis_label = size_matched, "size_matched_only"
         else:
             basis_set, basis_label = [], "none"
+
+        # Condition-verify shortlist: the grid-driving comps the agent should
+        # actually read for condition (Phase 2) — the closest ~6 by effective-age
+        # proximity (Ramsey) then geographic distance. "Enough, not all": the
+        # house grid only needs to bracket the subject, so verify these, not 30.
+        assess_year_i = current.get("assess_year") or int(assess_date[:4])
+
+        def _verify_key(s: dict) -> tuple:
+            e = _effective_age(s, assess_year_i)
+            eff_gap = abs(e - subj_effage) if (e is not None and subj_effage is not None) else 999
+            return (eff_gap, s.get("distance_miles") or 999)
+
+        condition_verify_shortlist = [
+            {
+                "pid": s.get("pid"),
+                "address": s.get("address"),
+                "effective_age": _effective_age(s, assess_year_i),
+                "effective_age_gap": (
+                    abs(_effective_age(s, assess_year_i) - subj_effage)
+                    if (_effective_age(s, assess_year_i) is not None and subj_effage is not None)
+                    else None
+                ),
+            }
+            for s in sorted(basis_set, key=_verify_key)[:6]
+        ]
         psf_vals = [s["sale_price"] / s["sf"] for s in basis_set]
         median_psf = _median(psf_vals)
         mean_psf = (sum(psf_vals) / len(psf_vals)) if psf_vals else None
@@ -653,6 +748,22 @@ def triage(data: dict, baseline_emv: float | None = None) -> dict:
                 ),
                 "tier_screened_out": tier_dropped,
                 "tier_screen_applied": tier_dropped > 0,
+                # Condition refinement (effective age — Ramsey only). When the
+                # basis is "...+effective_age_matched", the median rests on
+                # condition-comparable peers. subject_condition_outlier flags the
+                # case where the SUBJECT's condition sits outside the
+                # neighborhood — then the median points the wrong way and the
+                # condition_direction note says which way; the agent must verify
+                # the subject. condition_verify_shortlist is the small set of
+                # grid-driving comps to read for condition (Phase 2 agent step).
+                "subject_effective_age": subj_effage,
+                "subject_condition_outlier": subject_condition_outlier,
+                "condition_direction": condition_direction,
+                "condition_signal": (
+                    "effective_age (Ramsey)" if have_effage
+                    else "unavailable — agent condition read required (Hennepin/Mpls)"
+                ),
+                "condition_verify_shortlist": condition_verify_shortlist,
                 "legal_basis": "market value (sale $/SF) — NOT Federated Mutual "
                                "equalization; do not fuse with equalization "
                                "median_implied_total",
@@ -679,6 +790,30 @@ def triage(data: dict, baseline_emv: float | None = None) -> dict:
                     round(median_own_emv_ratio, 2)
                     if median_own_emv_ratio is not None else None
                 ),
+                # Expansion ladder — surfaced when the matched set is thin so the
+                # agent widens the search in supportability order (re-run collect
+                # with the widened flags). Tier is applied in triage, so the
+                # collector never relaxes it — tier is held for last.
+                "expansion": ({
+                    "recommended": True,
+                    "matched_n": len(basis_set),
+                    "floor": EXPANSION_FLOOR,
+                    "current_params": {
+                        k: params.get(k) for k in (
+                            "sales_months", "radius_sales_mi", "radius_comps_mi",
+                            "year_tolerance", "sf_tolerance")
+                    },
+                    "ladder": [
+                        "1. widen --sales-months 24->36 (then time-adjust staler sales)",
+                        "2. widen --radius-sales / --radius-comps",
+                        "3. widen --year-tolerance 20->30",
+                        "4. widen --sf-tolerance 0.30->0.40",
+                        "5. tier screen is HELD (relax only if still thin after 1-4)",
+                        "then eCRV/Beacon for arm's-length sales the API missed; "
+                        "if still thin, the sales approach is thin -> lean on "
+                        "equalization + own sale (appeal-packet 'no tier-matched sale').",
+                    ],
+                } if len(basis_set) < EXPANSION_FLOOR else None),
                 "note": "size+vintage-matched (lot-matched count reported separately), "
                         "distressed- and quarantine-screened sale $/SF × subject SF. "
                         "sold_comp_median_own_emv_ratio ≈ 1.0 ⇒ peers fairly assessed "

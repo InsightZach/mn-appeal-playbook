@@ -29,8 +29,16 @@ COUNTY_RESOLVERS = {
 
 
 def collect(address: str, county: str = "ramsey", radius_comps_mi: float = 0.5,
-            radius_sales_mi: float = 1.0, sales_months: int = 24) -> dict:
-    """Run the full Phase 1 collection for one address. Returns the data dict."""
+            radius_sales_mi: float = 1.0, sales_months: int = 24,
+            sf_tolerance: float = 0.30, year_tolerance: int = 20) -> dict:
+    """Run the full Phase 1 collection for one address. Returns the data dict.
+
+    The band parameters (radius, sales_months, sf_tolerance, year_tolerance) are
+    the levers of the comp-expansion ladder (docs: methodology "Expanding a thin
+    comp set"). When triage reports a thin matched set, widen them in the
+    supportability order — time (sales_months) → radius → vintage (year_tolerance)
+    → size (sf_tolerance) — holding the assessed-$/SF tier screen for last (it is
+    applied in triage, so the collector never relaxes tier)."""
     if county not in COUNTY_RESOLVERS:
         raise ValueError(f"Unsupported county: {county}. Supported: {sorted(COUNTY_RESOLVERS)}")
     cr = COUNTY_RESOLVERS[county]
@@ -117,12 +125,14 @@ def collect(address: str, county: str = "ramsey", radius_comps_mi: float = 0.5,
 
     if sf and year_built:
         comps = cr["comps"](pid=pid, sf=sf, year_built=year_built,
-                            lat=lat, lon=lon, radius_miles=radius_comps_mi)
+                            lat=lat, lon=lon, radius_miles=radius_comps_mi,
+                            sf_tolerance=sf_tolerance, year_tolerance=year_tolerance)
     elif county == "hennepin" and year_built:
         # Suburban Hennepin has no bulk SF source; the Hennepin collector
         # filters on year/distance alone when sf is None.
         comps = cr["comps"](pid=pid, sf=None, year_built=year_built,
-                            lat=lat, lon=lon, radius_miles=radius_comps_mi)
+                            lat=lat, lon=lon, radius_miles=radius_comps_mi,
+                            sf_tolerance=sf_tolerance, year_tolerance=year_tolerance)
     else:
         comps = []
 
@@ -139,9 +149,10 @@ def collect(address: str, county: str = "ramsey", radius_comps_mi: float = 0.5,
         "params": {
             "radius_comps_mi": radius_comps_mi,
             "radius_sales_mi": radius_sales_mi,
+            "sales_months": sales_months,
             "sales_since_date": since,
-            "sf_tolerance": 0.30,
-            "year_tolerance": 20,
+            "sf_tolerance": sf_tolerance,
+            "year_tolerance": year_tolerance,
         },
     }
 
@@ -154,6 +165,10 @@ def main():
     parser.add_argument("--radius-comps", type=float, default=0.5, help="Comp search radius miles")
     parser.add_argument("--radius-sales", type=float, default=1.0, help="Recent sales radius miles")
     parser.add_argument("--sales-months", type=int, default=24, help="Recent sales lookback months")
+    # Expansion-ladder levers (widen in this supportability order when triage
+    # reports a thin matched set: months → radius → year-tol → sf-tol; tier held).
+    parser.add_argument("--sf-tolerance", type=float, default=0.30, help="Comp SF band, ± fraction (expansion lever, widen last)")
+    parser.add_argument("--year-tolerance", type=int, default=20, help="Comp vintage band, ± years (expansion lever)")
     args = parser.parse_args()
 
     out_dir = Path(args.output)
@@ -165,6 +180,8 @@ def main():
         radius_comps_mi=args.radius_comps,
         radius_sales_mi=args.radius_sales,
         sales_months=args.sales_months,
+        sf_tolerance=args.sf_tolerance,
+        year_tolerance=args.year_tolerance,
     )
 
     out_path = out_dir / "collected_data.json"
