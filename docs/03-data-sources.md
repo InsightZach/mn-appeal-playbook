@@ -17,6 +17,30 @@ residential data sources for the two example counties and the traps that produce
 | **MetroGIS parcels** (per-county shapefiles) | Lot geometry, acreage | Both | For lot-size and proximity work |
 | **Beacon / county CAMA card** | Structure detail, grade, condition (CDU) | Where published | Suburban Hennepin has no bulk SF source — owner/MLS fallback |
 | **Listing data** (owner-supplied / MLS) | Photos, interior detail, sale corroboration, condition | Both | Sourced, not scraped — see [listing enrichment guide](../collectors/listing_enrichment.md) |
+| **EffectiveYearBuilt** (assessor's condition-adjusted age) | Effective age — a renovation/condition-adjusted vintage | Ramsey (API) | Ramsey only; Hennepin/Mpls don't publish it. Drives the effective-age comp refinement (below) |
+
+## Condition and quality signals — the cross-county tier, plus Ramsey's effective age
+
+Condition and construction grade drive a large share of $/SF, but they are the **scarcest elements to
+support** and (in Ramsey) absent from the API. The toolkit handles this in three layers, weakest data need
+first:
+
+1. **Assessed building $/SF as a universal tier proxy (both counties).** `emv_building ÷ SF` is the
+   county's own implied quality/condition signal, available everywhere. `scripts/triage.py` uses it as the
+   primary comp **tier screen** — comps outside ~0.60–1.50× the subject's building $/SF are dropped so the
+   sales median rests on same-tier peers (`sales_comparison_indicated.subject_assessed_building_psf` /
+   `tier_screened_out`). This is **TARE secondary-data analysis** (the assessor's data supporting a
+   selection), and it groups by assessment while valuing by sales — never concluding off the disputed value.
+2. **EffectiveYearBuilt — condition refinement (Ramsey only).** Where published, the assessor's
+   condition-adjusted age narrows the median to condition-comparable peers and flags the case where the
+   **subject itself** is the condition outlier (`subject_condition_outlier` + a direction note). Hennepin/
+   Mpls don't publish it, which is exactly why the assessed-$/SF tier — not effective age — is the universal
+   gate.
+3. **The agent condition read (both counties).** For the load-bearing comps the triage shortlists
+   (`condition_verify_shortlist`) and the subject, the agent reads actual condition from listing/CAMA detail
+   and assigns a tier on the methodology house scales — see the [listing enrichment guide](../collectors/listing_enrichment.md)
+   and `run-appeal-review.md` step 3b. A same-tier comp needs **no** condition adjustment (the goal); a
+   divergent load-bearing comp is quantified by cost-to-cure, never an imported table %.
 
 ## Which source has the *new* assessment, and when
 

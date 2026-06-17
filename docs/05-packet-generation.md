@@ -40,9 +40,15 @@ sales grid.
   packet.
 - **Bracket the subject** — at least one comp adjusting up and one adjusting down, so the indicated value
   is interpolated, not extrapolated.
-- **Adjustments need same-type support.** Under *Diamond Lake v. Hennepin County*, an adjustment has to be
-  backed by paired-sales or market evidence of that adjustment — you cannot pull a number from the air.
-  Heavily adjusted comps (gross adjustments over ~50%) get reduced weight; over ~100%, drop the comp.
+- **Every adjustment must reflect the reactions of market participants** and be **derived from *this* comp
+  set** — not pulled from the air or imported from a table (*The Appraisal of Real Estate*, 15th ed., Ch. 21;
+  see [methodology](methodology.md) "Adjustment discipline"). Use whichever of TARE's techniques the data
+  supports, **regression first** — `scripts/triage.py` runs that regression and emits the derived size / age /
+  lot / time rates as `sales_comparison_indicated.derived_adjustments` (each with its n / R² / t-stat /
+  reliability); `analysis/adjustment_grid.py` turns them into the packet's grid. Paired-sales is one
+  technique among several and is rarely findable. Condition / quality come from the agent condition read
+  (cost-to-cure or qualitative bracket), not the regression. Heavily adjusted comps (gross adjustments over
+  ~50%) get reduced weight; over ~100%, drop the comp.
 - **Same county only.** Square-footage basis differs across counties (see [Data Sources](03-data-sources.md)).
 
 ## Reconcile to a defensible number — and never below your own evidence
