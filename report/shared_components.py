@@ -527,12 +527,35 @@ def _clip_line_to_y(x1, y1, x2, y2, ymin, ymax):
     return x1, y1, x2, y2
 
 
+def _auto_trend(data: list[dict]) -> list[dict]:
+    """Least-squares trend line over the scatter points (so every $/SF chart shows a
+    regression line even when the caller didn't pass one). [] if < 3 points."""
+    pts = [(float(d["x"]), float(d["y"])) for d in (data or [])
+           if d.get("x") is not None and d.get("y") is not None]
+    if len(pts) < 3:
+        return []
+    xs = [p[0] for p in pts]
+    ys = [p[1] for p in pts]
+    n = len(xs)
+    mx, my = sum(xs) / n, sum(ys) / n
+    sxx = sum((x - mx) ** 2 for x in xs)
+    if sxx == 0:
+        return []
+    b = sum((x - mx) * (y - my) for x, y in zip(xs, ys)) / sxx
+    return [{"slope": b, "intercept": my - b * mx, "label": "Trend", "color": GOLD}]
+
+
 def render_equalization_scatter_svg(
     data: list[dict],
     subject: dict,
     trends: list[dict],
+    x_label: str = "Size (SF)",
+    y_label: str = "$/SF",
 ) -> str:
-    """Inline SVG scatter of $/SF vs SF with trend lines."""
+    """Inline SVG scatter of $/SF vs a size axis with trend lines. `x_label` names the
+    x-axis (e.g. "Above-grade SF" vs "Lot size (SF)"). When `trends` is empty a
+    least-squares trend line is fit from the data automatically."""
+    trends = trends if trends else _auto_trend(data)
     W, H = 640, 360
     M_L, M_R, M_T, M_B = 60, 20, 25, 45
 
@@ -628,22 +651,24 @@ def render_equalization_scatter_svg(
     if subject and subject.get("x") is not None and subject.get("y") is not None:
         cx = sx(float(subject["x"]))
         cy = sy(float(subject["y"]))
+        # Distinct BLUE halo so the subject stands out from the navy points and never
+        # collides with a (gold) trend line.
         parts.append(
             f'<circle cx="{cx:.1f}" cy="{cy:.1f}" r="9" fill="none" '
-            f'stroke="{GOLD}" stroke-width="3"/>'
+            f'stroke="{BLUE}" stroke-width="3"/>'
             f'<circle cx="{cx:.1f}" cy="{cy:.1f}" r="5" fill="{GOLD}" '
-            f'stroke="{NAVY}" stroke-width="1.5"><title>Subject</title></circle>'
+            f'stroke="{BLUE}" stroke-width="1.5"><title>Subject</title></circle>'
         )
-        legend_items.append(("Subject", GOLD))
+        legend_items.append(("Subject", BLUE))
 
     # axis labels
     parts.append(
         f'<text x="{W/2}" y="{H - 8}" text-anchor="middle" font-size="11" '
-        f'fill="{NAVY}" font-weight="600">Size (SF / Lot)</text>'
+        f'fill="{NAVY}" font-weight="600">{_esc(x_label)}</text>'
     )
     parts.append(
         f'<text x="16" y="{H/2}" text-anchor="middle" font-size="11" '
-        f'fill="{NAVY}" font-weight="600" transform="rotate(-90 16 {H/2})">$/SF</text>'
+        f'fill="{NAVY}" font-weight="600" transform="rotate(-90 16 {H/2})">{_esc(y_label)}</text>'
     )
 
     # legend

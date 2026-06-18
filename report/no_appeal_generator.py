@@ -337,6 +337,7 @@ def _build_equalization_scatter_section(data: dict) -> str:
                 land.get("data") or [],
                 land.get("subject_xy") or {},
                 land.get("trends") or [],
+                x_label=land.get("x_label", "Lot size (SF)"),
             )
         )
         if land.get("caption"):
@@ -350,6 +351,7 @@ def _build_equalization_scatter_section(data: dict) -> str:
                 bldg.get("data") or [],
                 bldg.get("subject_xy") or {},
                 bldg.get("trends") or [],
+                x_label=bldg.get("x_label", "Above-grade SF"),
             )
         )
         if bldg.get("caption"):

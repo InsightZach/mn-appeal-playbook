@@ -135,6 +135,7 @@ def _land_psf_chart(pts, subject_lot_sf, subject_psf, psf_slope, psf_intercept, 
         "subject_xy": {"x": round(subject_lot_sf), "y": round(subject_psf, 1)},
         "trends": [{"slope": psf_slope, "intercept": psf_intercept,
                     "label": "County land $/SF trend", "color": "#d7b971"}],
+        "x_label": "Lot size (SF)",
         "caption": (f"County-assessed land $/SF vs. lot size, {year} comparables. Land $/SF "
                     "falls with lot size; the subject (highlighted) is read against the trend "
                     "at its own lot size."),

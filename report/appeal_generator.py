@@ -379,6 +379,7 @@ def _build_equalization_section(data: dict) -> str:
                     equalization.get("data") or [],
                     equalization.get("subject_xy") or {},
                     equalization.get("trends") or [],
+                    x_label=equalization.get("x_label", "Lot size (SF)"),
                 )
             )
             caption = equalization.get("caption")
@@ -411,6 +412,7 @@ def _build_equalization_section(data: dict) -> str:
                     building_emv_chart.get("data") or [],
                     building_emv_chart.get("subject_xy") or {},
                     building_emv_chart.get("trends") or [],
+                    x_label=building_emv_chart.get("x_label", "Above-grade SF"),
                 )
             )
             caption = building_emv_chart.get("caption")

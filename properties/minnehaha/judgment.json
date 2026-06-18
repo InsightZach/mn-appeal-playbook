@@ -157,7 +157,8 @@
         "y": 245
       },
       "trends": [],
-      "caption": "Assessed building $/SF vs. above-grade SF — subject (highlighted, $245) sits inside the size-matched neighborhood range, just above the median and near the next-door parkway homes."
+      "caption": "Assessed building $/SF vs. above-grade SF — subject (highlighted, $245) sits inside the size-matched neighborhood range, just above the median and near the next-door parkway homes.",
+      "x_label": "Above-grade SF"
     },
     "final_headline": "No Appeal",
     "final_bullets": [
