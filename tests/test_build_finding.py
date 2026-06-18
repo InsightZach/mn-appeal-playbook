@@ -45,6 +45,19 @@ def test_desnoyer_fixture_is_fairly_assessed():
     assert "<h2>Final Recommendation</h2>" in html
 
 
+def test_minnehaha_hennepin_fixture_is_fairly_assessed():
+    """Real Minneapolis (Hennepin) no-appeal worked example — reproduces offline from
+    the tracked judgment.json (the flat-$/SF angle is a big-lot land artifact)."""
+    fx = Path(__file__).parent.parent / "properties" / "minnehaha" / "judgment.json"
+    if not fx.exists():
+        pytest.skip("minnehaha fixture not present")
+    data = build_finding(json.loads(fx.read_text()))
+    assert data["_numbers"]["scenario"] == "fairly_assessed"
+    assert data["subject"]["emv_total"] == 1304800 and data["_numbers"]["reduction"] == 0
+    html = generate_no_appeal_report(data)
+    assert "zestimate" not in html.lower() and "county's own data" not in html.lower()
+
+
 def test_no_central_comps_defaults_fairly_assessed():
     data = build_finding({"subject": _subject(500000), "finding": {}})
     assert data["_numbers"]["scenario"] == "fairly_assessed"

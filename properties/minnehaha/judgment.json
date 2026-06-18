@@ -1,0 +1,82 @@
+{
+  "_doc": "Agent-authored NO-APPEAL judgment for 1000 W Minnehaha Pkwy, Minneapolis (Hennepin, PID 1602824410109). A real Hennepin worked example: subject structure (above-grade SF) comes from the county API via --collected (no Beacon — analysis/structure.py routes Hennepin to collected_data.json). The scenario (fairly_assessed) is DERIVED by build_finding — the flat sales $/SF looks like an angle but it is a big-lot land artifact; land-extraction puts the building at/above EMV. Render: uv run python -m scripts.build_finding properties/minnehaha/judgment.json --analysis properties/minnehaha/analysis.json --collected properties/minnehaha/collected_data.json --output properties/minnehaha/finding.html",
+  "meta": {
+    "assessment_year": 2026,
+    "payable_year": 2027,
+    "brand": "Residential Property Tax Appeal",
+    "report_title": "Assessment Review Findings — 1000 W Minnehaha Pkwy, Minneapolis",
+    "tax_rate": 0.013,
+    "banner": "LIVE REVIEW — Hennepin/Minneapolis assessment + sale data (county API; no Beacon needed — Hennepin publishes above-grade SF). Not a filed document."
+  },
+  "subject": {
+    "address": "1000 W Minnehaha Pkwy, Minneapolis, MN 55419",
+    "pid": "1602824410109",
+    "year_built": 1921,
+    "living_area_sf": 2865,
+    "lot_acres": 0.353,
+    "plat_name": "Minnehaha Blvd Addn to Mpls",
+    "emv_land": 603000,
+    "emv_building": 701800,
+    "emv_total": 1304800
+  },
+  "assessments": [
+    {"tax_year": 2025, "assess_year": 2024, "emv_total": 1238000},
+    {"tax_year": 2026, "assess_year": 2025, "emv_land": 526000, "emv_building": 786600, "emv_total": 1312600},
+    {"tax_year": 2027, "assess_year": 2026, "emv_land": 603000, "emv_building": 701800, "emv_total": 1304800}
+  ],
+  "finding": {
+    "summary_headline": "No clear angle — once the parkway land is set aside, the building is fairly assessed.",
+    "summary_body": "On a raw price-per-square-foot basis the recent neighborhood sales look like they indicate well below the $1,304,800 assessment — but that gap is the prime Minnehaha Parkway land, not the building. The subject sits on a large 0.35-acre parkway lot; its land reads cheap per square foot only because it is big. Setting each comparable's land at the county's own value and comparing buildings, the subject's building is assessed in line with — slightly below — what the market supports. The county also already trimmed the 2026 value. We don't see a clear angle to appeal.",
+    "work_completed": [
+      "Pulled the 3-year assessment history from Hennepin / Minneapolis",
+      "Pulled 150 recent neighborhood sales and 40 size-matched comparables",
+      "Compared the subject's building $/SF to same-size neighborhood peers",
+      "Extracted the county-assessed land from each comparable sale to isolate the building value",
+      "Checked the subject's own sale history against the relevance horizon"
+    ],
+    "findings": [
+      {"title": "The raw $/SF “angle” is a big-lot land artifact",
+       "body": "Flat comparable-sale $/SF (~$393/SF of above-grade area) applied to the subject would imply ~$1,124,000 — about $180,000 under the assessment. But the subject's 0.35-acre Minnehaha Parkway lot is large and prime; its assessed land $/SF sits at the 2nd percentile of the comp set purely because a big lot reads cheap per foot. A flat $/SF mixes that land into the building rate and manufactures a false reduction.", "color": "amber"},
+      {"title": "Extracting the land, the building is fairly assessed",
+       "body": "Setting each comparable sale's land at the county's own land value and dividing the remainder by above-grade area, the building works out to about $249/SF. Applied to the subject's 2,865 SF plus its own assessed land, that indicates roughly <strong>$1,315,000</strong> — about $10,000 <em>above</em> the $1,304,800 assessment. On the land-extraction basis (the right tool for an outlier lot), the building is not over-assessed.", "color": "blue"},
+      {"title": "Building $/SF sits just above peers — and peers are assessed below market",
+       "body": "The subject's building is assessed at $245/SF, just over the $241/SF 80th-percentile of size-matched neighbors (median $215/SF). The immediate parkway block runs both higher and lower — 1010 W Minnehaha next door is assessed at $318/SF. Comparable homes sold at about 1.08× their own assessments (assessed below market), so there is no subject-specific over-assessment to argue.", "color": "blue"},
+      {"title": "The last sale is 15 years stale",
+       "body": "The subject last sold for $775,000 in 2011. Parkway values have roughly doubled since, so that figure is non-evidentiary for the 2026 value — it neither supports nor undercuts the current assessment.", "color": "blue"},
+      {"title": "The county already trimmed the 2026 value",
+       "body": "After a jump to $1,312,600 for 2025, the county reduced the 2026 EMV to $1,304,800 (−$7,800). The aggressive year was already partly corrected.", "color": "blue"}
+    ],
+    "stat_summary": {
+      "properties_analyzed": 40, "sales_analyzed": 150, "models_run": 2, "years_of_history": 3
+    },
+    "regression_conclusions": [
+      {"model_name": "Flat sales $/SF (land-contaminated on a big lot)", "predicted_value": 1124401,
+       "current_emv": 1304800, "delta": -180399, "delta_pct": -13.8},
+      {"model_name": "Land-extraction sales indicator (38 comps — governing)", "predicted_value": 1315363,
+       "current_emv": 1304800, "delta": 10563, "delta_pct": 0.8}
+    ],
+    "bldg_psf_chart": {
+      "data": [
+        {"x": 2468, "y": 127, "label": "5134 Colfax Ave S ($127/SF)"},
+        {"x": 2354, "y": 173, "label": "1001 W Minnehaha Pkwy ($173/SF)"},
+        {"x": 2051, "y": 188, "label": "1110 W Minnehaha Pkwy ($188/SF)"},
+        {"x": 2520, "y": 200, "label": "1011 W Minnehaha Pkwy ($200/SF)"},
+        {"x": 2354, "y": 216, "label": "5112 Dupont Ave S ($216/SF)"},
+        {"x": 2155, "y": 224, "label": "5121 Colfax Ave S ($224/SF)"},
+        {"x": 2129, "y": 235, "label": "5125 Dupont Ave S ($235/SF)"},
+        {"x": 2186, "y": 246, "label": "814 W Minnehaha Pkwy ($246/SF)"},
+        {"x": 2785, "y": 318, "label": "1010 W Minnehaha Pkwy ($318/SF)"}
+      ],
+      "subject_xy": {"x": 2865, "y": 245},
+      "trends": [],
+      "caption": "Assessed building $/SF vs. above-grade SF — subject (highlighted, $245) sits inside the size-matched neighborhood range, just above the median and near the next-door parkway homes."
+    },
+    "final_headline": "No Appeal",
+    "final_bullets": [
+      "The raw $/SF gap is the prime Minnehaha Parkway land, not the building.",
+      "Extracting land from the comparable sales, the building indicates ~$1,315,000 — above the $1,304,800 assessment.",
+      "Building $/SF is just above peers, and the peers are themselves assessed below market.",
+      "The 2011 sale is 15 years stale, and the county already trimmed the 2026 value."
+    ]
+  }
+}
