@@ -167,6 +167,21 @@ overstates; there the lever is **land equalization** (*Federated Mutual*, below)
 The lot adjustment in the grid uses the county land `$/SF` (or the regression's lot coefficient) — one
 ordinary adjustment line, not a special case.
 
+**Cross-check the land line with a single-vintage land regression (`analysis/land_regression.py`).** Because
+extraction *trusts* the county's `emv_land`, test it: regress the county's own assessed land on lot size
+across the neighborhood, then read the curve at the subject's lot size. Triage emits this as
+`land_regression` — an `indicated_land_range`, the subject's `position` (`within_range` → land confirmed;
+`above` → assessed rich for its size, argue down to the line; the gap is `wiggle_room`), and a land-`$/SF`-vs-
+lot-size chart. Land `$/SF` falls with lot size, so this is the only honest way to judge a large-lot
+subject — a flat land `$/SF` percentile reads a big lot as "cheap" purely for being big (the 2nd-percentile
+trap). **Two hard rules:** (1) **single assessment year only** — never mix 2025 and 2026 `emv_land` (a 2026
+subject against a 2025-weighted line looks rich when it isn't; the engine filters by `emv_year` and refuses
+to pad with other years); (2) when the subject's lot is **outside the comp lot range** the line is
+extrapolated — report the `indicated_land_range`, not a false-precision point. Worked example: 1000 W
+Minnehaha Pkwy — the size-blind read flagged the land 2nd-percentile/"cheap," but the size-controlled
+regression put the county's $603K land squarely **within** the $566K–$636K indicated range — confirming the
+land and the no-appeal call (which the board sustained).
+
 ## Equalization (independent basis in Minnesota)
 
 Under *Federated Mutual v. Dakota County*, a property assessed above the level of comparable properties

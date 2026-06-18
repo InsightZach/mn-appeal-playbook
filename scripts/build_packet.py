@@ -353,6 +353,13 @@ def build_packet(judgment: dict, analysis: dict | None = None,
             data["equalization_indicated_note"] = _fmt_narrative(
                 eq_in.get("indicated_note", ""), numbers)
 
+    # Land $/SF regression chart (from triage's land_regression) — an independent
+    # cross-check on the land line. Judgment can override with its own land_psf_chart.
+    if "land_psf_chart" not in data:
+        lr = analysis.get("land_regression") or {}
+        if lr.get("applicable") and lr.get("chart"):
+            data["land_psf_chart"] = lr["chart"]
+
     # Section 7 — Reconciliation + conclusion
     recon = [{"method": "Sales comparison (above-grade)", "value": concluded,
               "role": "Primary — supported market value; governs the request"}]

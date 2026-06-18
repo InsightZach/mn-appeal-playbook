@@ -339,6 +339,10 @@ def _build_equalization_scatter_section(data: dict) -> str:
                 land.get("trends") or [],
             )
         )
+        if land.get("caption"):
+            parts.append(
+                f'<p style="font-size:0.85rem;color:#666;">{_esc(land.get("caption"))}</p>'
+            )
     if bldg:
         parts.append("<h3>Building $/SF</h3>")
         parts.append(
@@ -348,6 +352,10 @@ def _build_equalization_scatter_section(data: dict) -> str:
                 bldg.get("trends") or [],
             )
         )
+        if bldg.get("caption"):
+            parts.append(
+                f'<p style="font-size:0.85rem;color:#666;">{_esc(bldg.get("caption"))}</p>'
+            )
     return _section("".join(parts))
 
 

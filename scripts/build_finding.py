@@ -164,6 +164,13 @@ def build_finding(judgment: dict, analysis: dict | None = None,
         if fin.get(k) is not None:
             data[k] = fin[k]
 
+    # Auto-render the land $/SF regression chart from triage when the judgment didn't
+    # supply one (so --analysis alone gets it; the judgment can still override).
+    if "land_psf_chart" not in data:
+        lr = analysis.get("land_regression") or {}
+        if lr.get("applicable") and lr.get("chart"):
+            data["land_psf_chart"] = lr["chart"]
+
     data["_numbers"] = numbers
     return data
 

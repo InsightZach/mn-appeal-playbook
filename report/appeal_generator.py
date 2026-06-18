@@ -297,7 +297,9 @@ def _build_equalization_section(data: dict) -> str:
     neighbor = data.get("neighbor")
     equalization_table = data.get("equalization_table")
     equalization_grid = data.get("equalization_grid")
-    equalization = data.get("equalization")
+    # The land $/SF scatter: a `land_psf_chart` (from the land-value regression) or the
+    # legacy `equalization` chart dict — same {data, subject_xy, trends, caption} shape.
+    equalization = data.get("land_psf_chart") or data.get("equalization")
     building_emv_chart = data.get("building_emv_chart")
     land_observation = data.get("land_value_observation")
     building_observation = data.get("building_value_observation")

@@ -27,6 +27,7 @@ from analysis.equalization import (
     apply_trend_to_subject,
 )
 from analysis.comp_regression import derive_adjustments
+from analysis.land_regression import compute_land_regression
 
 SQFT_PER_ACRE = 43560
 
@@ -1514,6 +1515,14 @@ def triage(data: dict, baseline_emv: float | None = None) -> dict:
                     equalization.pop("equalized_total_p80")
                 )
 
+    # Land-value regression — an independent cross-check on the county's land line
+    # (and on the extraction add-back). Single-vintage: only comps whose emv_land is
+    # the subject's assessment year (never mix years). Confirms the land or surfaces a
+    # defensible lower bound.
+    land_regression = compute_land_regression(
+        comps + sales, lot_sf, current.get("emv_land"),
+        current.get("assess_year") or int(assess_date[:4]))
+
     return {
         "subject": subject,
         "assess_date": assess_date,
@@ -1526,6 +1535,7 @@ def triage(data: dict, baseline_emv: float | None = None) -> dict:
         "distressed_sales": distressed_sales,
         "quarantined_sales": quarantined_sales,
         "equalization": equalization,
+        "land_regression": land_regression,
         "tax_economics": tax_economics,
         "verdict": verdict,
         "reasons": reasons,
