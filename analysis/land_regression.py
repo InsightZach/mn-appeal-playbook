@@ -14,8 +14,8 @@ the signal:
 
 **CRITICAL — single vintage.** `emv_land` must be one assessment year. Mixing 2025 and
 2026 land values produces a spurious result: a 2026 subject measured against a
-2025-weighted line looks rich when it isn't (the exact wrong-year trap that broke the
-Owlue packet). This module filters comps to `assess_year` and refuses to mix.
+2025-weighted line looks rich when it isn't (the classic wrong-year trap that sinks a
+careless appeal). This module filters comps to `assess_year` and refuses to mix.
 """
 from __future__ import annotations
 
