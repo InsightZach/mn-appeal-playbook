@@ -39,7 +39,9 @@ These two counties teach the two cases any multi-jurisdiction appeal program mus
 | 9 | [Reduction Math](docs/09-reduction-math.md) | Tax savings = reduction × ETR; the prior-year-ETR proxy |
 | 10 | [Data Schema](docs/10-data-schema.md) | Field-by-field shape and source of the collector + triage output |
 
-Plus the [assessor contact directory](contacts/).
+Plus two cross-cutting references:
+- ⭐ **[The Property Record Card (CAMA Inputs)](docs/field-card.md)** — the residential **first lever**. Request the field card before you build anything; correcting the model's inputs (grade, condition, GLA) is often a higher-yield reduction than the sales grid. Spans chapters 3–7.
+- The [assessor contact directory](contacts/).
 
 ## The toolkit
 

@@ -151,5 +151,10 @@ comps that carry weight. See the enrichment step in [`run-appeal-review.md`](../
    first) to corroborate the sale, test the condition angle, and catch SF/year discrepancies — see the
    [listing enrichment guide](../collectors/listing_enrichment.md).
 
+> **Request the full property record card early.** Where the qualitative grades (quality, CDU/condition)
+> aren't in the online data — common for county-assessed Hennepin — submit a records request to the
+> assessor for the field card at the start, not after the packet is built. Those inputs are the
+> residential appeal's first lever: see **[The Property Record Card (CAMA Inputs)](field-card.md)**.
+
 The included collectors in [`collectors/`](../collectors/) implement this for Ramsey and Hennepin. See
 the [data schema](10-data-schema.md) for the exact shape and source of every field they emit.

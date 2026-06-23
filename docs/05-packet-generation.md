@@ -12,6 +12,11 @@ The least rebuttable argument corrects the **assessor's own records**. Lead with
 *this* property as of January 2 of the assessment year. An appraiser can argue with your comp selection;
 it is much harder to argue with a correction to their own data sheet.
 
+> **This is the residential first lever — start here.** Requesting and reading the property record card is
+> a step in its own right, covered in full in **[The Property Record Card (CAMA Inputs)](field-card.md)**:
+> why correcting an input re-rates the value at its source, what the card holds, where to get it by county,
+> and the evidence you need to actually move a grade or condition code.
+
 > **Pull the listing before you commit to a method.** Owner-supplied or public listing data corroborates
 > the sale and tells you whether a condition argument is credible. Photos of a renovated home kill a
 > condition downgrade (and weaken a "high $/SF" equalization point); photos of a distressed home are the
