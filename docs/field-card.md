@@ -76,10 +76,3 @@ Assessors will not drop a condition or grade on assertion alone. Pair the card r
 The card correction is the durable lever; the sales / equalization analysis sets the market anchor and brackets
 the ask. The strongest packets do both: open with the record corrections (least rebuttable), then support the
 concluded value with comps. See [Packet Generation](05-packet-generation.md).
-
-## Also applies to CIA
-
-Commercial, industrial, and apartment values rest on assessor records too — GBA, year built, class, condition,
-and (for income-approach jurisdictions) the assumed rent/vacancy/expense inputs. The same discipline holds:
-**verify the record before arguing the value.** A wrong GBA or building count on the card is the fastest CIA
-correction there is.
